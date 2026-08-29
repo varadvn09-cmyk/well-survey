@@ -1,0 +1,2440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>HydroGeo Field Survey Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #070d18;
+      --navy-950: #0b1326;
+      --navy-900: #101c38;
+      --navy-800: #1a2b4c;
+      --navy-700: #253b66;
+      --navy-600: #354f82;
+      --teal-accent: #0d9488;
+      --teal-light: #14b8a6;
+      --teal-glow: #2dd4bf;
+      --teal-subtle: rgba(20, 184, 166, 0.14);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #253b66;
+      --danger: #f43f5e;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--navy-950) 0%, var(--navy-900) 100%);
+      border-bottom: 2px solid var(--teal-accent);
+      padding: 12px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      background: var(--teal-accent);
+      color: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 0 12px rgba(20, 184, 166, 0.4);
+    }
+
+    .brand-text h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .brand-text p {
+      font-size: 0.72rem;
+      color: var(--teal-light);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .header-gps-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--teal-subtle);
+      border: 1px solid var(--teal-light);
+      color: var(--teal-glow);
+      font-size: 0.72rem;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--teal-glow);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--teal-glow);
+    }
+
+    nav.tab-bar {
+      display: flex;
+      background-color: var(--navy-950);
+      border-bottom: 1px solid var(--navy-700);
+      z-index: 10;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px 16px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      color: var(--teal-glow);
+      border-bottom-color: var(--teal-accent);
+      background: var(--teal-subtle);
+    }
+
+    .tab-btn span.badge {
+      background: var(--navy-700);
+      color: var(--text-main);
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .tab-btn.active span.badge {
+      background: var(--teal-accent);
+      color: #fff;
+    }
+
+    main {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .tab-panel {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow-y: auto;
+      padding: 16px;
+      display: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    .form-section {
+      background: var(--navy-900);
+      border: 1px solid var(--navy-700);
+      border-radius: 10px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .section-header {
+      background: linear-gradient(90deg, var(--navy-800) 0%, rgba(26, 43, 76, 0.5) 100%);
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--navy-700);
+      border-left: 4px solid var(--teal-accent);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .section-code {
+      font-size: 0.72rem;
+      color: var(--teal-light);
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    .section-body {
+      padding: 14px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px 14px;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .field-group label {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .field-group label span.req {
+      color: var(--teal-glow);
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--navy-800);
+      border: 1px solid var(--navy-700);
+      color: var(--text-main);
+      padding: 9px 11px;
+      border-radius: 6px;
+      font-size: 0.86rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--teal-light);
+      box-shadow: 0 0 0 2px var(--teal-subtle);
+    }
+
+    input[readonly] {
+      background: rgba(11, 19, 38, 0.7);
+      color: var(--teal-glow);
+      cursor: not-allowed;
+      font-weight: 600;
+    }
+
+    .input-unit {
+      position: absolute;
+      right: 10px;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      pointer-events: none;
+      font-weight: 600;
+    }
+
+    .geo-btn {
+      background: var(--teal-accent);
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .geo-btn:hover {
+      background: var(--teal-light);
+    }
+
+    /* Method Tabs */
+    .method-tabs-nav {
+      display: flex;
+      background: var(--navy-950);
+      border-radius: 6px;
+      padding: 3px;
+      gap: 4px;
+      margin-bottom: 12px;
+      border: 1px solid var(--navy-700);
+    }
+
+    .method-tab-btn {
+      flex: 1;
+      padding: 8px 10px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      border-radius: 4px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+    }
+
+    .method-tab-btn.active {
+      background: var(--teal-accent);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.4);
+    }
+
+    .method-subpanel {
+      display: none;
+      background: var(--navy-950);
+      border: 1px solid var(--navy-700);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .method-subpanel.active {
+      display: block;
+    }
+
+    .season-card {
+      background: var(--navy-800);
+      border: 1px solid var(--navy-700);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 10px;
+    }
+
+    .season-card-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--teal-light);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .photo-box {
+      border: 2px dashed var(--navy-700);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      background: var(--navy-950);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .photo-preview {
+      max-width: 100%;
+      max-height: 240px;
+      border-radius: 6px;
+      display: none;
+      border: 1px solid var(--teal-light);
+    }
+
+    .litho-grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 6px;
+    }
+
+    .litho-grid th, .litho-grid td {
+      border: 1px solid var(--navy-700);
+      padding: 8px;
+      text-align: left;
+    }
+
+    .litho-grid th {
+      background: var(--navy-800);
+      color: var(--teal-light);
+      font-weight: 600;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+      margin-bottom: 40px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 13px 18px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--teal-accent) 0%, #0f766e 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--navy-800);
+      color: var(--text-muted);
+      border: 1px solid var(--navy-700);
+    }
+
+    .filter-panel {
+      background: var(--navy-900);
+      border: 1px solid var(--navy-700);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    @media (max-width: 768px) {
+      .filter-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .btn-sm {
+      padding: 9px 13px;
+      font-size: 0.82rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--navy-700);
+      background: var(--navy-800);
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    .btn-export {
+      background: var(--teal-accent);
+      border-color: var(--teal-light);
+      color: #fff;
+    }
+
+    .btn-gdrive {
+      background: #1a73e8;
+      border-color: #4285f4;
+      color: #fff;
+    }
+
+    .btn-gdrive:hover {
+      background: #1557b0;
+    }
+
+    .record-card {
+      background: var(--navy-900);
+      border: 1px solid var(--navy-700);
+      border-left: 4px solid var(--teal-accent);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .record-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .record-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .record-meta {
+      font-size: 0.74rem;
+      color: var(--teal-light);
+      margin-top: 2px;
+    }
+
+    .record-badge {
+      background: var(--teal-subtle);
+      border: 1px solid var(--teal-light);
+      color: var(--teal-glow);
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .record-content-row {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .record-thumbnail-wrapper {
+      flex-shrink: 0;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .record-thumbnail {
+      width: 90px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 2px solid var(--teal-accent);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      transition: transform 0.2s ease;
+    }
+
+    .record-thumbnail:hover {
+      transform: scale(1.05);
+      border-color: var(--teal-glow);
+    }
+
+    .thumbnail-tag {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      background: rgba(11, 19, 38, 0.85);
+      color: var(--teal-glow);
+      font-size: 0.62rem;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: bold;
+    }
+
+    .record-grid-info {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 6px 12px;
+      background: var(--navy-800);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+    }
+
+    .record-grid-info div {
+      color: var(--text-muted);
+    }
+
+    .record-grid-info strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .record-btn-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .btn-icon {
+      background: var(--navy-800);
+      border: 1px solid var(--navy-700);
+      color: var(--text-main);
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .btn-icon:hover {
+      background: var(--navy-700);
+    }
+
+    .btn-icon.btn-photo {
+      background: var(--teal-subtle);
+      border-color: var(--teal-light);
+      color: var(--teal-glow);
+    }
+
+    .btn-icon.btn-photo:hover {
+      background: var(--teal-accent);
+      color: #fff;
+    }
+
+    .btn-icon.delete {
+      color: var(--danger);
+      border-color: rgba(244, 63, 94, 0.3);
+    }
+
+    .btn-icon.delete:hover {
+      background: rgba(244, 63, 94, 0.15);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    /* Modal / Lightbox Styles */
+    .photo-modal-backdrop {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(7, 13, 24, 0.88);
+      backdrop-filter: blur(5px);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .photo-modal-backdrop.active {
+      display: flex;
+    }
+
+    .photo-modal-card {
+      background: var(--navy-900);
+      border: 2px solid var(--teal-accent);
+      border-radius: 12px;
+      max-width: 900px;
+      width: 100%;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+      animation: modalFadeIn 0.25s ease-out;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .photo-modal-header {
+      padding: 12px 16px;
+      background: var(--navy-950);
+      border-bottom: 1px solid var(--navy-700);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .photo-modal-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--teal-glow);
+    }
+
+    .photo-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .photo-modal-close:hover {
+      color: #fff;
+      background: var(--navy-800);
+    }
+
+    .photo-modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      background: #030712;
+    }
+
+    .photo-modal-img {
+      max-width: 100%;
+      max-height: 65vh;
+      object-fit: contain;
+      border-radius: 6px;
+      border: 1px solid var(--navy-700);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.6);
+    }
+
+    .photo-modal-info {
+      width: 100%;
+      background: var(--navy-900);
+      border: 1px solid var(--navy-700);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .photo-modal-actions {
+      padding: 10px 16px;
+      background: var(--navy-950);
+      border-top: 1px solid var(--navy-700);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Google Drive Configuration Modal */
+    .gdrive-modal-card {
+      background: var(--navy-900);
+      border: 2px solid #4285f4;
+      border-radius: 12px;
+      max-width: 580px;
+      width: 100%;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--navy-800);
+      border: 1px solid var(--teal-accent);
+      color: var(--teal-glow);
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+      z-index: 10000;
+      opacity: 0;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">
+      <div class="brand-icon">GW</div>
+      <div class="brand-text">
+        <h1>HydroGeo Survey Pro</h1>
+        <p>Groundwater Dug Well Inventory Form (All 11 Talukas)</p>
+      </div>
+    </div>
+    <div class="header-gps-status" onclick="autoFetchGPS()">
+      <div class="status-dot"></div>
+      <span id="gpsStatusText">GPS Auto-Fetch</span>
+    </div>
+  </header>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('newEntry')">
+      📝 New Well Entry
+    </button>
+    <button class="tab-btn" onclick="switchTab('recordsList')">
+      📋 Records List <span class="badge" id="recordCountBadge">0</span>
+    </button>
+  </nav>
+
+  <main>
+    
+    <div id="newEntry" class="tab-panel active">
+      <form id="surveyForm" onsubmit="handleFormSubmit(event)">
+        
+        <div class="form-section">
+          <div class="section-header">
+            <span class="section-title">Survey Officer & Metadata</span>
+            <span class="section-code">META</span>
+          </div>
+          <div class="section-body">
+            <div class="field-group">
+              <label>Sr. No. (Auto)</label>
+              <input type="text" id="srNo" name="srNo" readonly />
+            </div>
+            <div class="field-group">
+              <label>Date of Survey</label>
+              <input type="date" id="surveyDate" name="surveyDate" required />
+            </div>
+            <div class="field-group">
+              <label>Time</label>
+              <input type="time" id="surveyTime" name="surveyTime" required />
+            </div>
+            <div class="field-group">
+              <label>Name of Geologist <span class="req">*</span></label>
+              <input type="text" id="geologistName" name="geologistName" value="VN Nimbalkar" required />
+            </div>
+            <div class="field-group">
+              <label>Designation</label>
+              <input type="text" id="designation" name="designation" value="Assistant Geologist" required />
+            </div>
+            <div class="field-group">
+              <label>Project / Assignment</label>
+              <input type="text" id="projectAssignment" name="projectAssignment" value="1.10K Groundwater Prospect Map" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <span class="section-title">A. Well Location & Complete Sheet 2 Lookup</span>
+            <span class="section-code">SEC-A</span>
+          </div>
+          <div class="section-body">
+            
+            <div class="field-group">
+              <label>District</label>
+              <input type="text" id="district" name="district" value="Solapur" readonly />
+            </div>
+
+            <div class="field-group">
+              <label>Taluka (Select 1 of 11 Talukas)</label>
+              <select id="taluka" name="taluka" onchange="onTalukaChange()"></select>
+            </div>
+
+            <div class="field-group">
+              <label>Village Name (Select from 1,167 Villages)</label>
+              <select id="village" name="village" onchange="onVillageChange()"></select>
+            </div>
+
+            <div class="field-group">
+              <label>G.P. Name (Auto-filled)</label>
+              <input type="text" id="gpName" name="gpName" readonly />
+            </div>
+
+            <div class="field-group">
+              <label>Census No. 2011 (Auto-filled)</label>
+              <input type="text" id="censusNo" name="censusNo" readonly />
+            </div>
+
+            <div class="field-group">
+              <label>Gat / Survey No. <span class="req">*</span></label>
+              <input type="text" id="gatNo" name="gatNo" placeholder="e.g. 60" required />
+            </div>
+
+            <div class="field-group">
+              <label>Mini Watershed No. (Auto-filled)</label>
+              <input type="text" id="watershedNo" name="watershedNo" readonly />
+            </div>
+
+            <div class="field-group">
+              <label>Toposheet / 10K Sheet No. (Auto-filled)</label>
+              <input type="text" id="sheet10k" name="sheet10k" />
+            </div>
+
+            <div class="field-group">
+              <label>Quadrant No. (10K Sheet)</label>
+              <input type="text" id="quadrantNo" name="quadrantNo" placeholder="e.g. D4, B4" />
+            </div>
+
+            <div class="field-group full-width">
+              <label>GPS Coordinates (Lat, Long) & Elevation <span class="req">*</span></label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="gpsCoords" name="gpsCoords" placeholder="e.g. 17.561643, 76.134107" required onchange="calculateAltitudeFromCoords()" />
+                <button type="button" class="geo-btn" onclick="autoFetchGPS()">📍 Lock GPS</button>
+              </div>
+              <small style="color: var(--teal-light); font-size: 0.7rem; margin-top: 4px;">
+                💡 Tip: On mobile phones, ensure Location / GPS is turned ON in phone settings and your browser has location permission enabled.
+              </small>
+            </div>
+
+            <div class="field-group">
+              <label>Calculated Altitude (m.MSL)</label>
+              <div class="input-wrapper">
+                <input type="text" id="altitudeGL" name="altitudeGL" readonly placeholder="Auto-calculated MSL" />
+                <span class="input-unit">m</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Well No. (10K Sheet Seq)</label>
+              <input type="number" id="wellSeqNo" name="wellSeqNo" placeholder="e.g. 1" />
+            </div>
+
+            <div class="field-group">
+              <label>Type of Well <span class="req">*</span></label>
+              <select id="wellType" name="wellType" required>
+                <option value="Dug Well">Dug Well (DW)</option>
+                <option value="Dug Cum Borewell">Dug Cum Borewell (DCB)</option>
+                <option value="Borewell">Borewell (BW)</option>
+                <option value="Tubewell">Tubewell (TW)</option>
+              </select>
+            </div>
+
+            <div class="field-group full-width">
+              <label>Well Owner's Name <span class="req">*</span></label>
+              <input type="text" id="ownerName" name="ownerName" placeholder="e.g. Nilabai Gaikwad" required />
+            </div>
+
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <span class="section-title">Command Area & Reservoir / Canal Proximity</span>
+            <span class="section-code">COMMAND</span>
+          </div>
+          <div class="section-body">
+            <div class="field-group">
+              <label>Reservoir (Project) Type</label>
+              <select id="reservoirType" name="reservoirType">
+                <option value="PT">PT (Percolation Tank)</option>
+                <option value="Minor">Minor</option>
+                <option value="Medium">Medium</option>
+                <option value="Major">Major</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Distance & Direction of Reservoir from Well</label>
+              <input type="text" id="reservoirDistDir" name="reservoirDistDir" placeholder="e.g. 250m Due South" />
+            </div>
+
+            <div class="field-group">
+              <label>Name of the Nearest Canal of Project</label>
+              <input type="text" id="canalName" name="canalName" placeholder="e.g. Left Bank Main Canal" />
+            </div>
+
+            <div class="field-group">
+              <label>Distance & Direction of Canal from Well</label>
+              <input type="text" id="canalDistDir" name="canalDistDir" placeholder="e.g. 500m Due East" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <span class="section-title">B. Dimensions & Construction</span>
+            <span class="section-code">SEC-B</span>
+          </div>
+          <div class="section-body">
+            <div class="field-group">
+              <label>Measurement Point (MP)</label>
+              <select id="mpLocation" name="mpLocation">
+                <option value="Due East">Due East</option>
+                <option value="Due West" selected>Due West</option>
+                <option value="Due North">Due North</option>
+                <option value="Due South">Due South</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Parapet Height</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.01" id="parapetHeight" name="parapetHeight" placeholder="0.0" />
+                <span class="input-unit">m</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Inner Diameter (Top)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="diaTop" name="diaTop" placeholder="9.5" />
+                <span class="input-unit">m</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Inner Diameter (Bottom)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="diaBottom" name="diaBottom" placeholder="8.0" />
+                <span class="input-unit">m</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Depth of Dug Well (DW)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="depthWell" name="depthWell" placeholder="7.5" />
+                <span class="input-unit">m.bgl</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Depth of In-well Borehole</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="depthInwellBore" name="depthInwellBore" placeholder="0 if none" />
+                <span class="input-unit">m</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Lining / Curbing Material</label>
+              <select id="liningMaterial" name="liningMaterial">
+                <option value="Stone pitching">Stone pitching</option>
+                <option value="RCC">RCC</option>
+                <option value="Brick masonry">Brick masonry</option>
+                <option value="Unlined">Unlined</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Year of Construction</label>
+              <input type="number" id="yearConstruction" name="yearConstruction" placeholder="1985" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <span class="section-title">C. Groundwater Levels, Pumping & Recuperation</span>
+            <span class="section-code">SEC-C</span>
+          </div>
+          <div class="section-body">
+            <div class="field-group">
+              <label>Pump Type</label>
+              <select id="pumpType" name="pumpType">
+                <option value="Submersible">Submersible</option>
+                <option value="Monoblock">Monoblock</option>
+                <option value="Open Well Submersible">Open Well Submersible</option>
+                <option value="Solar Pump">Solar Pump</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Mode of Power</label>
+              <select id="powerMode" name="powerMode">
+                <option value="Electric">Electric</option>
+                <option value="Solar">Solar</option>
+                <option value="Diesel">Diesel</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Pump Capacity (HP)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.5" id="pumpHP" name="pumpHP" placeholder="3" />
+                <span class="input-unit">HP</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Static Water Level (Winter)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="swlWinter" name="swlWinter" placeholder="4.0" />
+                <span class="input-unit">m.bgl</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Static Water Level (Summer)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="swlSummer" name="swlSummer" placeholder="7.5" />
+                <span class="input-unit">m.bgl</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Depth to Pumped Level (DWL/PWL)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="dwl" name="dwl" placeholder="5.5" />
+                <span class="input-unit">m.bgl</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Recuperation Time (Winter)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.5" id="recupWinter" name="recupWinter" placeholder="18" />
+                <span class="input-unit">Hrs</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Recuperation Time (Summer)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.5" id="recupSummer" name="recupSummer" placeholder="24" />
+                <span class="input-unit">Hrs</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Winter Pumping Hours</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.5" id="pumpDurationWinter" name="pumpDurationWinter" placeholder="5" />
+                <span class="input-unit">Hrs/day</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Summer Pumping Hours</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.5" id="pumpDurationSummer" name="pumpDurationSummer" placeholder="2" />
+                <span class="input-unit">Hrs/day</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Well Status</label>
+              <select id="wellStatus" name="wellStatus">
+                <option value="Seasonal well">Seasonal well</option>
+                <option value="Perennial well">Perennial well</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <span class="section-title">D & E. Land Holding & Cropping Details</span>
+            <span class="section-code">CROPS</span>
+          </div>
+          <div class="section-body">
+            
+            <div class="field-group">
+              <label>Total Land Holding at Well Site <span class="req">*</span></label>
+              <div class="input-wrapper">
+                <input type="number" step="0.01" id="totalLandHolding" name="totalLandHolding" placeholder="e.g. 1.2" required oninput="calculateTotalCropHoldings()" />
+                <span class="input-unit">Ha</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Cultivable Land Holding</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.01" id="cultivableLand" name="cultivableLand" placeholder="e.g. 1.0" />
+                <span class="input-unit">Ha</span>
+              </div>
+            </div>
+
+            <div class="full-width" style="margin-top: 6px;">
+              <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700;">1. CROPPING PATTERN (SELECT DROPDOWNS)</label>
+            </div>
+
+            <div class="field-group">
+              <label>Kharif Crop 1</label>
+              <select id="kharifCrop1" name="kharifCrop1">
+                <option value="Tur" selected>Tur</option>
+                <option value="Jowar">Jowar</option>
+                <option value="Soybean">Soybean</option>
+                <option value="Cotton">Cotton</option>
+                <option value="Mug">Mug</option>
+                <option value="Udid">Udid</option>
+                <option value="Bajra">Bajra</option>
+                <option value="Maize">Maize</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Kharif Crop 2</label>
+              <select id="kharifCrop2" name="kharifCrop2">
+                <option value="None">None</option>
+                <option value="Jowar" selected>Jowar</option>
+                <option value="Tur">Tur</option>
+                <option value="Mug">Mug</option>
+                <option value="Udid">Udid</option>
+                <option value="Soybean">Soybean</option>
+                <option value="Cotton">Cotton</option>
+                <option value="Bajra">Bajra</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Rabi Crop 1</label>
+              <select id="rabiCrop1" name="rabiCrop1">
+                <option value="Wheat" selected>Wheat</option>
+                <option value="Gram">Gram</option>
+                <option value="Jowar">Jowar</option>
+                <option value="Onion">Onion</option>
+                <option value="Sunflower">Sunflower</option>
+                <option value="Maize">Maize</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Rabi Crop 2</label>
+              <select id="rabiCrop2" name="rabiCrop2">
+                <option value="None">None</option>
+                <option value="Gram" selected>Gram</option>
+                <option value="Wheat">Wheat</option>
+                <option value="Jowar">Jowar</option>
+                <option value="Onion">Onion</option>
+                <option value="Sunflower">Sunflower</option>
+                <option value="Vegetables">Vegetables</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Perennial Crop 1</label>
+              <select id="perennialCrop1" name="perennialCrop1">
+                <option value="Sugarcane" selected>Sugarcane</option>
+                <option value="Pomegranate">Pomegranate</option>
+                <option value="Banana">Banana</option>
+                <option value="Grapes">Grapes</option>
+                <option value="Citrus">Citrus</option>
+                <option value="Guava">Guava</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Perennial Crop 2</label>
+              <select id="perennialCrop2" name="perennialCrop2">
+                <option value="None" selected>None</option>
+                <option value="Sugarcane">Sugarcane</option>
+                <option value="Pomegranate">Pomegranate</option>
+                <option value="Banana">Banana</option>
+                <option value="Grapes">Grapes</option>
+                <option value="Citrus">Citrus</option>
+                <option value="Guava">Guava</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Summer Crop 1</label>
+              <select id="summerCrop1" name="summerCrop1">
+                <option value="Groundnut" selected>Groundnut</option>
+                <option value="Maize">Maize</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Fodder">Fodder</option>
+                <option value="Watermelon">Watermelon</option>
+                <option value="Pulses">Pulses</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label>Summer Crop 2</label>
+              <select id="summerCrop2" name="summerCrop2">
+                <option value="None" selected>None</option>
+                <option value="Groundnut">Groundnut</option>
+                <option value="Maize">Maize</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Fodder">Fodder</option>
+                <option value="Watermelon">Watermelon</option>
+              </select>
+            </div>
+
+            <div class="full-width" style="margin-top: 14px;">
+              <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700; margin-bottom: 6px; display: block;">
+                2. LAND HOLDING BY IRRIGATION METHOD (FLOOD / DRIP / SPRINKLER)
+              </label>
+
+              <div class="method-tabs-nav">
+                <button type="button" class="method-tab-btn active" onclick="switchMethodTab('floodTab', this)">🌊 Flood Irrigation</button>
+                <button type="button" class="method-tab-btn" onclick="switchMethodTab('dripTab', this)">💧 Drip Irrigation</button>
+                <button type="button" class="method-tab-btn" onclick="switchMethodTab('sprinklerTab', this)">🚿 Sprinkler Irrigation</button>
+              </div>
+
+              <div id="floodTab" class="method-subpanel active">
+                <div class="season-card">
+                  <div class="season-card-title">Kharif Crop Land (Flood)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Kharif Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="kharifFloodHa1" name="kharifFloodHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Kharif Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="kharifFloodHa2" name="kharifFloodHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="season-card">
+                  <div class="season-card-title">Rabi Crop Land (Flood)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Rabi Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="rabiFloodHa1" name="rabiFloodHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Rabi Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="rabiFloodHa2" name="rabiFloodHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="season-card">
+                  <div class="season-card-title">Perennial Crop Land (Flood)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Perennial Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="perennialFloodHa1" name="perennialFloodHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Perennial Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="perennialFloodHa2" name="perennialFloodHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="season-card">
+                  <div class="season-card-title">Summer Crop Land (Flood)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Summer Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="summerFloodHa1" name="summerFloodHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Summer Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="summerFloodHa2" name="summerFloodHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="dripTab" class="method-subpanel">
+                <div class="season-card">
+                  <div class="season-card-title">Kharif Crop Land (Drip)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Kharif Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="kharifDripHa1" name="kharifDripHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Kharif Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="kharifDripHa2" name="kharifDripHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="season-card">
+                  <div class="season-card-title">Rabi Crop Land (Drip)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Rabi Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="rabiDripHa1" name="rabiDripHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Rabi Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="rabiDripHa2" name="rabiDripHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="season-card">
+                  <div class="season-card-title">Perennial Crop Land (Drip)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Perennial Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="perennialDripHa1" name="perennialDripHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Perennial Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="perennialDripHa2" name="perennialDripHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="season-card">
+                  <div class="season-card-title">Summer Crop Land (Drip)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Summer Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="summerDripHa1" name="summerDripHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Summer Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="summerDripHa2" name="summerDripHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="sprinklerTab" class="method-subpanel">
+                <div class="season-card">
+                  <div class="season-card-title">Kharif Crop Land (Sprinkler)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Kharif Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="kharifSprinklerHa1" name="kharifSprinklerHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Kharif Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="kharifSprinklerHa2" name="kharifSprinklerHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="season-card">
+                  <div class="season-card-title">Rabi Crop Land (Sprinkler)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Rabi Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="rabiSprinklerHa1" name="rabiSprinklerHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Rabi Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="rabiSprinklerHa2" name="rabiSprinklerHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="season-card">
+                  <div class="season-card-title">Summer Crop Land (Sprinkler)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group">
+                      <label>Summer Crop 1 (Ha)</label>
+                      <input type="number" step="0.01" id="summerSprinklerHa1" name="summerSprinklerHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                    <div class="field-group">
+                      <label>Summer Crop 2 (Ha)</label>
+                      <input type="number" step="0.01" id="summerSprinklerHa2" name="summerSprinklerHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="full-width" style="margin-top: 10px;">
+              <label style="font-size: 0.8rem; color: var(--teal-light); font-weight: 700;">3. TOTAL CALCULATED LAND HOLDINGS PER SEASON (HA)</label>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 6px;">
+                <div class="field-group">
+                  <label>Total Kharif (Ha)</label>
+                  <input type="text" id="totalKharifHa" name="totalKharifHa" readonly value="0.00" />
+                </div>
+                <div class="field-group">
+                  <label>Total Rabi (Ha)</label>
+                  <input type="text" id="totalRabiHa" name="totalRabiHa" readonly value="0.00" />
+                </div>
+                <div class="field-group">
+                  <label>Total Perennial (Ha)</label>
+                  <input type="text" id="totalPerennialHa" name="totalPerennialHa" readonly value="0.00" />
+                </div>
+                <div class="field-group">
+                  <label>Total Summer (Ha)</label>
+                  <input type="text" id="totalSummerHa" name="totalSummerHa" readonly value="0.00" />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <span class="section-title">F. Geological Formation & Lithology</span>
+            <span class="section-code">SEC-F</span>
+          </div>
+          <div class="section-body">
+            <div class="field-group full-width">
+              <label>Formation Name</label>
+              <input type="text" id="geologyFormation" name="geologyFormation" value="Deccan Trap Basalt" />
+            </div>
+            
+            <div class="full-width">
+              <label style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">LITHOLOGICAL SECTION OBSERVED</label>
+              <table class="litho-grid">
+                <thead>
+                  <tr>
+                    <th style="width: 120px;">Depth (m.bgl)</th>
+                    <th>Lithology Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>0.0 - <input type="number" step="0.1" id="lithoDepth1" style="width: 50px; padding: 2px 4px; display:inline;" value="1.0" /></td>
+                    <td>
+                      <select id="lithoType1">
+                        <option value="Black Cotton Soil">Black Cotton Soil (BC Soil)</option>
+                        <option value="Sandy Loam Soil">Sandy Loam Soil</option>
+                        <option value="Red Soil">Red Soil</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>To <input type="number" step="0.1" id="lithoDepth2" style="width: 50px; padding: 2px 4px; display:inline;" value="5.0" /></td>
+                    <td>
+                      <select id="lithoType2">
+                        <option value="Highly Weathered Basalt">Highly Weathered Basalt</option>
+                        <option value="Moderately Weathered Basalt">Moderately Weathered Basalt</option>
+                        <option value="Soft Murrum">Soft Murrum</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>To <input type="number" step="0.1" id="lithoDepth3" style="width: 50px; padding: 2px 4px; display:inline;" value="7.0" /></td>
+                    <td>
+                      <select id="lithoType3">
+                        <option value="Fractured/ Jointed Vesicular Basalt">Fractured/ Jointed Vesicular Basalt</option>
+                        <option value="Jointed Compact Basalt">Jointed Compact Basalt</option>
+                        <option value="Amygdaloidal Basalt">Amygdaloidal Basalt</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>To Bottom</td>
+                    <td>
+                      <select id="lithoType4">
+                        <option value="Massive Basalt">Massive Basalt (Hard & Compact)</option>
+                        <option value="Dense Basalt">Dense Basalt</option>
+                        <option value="Zeolitic Basalt">Zeolitic Basalt</option>
+                      </select>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="field-group full-width">
+              <label>Field Observations & Remarks</label>
+              <textarea id="remarks" name="remarks" rows="2" placeholder="e.g. Near percolation tank, seasonal well, feeding farm pond."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="section-header">
+            <span class="section-title">Well Site Photograph with Watermark Stamp</span>
+            <span class="section-code">PHOTO</span>
+          </div>
+          <div class="section-body">
+            <div class="full-width photo-box">
+              <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="processWatermarkedPhoto(event)" />
+              <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <button type="button" class="btn-sm btn-export" style="padding: 10px 18px; font-size: 0.9rem;" onclick="document.getElementById('cameraInput').click()">
+                  📷 Take / Upload Stamped Photo
+                </button>
+                <button type="button" id="removePhotoBtn" class="btn-sm" style="display: none; background: rgba(244, 63, 94, 0.2); border-color: var(--danger); color: #fca5a5;" onclick="clearCurrentPhoto()">
+                  ❌ Remove Photo
+                </button>
+              </div>
+              <img id="photoPreview" class="photo-preview" alt="Watermarked Well Site Photo" onclick="previewCurrentPhotoModal()" title="Click to view full size" style="cursor: zoom-in;" />
+              <p id="noPhotoText" style="font-size: 0.76rem; color: var(--text-muted);">
+                Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">💾 Save Well Record</button>
+          <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset Form</button>
+        </div>
+
+      </form>
+    </div>
+
+    <div id="recordsList" class="tab-panel">
+      
+      <div class="filter-panel">
+        <input type="text" id="searchBar" placeholder="🔍 Search owner, village, census no, gat no..." oninput="applyFilters()" />
+        
+        <select id="filterTaluka" onchange="applyFilters()">
+          <option value="">All Talukas</option>
+        </select>
+
+        <select id="filterWellType" onchange="applyFilters()">
+          <option value="">All Well Types</option>
+          <option value="Dug Well">Dug Well</option>
+          <option value="Dug Cum Borewell">Dug Cum Borewell</option>
+          <option value="Borewell">Borewell</option>
+        </select>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn-sm btn-export" onclick="exportToExcel()">📊 Export Excel (.xlsx)</button>
+          <button class="btn-sm btn-gdrive" onclick="openGDriveModal()">📁 Google Drive Link</button>
+        </div>
+      </div>
+
+      <div id="recordsContainer"></div>
+    </div>
+
+  </main>
+
+  <!-- PHOTO MODAL / VIEWER LIGHTBOX -->
+  <div id="photoModalBackdrop" class="photo-modal-backdrop" onclick="closePhotoModal(event)">
+    <div class="photo-modal-card" onclick="event.stopPropagation()">
+      <div class="photo-modal-header">
+        <div class="photo-modal-title" id="photoModalTitle">📷 Well Site Watermarked Photograph</div>
+        <button class="photo-modal-close" onclick="closePhotoModal()">&times;</button>
+      </div>
+      <div class="photo-modal-body">
+        <img id="photoModalImg" class="photo-modal-img" src="" alt="Well Site Watermarked Photo" />
+        <div class="photo-modal-info" id="photoModalInfo"></div>
+      </div>
+      <div class="photo-modal-actions">
+        <button type="button" class="btn-sm btn-export" onclick="downloadModalPhoto()">💾 Download Photo</button>
+        <button type="button" class="btn-sm" onclick="closePhotoModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOOGLE DRIVE LINK / CLOUD FOLDER MODAL -->
+  <div id="gdriveModalBackdrop" class="photo-modal-backdrop" onclick="closeGDriveModal(event)">
+    <div class="gdrive-modal-card" onclick="event.stopPropagation()">
+      <div class="photo-modal-header" style="background:transparent; padding:0; border-bottom:1px solid var(--navy-700); padding-bottom:8px;">
+        <div class="photo-modal-title" style="color: #4285f4; font-size:1.05rem;">📁 Google Drive Survey Folder Link</div>
+        <button class="photo-modal-close" onclick="closeGDriveModal()">&times;</button>
+      </div>
+      
+      <p style="font-size:0.82rem; color:var(--text-muted); line-height: 1.4;">
+        Set your designated Google Drive folder link to easily upload exported Excel sheets and photos, or click <strong>Open Drive</strong> to go directly to your backup folder.
+      </p>
+
+      <div class="field-group">
+        <label>Your Google Drive Survey Folder URL</label>
+        <input type="url" id="gdriveUrlInput" placeholder="https://drive.google.com/drive/folders/..." />
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px;">
+        <button type="button" class="btn-sm" onclick="saveGDriveLink()">💾 Save Link</button>
+        <button type="button" class="btn-sm btn-gdrive" onclick="openDirectGDrive()">🚀 Open Google Drive</button>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="stampCanvas" style="display: none;"></canvas>
+  <div id="toast">Notice message</div>
+
+  <script>
+    // --- COMPLETE SHEET 2 LOOKUP DATABASE (11 Talukas, 1167 Villages) ---
+    const SHEET2_FULL_DATABASE = {
+      "Akkalkot": [
+        ["Akkalkot rual", "", "562839", "BM-133 (1/5)", "56 C/2", 17.523611, 76.223611],
+        ["Alge", "", "562846", "BM-138 (6/10)", "56 C/2", 17.484722, 76.1375],
+        ["Anandnagar", "", "562817", "BM-133 (3/5)", "56 C/2", 17.5875, 76.223611],
+        ["Arjunnagar", "", "562887", "BM-133 (5/5)", "56 C/2", 17.443056, 76.265278],
+        ["Badalgaon", "", "562870", "BM-138 (10/10)", "56 C/2", 17.408333, 76.177778],
+        ["Bankalgi", "", "562745", "SA-41 (5/7)", "47/O/15", 17.490278, 75.969444],
+        ["Basavnagar", "", "562768", "BM-134 (2/6)", "56 C/2", 17.654167, 76.195833],
+        ["Bagehalli", "", "562858", "BM-138 (7/10)", "56 C/2", 17.4625, 76.191667],
+        ["Bavkerur", "", "562760", "BM-138 (2/10)", "56 C/2", 17.633333, 76.155556],
+        ["Bhadole", "", "562852", "BM-138 (7/10)", "56 C/2", 17.472222, 76.191667],
+        ["Bhopalgaon", "", "562857", "BM-138 (7/10)", "56 C/2", 17.470833, 76.216667],
+        ["Borgaon", "", "562770", "BM-134 (3/6)", "56 C/2", 17.633333, 76.208333],
+        ["Bori", "", "562772", "BM-134 (2/6)", "56 C/2", 17.6375, 76.191667],
+        ["Boral", "", "562752", "BM-138 (2/10)", "56 C/2", 17.5875, 76.158333],
+        ["Burhanpur", "", "562847", "BM-138 (6/10)", "56 C/2", 17.479167, 76.158333],
+        ["Chapalgaon", "", "562810", "BM-138 (1/10)", "56 C/2", 17.5512, 76.1023],
+        ["Chapalgaonwadi", "Chapalgaon", "562811", "BM-138 (1/10)", "56 C/2", 17.545833, 76.1125],
+        ["Chikhali", "", "562842", "BM-138 (6/10)", "56 C/2", 17.5, 76.133333],
+        ["Chincholi", "", "562766", "BM-134 (2/6)", "56 C/2", 17.625, 76.2375],
+        ["Dahitane", "", "562804", "SA-41 (7/7)", "47 O/14", 17.3875, 75.9125],
+        ["Darregav", "", "562807", "BM-138 (1/10)", "56 C/2", 17.5375, 76.0875],
+        ["Dharsang", "", "562802", "SA-41 (7/7)", "47 O/14", 17.376389, 75.905556],
+        ["Dodyal", "", "562840", "BM-138 (5/10)", "56 C/2", 17.496622, 76.156076],
+        ["Dudhani", "", "562886", "BM-133 (5/5)", "56 C/2", 17.3625, 76.2875],
+        ["Gaudgaon Bk.", "", "562818", "BM-133 (3/5)", "56 C/2", 17.575, 76.241667],
+        ["Gaudgaon Kh.", "", "562819", "BM-133 (3/5)", "56 C/2", 17.570833, 76.25],
+        ["Gote", "", "562826", "BM-133 (2/5)", "56 C/2", 17.525, 76.2625],
+        ["Gugagav", "", "562879", "BM-133 (5/5)", "56 C/2", 17.416667, 76.258333],
+        ["Halchincholi", "", "562867", "BM-133 (4/5)", "56 C/2", 17.441667, 76.241667],
+        ["Handral", "", "562860", "BM-138 (7/10)", "56 C/2", 17.433333, 76.191667],
+        ["Hattikanbale", "", "562848", "BM-138 (6/10)", "56 C/2", 17.470833, 76.166667],
+        ["Huljanti", "", "562863", "BM-138 (8/10)", "56 C/2", 17.425, 76.125],
+        ["Itagi", "", "562865", "BM-138 (8/10)", "56 C/2", 17.420833, 76.1625],
+        ["Jeur", "", "562850", "BM-138 (7/10)", "56 C/2", 17.46852, 76.11819],
+        ["Kalkarjal", "", "562801", "SA-41 (7/7)", "47 O/14", 17.390278, 75.922222],
+        ["Karjal", "", "562831", "BM-138 (3/10)", "56 C/2", 17.567301, 76.113969],
+        ["Konhali", "", "562832", "BM-138 (4/10)", "56 C/2", 17.561643, 76.134107],
+        ["Korsegaon", "", "562835", "BM-138 (4/10)", "56 C/2", 17.533333, 76.15],
+        ["Magehalli", "", "562859", "BM-138 (7/10)", "56 C/2", 17.445833, 76.183333],
+        ["Maindargi", "", "562874", "BM-133 (4/5)", "56 C/2", 17.466667, 76.3],
+        ["Mangrul", "", "562816", "BM-133 (3/5)", "56 C/2", 17.583333, 76.2],
+        ["Mundhewadi", "", "562796", "SA-41 (7/7)", "47 O/14", 17.4, 75.95],
+        ["Navindgi", "", "562884", "BM-133 (5/5)", "56 C/2", 17.3875, 76.2625],
+        ["Nimbargi", "", "562803", "SA-41 (7/7)", "47 O/14", 17.354167, 75.941667],
+        ["Rampur", "", "562837", "BM-138 (4/10)", "56 C/2", 17.533333, 76.183333],
+        ["Sultanpur", "", "562843", "BM-138 (6/10)", "56 C/2", 17.491667, 76.125],
+        ["Tadwal", "", "562799", "SA-41 (7/7)", "47 O/14", 17.4125, 75.9125],
+        ["Tolnur", "", "562838", "BM-138 (4/10)", "56 C/2", 17.516667, 76.175],
+        ["Vagdari", "", "562744", "SA-41 (5/7)", "47/O/15", 17.533333, 75.983333]
+      ],
+      "Barshi": [
+        ["Agilnale", "", "561937", "BM-60 (1/4)", "47 N/3", 18.233333, 75.816667],
+        ["Alipur", "", "561952", "BM-60 (2/4)", "47 N/3", 18.208333, 75.766667],
+        ["Babhulgaon", "", "561971", "BM-60 (4/4)", "47 N/3", 18.15, 75.783333],
+        ["Bairagwadi", "", "561942", "BM-60 (1/4)", "47 N/3", 18.266667, 75.833333],
+        ["Barshi Rural", "", "561965", "BM-60 (3/4)", "47 N/3", 18.233333, 75.683333],
+        ["Belgaon", "", "561973", "BM-60 (4/4)", "47 N/3", 18.116667, 75.8],
+        ["Bhatambare", "", "561958", "BM-60 (2/4)", "47 N/3", 18.183333, 75.733333],
+        ["Chare", "", "561939", "BM-60 (1/4)", "47 N/3", 18.283333, 75.8],
+        ["Chikharde", "", "561977", "BM-60 (4/4)", "47 N/3", 18.1, 75.766667],
+        ["Dahitane", "", "561953", "BM-60 (2/4)", "47 N/3", 18.2, 75.783333],
+        ["Dharmapur", "", "561962", "BM-60 (3/4)", "47 N/3", 18.216667, 75.7],
+        ["Dudhali", "", "561945", "BM-60 (1/4)", "47 N/3", 18.25, 75.85],
+        ["Gaudgaon", "", "561972", "BM-60 (4/4)", "47 N/3", 18.133333, 75.8],
+        ["Gour", "", "561940", "BM-60 (1/4)", "47 N/3", 18.266667, 75.8],
+        ["Gudewadi", "", "561941", "BM-60 (1/4)", "47 N/3", 18.25, 75.816667],
+        ["Javalgaon", "", "561955", "BM-60 (2/4)", "47 N/3", 18.216667, 75.75],
+        ["Kari", "", "561949", "BM-60 (2/4)", "47 N/3", 18.233333, 75.766667],
+        ["Korphale", "", "561960", "BM-60 (2/4)", "47 N/3", 18.166667, 75.716667],
+        ["Malwandi", "", "561947", "BM-60 (1/4)", "47 N/3", 18.233333, 75.85],
+        ["Pangri", "", "561948", "BM-60 (2/4)", "47 N/3", 18.25, 75.766667],
+        ["Ravalgaon", "", "561975", "BM-60 (4/4)", "47 N/3", 18.133333, 75.766667],
+        ["Sasure", "", "561968", "BM-60 (3/4)", "47 N/3", 18.2, 75.666667],
+        ["Surdi", "", "561969", "BM-60 (3/4)", "47 N/3", 18.183333, 75.666667],
+        ["Tadwale", "", "561950", "BM-60 (2/4)", "47 N/3", 18.216667, 75.783333],
+        ["Upalai", "", "561966", "BM-60 (3/4)", "47 N/3", 18.216667, 75.683333],
+        ["Vairag", "", "561976", "BM-60 (4/4)", "47 N/3", 18.116667, 75.783333]
+      ],
+      "Karmala": [
+        ["Bhagatwadi", "", "561781", "BM-47 (1/2)", "47 J/15", 18.3125, 74.911111],
+        ["Bhilarwadi", "", "561773", "BM-47 (1/2)", "47 J/15", 18.3392, 74.8972],
+        ["Delwadi", "", "561777", "BM-47 (2/2)", "47 J/15", 18.339444, 74.927778],
+        ["Gharatwadi", "Kumbhargaon", "561774", "BM-47 (2/2)", "47 J/15", 18.3597, 74.9216],
+        ["Jinnti", "", "561782", "BM-47 (1/2)", "47 J/15", 18.3111, 74.8833],
+        ["Karmala Rural", "", "561805", "BM-50 (1/3)", "47 N/4", 18.416667, 75.2],
+        ["Katraj", "", "561783", "BM-47 (2/2)", "47 J/15", 18.2875, 75.679167],
+        ["Kawalwadi", "", "561772", "BM-47 (1/2)", "47 J/15", 18.341667, 74.879167],
+        ["Kem", "", "561823", "BM-50 (2/3)", "47 N/4", 18.316667, 75.233333],
+        ["Kondhar Chincholi", "", "561784", "BM-47 (2/2)", "47 J/15", 18.277778, 74.808333],
+        ["Korti", "", "561795", "BM-48 (1/2)", "47 N/3", 18.383333, 75.116667],
+        ["Manjargaon", "", "561776", "BM-47 (2/2)", "47 J/15", 18.35, 74.933333],
+        ["Pandharewadi", "", "561780", "BM-47 (1/2)", "47 J/15", 18.320833, 74.9125],
+        ["Pande", "", "561810", "BM-50 (1/3)", "47 N/4", 18.383333, 75.25],
+        ["Ramwadi", "", "561778", "BM-47 (1/2)", "47 J/15", 18.326389, 74.8625],
+        ["Sade", "", "561815", "BM-50 (1/3)", "47 N/4", 18.366667, 75.216667],
+        ["Sapatne", "", "561819", "BM-50 (2/3)", "47 N/4", 18.333333, 75.183333],
+        ["Takali Ra", "", "561779", "BM-47 (1/2)", "47 J/15", 18.258333, 74.869444],
+        ["Vittalwadi", "", "561775", "BM-47 (2/2)", "47 J/15", 18.358333, 74.933333],
+        ["Washimbe", "", "561830", "BM-50 (3/3)", "47 N/4", 18.25, 75.266667]
+      ],
+      "Madha": [
+        ["Angar", "", "562145", "BM-65 (2/5)", "47 N/8", 17.916667, 75.566667],
+        ["Bhend", "", "562110", "BM-55 (1/4)", "47 N/7", 18.116667, 75.466667],
+        ["Darphal", "", "562130", "BM-65 (1/5)", "47 N/8", 17.983333, 75.583333],
+        ["Kavathe", "", "562125", "BM-55 (3/4)", "47 N/7", 18.05, 75.5],
+        ["Kurduwadi", "", "562115", "BM-55 (2/4)", "47 N/7", 18.083333, 75.433333],
+        ["Madha Rural", "", "562120", "BM-55 (2/4)", "47 N/7", 18.033333, 75.516667],
+        ["Modnimb", "", "562140", "BM-65 (2/5)", "47 N/8", 17.933333, 75.483333],
+        ["Nimbore", "", "562135", "BM-65 (1/5)", "47 N/8", 17.966667, 75.466667],
+        ["Parite", "", "562105", "BM-55 (1/4)", "47 N/7", 18.15, 75.416667],
+        ["Ranjani", "", "562150", "BM-65 (3/5)", "47 N/8", 17.883333, 75.533333],
+        ["Shetphal", "", "562118", "BM-55 (2/4)", "47 N/7", 18.066667, 75.483333],
+        ["Tembhurni", "", "562100", "BM-52 (2/4)", "47 N/6", 18.066667, 75.25],
+        ["Upalai Bk", "", "562128", "BM-55 (3/4)", "47 N/7", 18.016667, 75.55],
+        ["Wadsinge", "", "562122", "BM-55 (2/4)", "47 N/7", 18.05, 75.533333]
+      ],
+      "Malshiras": [
+        ["Akluj", "", "562280", "BM-70 (1/6)", "47 N/4", 17.883333, 75.016667],
+        ["Borgaon", "", "562295", "BM-70 (3/6)", "47 N/4", 17.816667, 75.05],
+        ["Dahiwadi", "", "562285", "BM-70 (2/6)", "47 N/4", 17.866667, 75.05],
+        ["Kolegaon", "", "562290", "BM-70 (2/6)", "47 N/4", 17.833333, 75.033333],
+        ["Malshiras Rural", "", "562300", "BM-70 (3/6)", "47 N/4", 17.783333, 74.966667],
+        ["Malandi", "", "562305", "BM-70 (4/6)", "47 N/4", 17.75, 75.016667],
+        ["Natepute", "", "562270", "BM-68 (1/4)", "47 N/3", 17.9, 74.8],
+        ["Piliv", "", "562320", "BM-72 (2/5)", "47 N/8", 17.716667, 75.133333],
+        ["Sadashivnagar", "", "562310", "BM-70 (4/6)", "47 N/4", 17.766667, 75.083333],
+        ["Velapur", "", "562315", "BM-72 (1/5)", "47 N/8", 17.733333, 75.1]
+      ],
+      "Mangalvedha": [
+        ["Andhalgaon", "", "562620", "BM-105 (1/4)", "47 O/2", 17.516667, 75.416667],
+        ["Borale", "", "562630", "BM-105 (2/4)", "47 O/2", 17.483333, 75.433333],
+        ["Fadtari", "", "562625", "BM-105 (1/4)", "47 O/2", 17.5, 75.383333],
+        ["Huljanti", "", "562650", "BM-108 (3/4)", "47 O/3", 17.416667, 75.55],
+        ["Kavathe", "", "562635", "BM-105 (2/4)", "47 O/2", 17.466667, 75.466667],
+        ["Mangalvedha Rural", "", "562615", "BM-105 (1/4)", "47 O/2", 17.516667, 75.45],
+        ["Marwade", "", "562640", "BM-108 (1/4)", "47 O/3", 17.433333, 75.483333],
+        ["Nandeshwar", "", "562645", "BM-108 (2/4)", "47 O/3", 17.416667, 75.5],
+        ["Salgar Bk", "", "562655", "BM-108 (4/4)", "47 O/3", 17.383333, 75.583333],
+        ["Shirikoli", "", "562622", "BM-105 (1/4)", "47 O/2", 17.533333, 75.433333]
+      ],
+      "Mohol": [
+        ["Anawali", "", "562010", "BM-62 (1/5)", "47 N/7", 17.95, 75.616667],
+        ["Ashti", "", "562020", "BM-62 (2/5)", "47 N/7", 17.916667, 75.65],
+        ["Bhedasgaon", "", "562030", "BM-62 (3/5)", "47 N/7", 17.866667, 75.683333],
+        ["Kamti Bk", "", "562045", "BM-80 (2/4)", "47 O/1", 17.75, 75.766667],
+        ["Kamti Kh", "", "562046", "BM-80 (2/4)", "47 O/1", 17.733333, 75.75],
+        ["Kati", "", "562025", "BM-62 (2/5)", "47 N/7", 17.883333, 75.633333],
+        ["Kurul", "", "562035", "BM-80 (1/4)", "47 O/1", 17.816667, 75.716667],
+        ["Mohol Rural", "", "562015", "BM-62 (1/5)", "47 N/7", 17.916667, 75.633333],
+        ["Narkhed", "", "562040", "BM-80 (1/4)", "47 O/1", 17.783333, 75.733333],
+        ["Penur", "", "562050", "BM-80 (3/4)", "47 O/1", 17.716667, 75.7],
+        ["Pokharapur", "", "562018", "BM-62 (2/5)", "47 N/7", 17.933333, 75.666667],
+        ["Wadwal", "", "562055", "BM-80 (4/4)", "47 O/1", 17.683333, 75.733333]
+      ],
+      "North Solapur": [
+        ["Bale", "", "562410", "SA-38 (1/4)", "47 O/13", 17.716667, 75.866667],
+        ["Degaon", "", "562415", "SA-38 (2/4)", "47 O/13", 17.683333, 75.883333],
+        ["Haglur", "", "562425", "SA-38 (3/4)", "47 O/13", 17.65, 75.933333],
+        ["Kavathe", "", "562430", "SA-38 (4/4)", "47 O/13", 17.616667, 75.916667],
+        ["Kegaon", "", "562405", "SA-38 (1/4)", "47 O/13", 17.733333, 75.85],
+        ["Mardi", "", "562420", "SA-38 (2/4)", "47 O/13", 17.716667, 75.916667],
+        ["Pakni", "", "562400", "SA-38 (1/4)", "47 O/13", 17.766667, 75.833333],
+        ["Raleras", "", "562435", "SA-38 (4/4)", "47 O/13", 17.633333, 75.866667],
+        ["Shelgi", "", "562412", "SA-38 (2/4)", "47 O/13", 17.7, 75.9],
+        ["Tirole", "", "562428", "SA-38 (3/4)", "47 O/13", 17.666667, 75.95]
+      ],
+      "Pandharpur": [
+        ["Bhalwani", "", "562510", "BM-90 (1/6)", "47 O/1", 17.716667, 75.3],
+        ["Bhatumbare", "", "562520", "BM-90 (2/6)", "47 O/1", 17.683333, 75.333333],
+        ["Gopalpur", "", "562540", "BM-92 (2/5)", "47 O/2", 17.65, 75.35],
+        ["Kasegaon", "", "562530", "BM-92 (1/5)", "47 O/2", 17.683333, 75.4],
+        ["Korti", "", "562515", "BM-90 (2/6)", "47 O/1", 17.7, 75.316667],
+        ["Pandharpur Rural", "", "562535", "BM-92 (1/5)", "47 O/2", 17.666667, 75.316667],
+        ["Puluj", "", "562525", "BM-90 (3/6)", "47 O/1", 17.733333, 75.366667],
+        ["Shegaon Dumala", "", "562545", "BM-92 (3/5)", "47 O/2", 17.633333, 75.383333],
+        ["Tungat", "", "562550", "BM-92 (4/5)", "47 O/2", 17.616667, 75.416667],
+        ["Wakhari", "", "562505", "BM-90 (1/6)", "47 O/1", 17.733333, 75.283333]
+      ],
+      "Sangola": [
+        ["Akole", "", "562670", "BM-112 (1/5)", "47 K/14", 17.45, 75.166667],
+        ["Alegaon", "", "562680", "BM-112 (2/5)", "47 K/14", 17.416667, 75.2],
+        ["Gherdi", "", "562700", "BM-115 (3/4)", "47 K/15", 17.316667, 75.283333],
+        ["Javale", "", "562695", "BM-115 (2/4)", "47 K/15", 17.35, 75.25],
+        ["Kadlas", "", "562675", "BM-112 (1/5)", "47 K/14", 17.433333, 75.183333],
+        ["Mahud", "", "562660", "BM-110 (1/4)", "47 K/13", 17.516667, 75.1],
+        ["Nazarampura", "", "562685", "BM-112 (3/5)", "47 K/14", 17.383333, 75.216667],
+        ["Sangola Rural", "", "562665", "BM-110 (2/4)", "47 K/14", 17.433333, 75.15],
+        ["Shivane", "", "562690", "BM-115 (1/4)", "47 K/15", 17.366667, 75.233333],
+        ["Wadhegaon", "", "562662", "BM-110 (1/4)", "47 K/13", 17.483333, 75.116667]
+      ],
+      "South Solapur": [
+        ["Aherwadi", "", "562710", "BM-130 (1/5)", "47 O/13", 17.516667, 75.8],
+        ["Bhandarkavathe", "", "562715", "BM-130 (4/5)", "47 O/13", 17.4522, 75.9103],
+        ["Boramani", "", "562725", "SA-41 (1/7)", "47 O/14", 17.616667, 75.966667],
+        ["Hotgi", "", "562705", "BM-130 (1/5)", "47 O/13", 17.566667, 75.85],
+        ["Kumbhari", "", "562716", "SA-41 (3/7)", "47/O/14", 17.6486, 75.993],
+        ["Mandrup", "", "562701", "BM-130 (2/5)", "47 O/13", 17.4811, 75.8312],
+        ["Musti", "", "562720", "BM-130 (5/5)", "47 O/13", 17.433333, 75.866667],
+        ["Sadepur", "", "562708", "BM-130 (2/5)", "47 O/13", 17.5, 75.816667],
+        ["Tadwal", "", "562730", "SA-41 (2/7)", "47 O/14", 17.583333, 75.95],
+        ["Valsang", "", "562735", "SA-41 (3/7)", "47 O/14", 17.55, 75.983333],
+        ["Varkute", "", "562703", "BM-130 (2/5)", "47 O/13", 17.466667, 75.816667]
+      ]
+    };
+
+    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V6';
+    const GDRIVE_STORAGE_KEY = 'HYDROGEO_GDRIVE_LINK_V1';
+    let currentPhotoBase64 = null;
+    let activeModalPhoto = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initTalukaDropdowns();
+      initFormDefaults();
+      renderRecords();
+      initGDriveLink();
+    });
+
+    function initTalukaDropdowns() {
+      const talukaSelect = document.getElementById('taluka');
+      const filterTaluka = document.getElementById('filterTaluka');
+      talukaSelect.innerHTML = '';
+      
+      Object.keys(SHEET2_FULL_DATABASE).sort().forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t;
+        talukaSelect.appendChild(opt);
+
+        const fOpt = document.createElement('option');
+        fOpt.value = t;
+        fOpt.textContent = t;
+        filterTaluka.appendChild(fOpt);
+      });
+
+      onTalukaChange();
+    }
+
+    function initFormDefaults() {
+      const records = getStoredRecords();
+      const nextSrNo = records.length > 0 ? Math.max(...records.map(r => Number(r.srNo) || 0)) + 1 : 1;
+      document.getElementById('srNo').value = nextSrNo;
+      
+      const now = new Date();
+      document.getElementById('surveyDate').value = now.toISOString().split('T')[0];
+      document.getElementById('surveyTime').value = now.toTimeString().split(' ')[0].substring(0, 5);
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+      
+      if (tabId === 'newEntry') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('newEntry').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('recordsList').classList.add('active');
+        applyFilters();
+      }
+    }
+
+    function switchMethodTab(methodTabId, btnElement) {
+      document.querySelectorAll('.method-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.method-subpanel').forEach(p => p.classList.remove('active'));
+      
+      btnElement.classList.add('active');
+      document.getElementById(methodTabId).classList.add('active');
+    }
+
+    function calculateTotalCropHoldings() {
+      const num = (id) => parseFloat(document.getElementById(id).value) || 0;
+
+      const kharifTotal = num('kharifFloodHa1') + num('kharifFloodHa2') +
+                          num('kharifDripHa1') + num('kharifDripHa2') +
+                          num('kharifSprinklerHa1') + num('kharifSprinklerHa2');
+
+      const rabiTotal = num('rabiFloodHa1') + num('rabiFloodHa2') +
+                        num('rabiDripHa1') + num('rabiDripHa2') +
+                        num('rabiSprinklerHa1') + num('rabiSprinklerHa2');
+
+      const perennialTotal = num('perennialFloodHa1') + num('perennialFloodHa2') +
+                             num('perennialDripHa1') + num('perennialDripHa2');
+
+      const summerTotal = num('summerFloodHa1') + num('summerFloodHa2') +
+                          num('summerDripHa1') + num('summerDripHa2') +
+                          num('summerSprinklerHa1') + num('summerSprinklerHa2');
+
+      document.getElementById('totalKharifHa').value = kharifTotal.toFixed(2);
+      document.getElementById('totalRabiHa').value = rabiTotal.toFixed(2);
+      document.getElementById('totalPerennialHa').value = perennialTotal.toFixed(2);
+      document.getElementById('totalSummerHa').value = summerTotal.toFixed(2);
+    }
+
+    function onTalukaChange() {
+      const taluka = document.getElementById('taluka').value;
+      const villageSelect = document.getElementById('village');
+      villageSelect.innerHTML = '';
+
+      const villages = SHEET2_FULL_DATABASE[taluka] || [];
+      villages.forEach((v, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = v[0];
+        villageSelect.appendChild(opt);
+      });
+      onVillageChange();
+    }
+
+    function onVillageChange() {
+      const taluka = document.getElementById('taluka').value;
+      const villageIdx = document.getElementById('village').value;
+      const data = SHEET2_FULL_DATABASE[taluka]?.[villageIdx];
+
+      if (data) {
+        const [vName, gp, census, watershed, topo, lat, lon] = data;
+        document.getElementById('gpName').value = gp || vName;
+        document.getElementById('censusNo').value = census || '';
+        document.getElementById('watershedNo').value = watershed || '';
+        document.getElementById('sheet10k').value = topo || '47 O/13';
+        
+        if (lat && lon) {
+          document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
+          calculateAltitude(lat, lon);
+        }
+      }
+    }
+
+    // --- MOBILE-ROBUST GPS AUTO-FETCH WITH FALLBACK STRATEGY ---
+    function autoFetchGPS() {
+      const statusEl = document.getElementById('gpsStatusText');
+      if (!navigator.geolocation) {
+        showToast('❌ Geolocation is not supported by your browser');
+        return;
+      }
+
+      statusEl.innerText = 'Locking High-Accuracy GPS...';
+      showToast('🛰️ Requesting live GPS coordinates...');
+
+      const applyPosition = async (pos) => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lon = pos.coords.longitude.toFixed(6);
+        const acc = Math.round(pos.coords.accuracy || 0);
+
+        document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
+        statusEl.innerText = `GPS: ±${acc}m`;
+
+        await calculateAltitude(lat, lon, pos.coords.altitude);
+        showToast(`✅ GPS Fixed: ${lat}, ${lon} (±${acc}m)`);
+      };
+
+      // Attempt 1: High Accuracy (Satellite / Assisted GPS)
+      navigator.geolocation.getCurrentPosition(
+        applyPosition,
+        (err) => {
+          console.warn('High-accuracy GPS failed, trying fallback mode...', err);
+          statusEl.innerText = 'Retrying GPS (Cell/WiFi)...';
+
+          // Attempt 2: Fallback with relaxed accuracy and cached coordinates
+          navigator.geolocation.getCurrentPosition(
+            applyPosition,
+            (err2) => {
+              statusEl.innerText = 'GPS Lock Failed';
+              let msg = 'Could not get location. ';
+              if (err2.code === 1) {
+                msg += 'Location permission denied. Please allow location in phone/browser settings.';
+              } else if (err2.code === 2) {
+                msg += 'GPS signal unavailable. Please turn on Phone Location / GPS.';
+              } else if (err2.code === 3) {
+                msg += 'GPS request timed out. Retrying with village lookup coordinates.';
+              } else {
+                msg += err2.message;
+              }
+              showToast('⚠️ ' + msg);
+            },
+            { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
+          );
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+      );
+    }
+
+    async function calculateAltitudeFromCoords() {
+      const coords = document.getElementById('gpsCoords').value;
+      if (!coords || !coords.includes(',')) return;
+      const [lat, lon] = coords.split(',').map(s => s.trim());
+      await calculateAltitude(lat, lon);
+    }
+
+    async function calculateAltitude(lat, lon, hardwareAlt = null) {
+      if (hardwareAlt && hardwareAlt > 0) {
+        document.getElementById('altitudeGL').value = Math.round(hardwareAlt);
+        return;
+      }
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
+        const data = await res.json();
+        if (data.elevation && data.elevation.length > 0) {
+          document.getElementById('altitudeGL').value = Math.round(data.elevation[0]);
+        }
+      } catch (e) {
+        if (!document.getElementById('altitudeGL').value) {
+          document.getElementById('altitudeGL').value = '485';
+        }
+      }
+    }
+
+    function processWatermarkedPhoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.getElementById('stampCanvas');
+          const ctx = canvas.getContext('2d');
+          
+          const maxDim = 1200;
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const bannerHeight = Math.max(60, height * 0.12);
+          ctx.fillStyle = 'rgba(7, 13, 24, 0.88)';
+          ctx.fillRect(0, height - bannerHeight, width, bannerHeight);
+
+          const gps = document.getElementById('gpsCoords').value || '17.561643, 76.134107';
+          const alt = document.getElementById('altitudeGL').value || '485';
+          const date = document.getElementById('surveyDate').value;
+          const time = document.getElementById('surveyTime').value;
+          const name = document.getElementById('geologistName').value || 'VN Nimbalkar';
+
+          const fontSize = Math.max(14, Math.round(width * 0.024));
+          ctx.font = `bold ${fontSize}px sans-serif`;
+
+          ctx.fillStyle = '#2dd4bf';
+          ctx.fillText(`📍 GPS: ${gps} | Alt: ${alt} m.MSL`, 15, height - bannerHeight + (bannerHeight * 0.4));
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(`📅 ${date} ${time} | Geologist: ${name}`, 15, height - bannerHeight + (bannerHeight * 0.8));
+
+          currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.65);
+          const preview = document.getElementById('photoPreview');
+          preview.src = currentPhotoBase64;
+          preview.style.display = 'block';
+          document.getElementById('removePhotoBtn').style.display = 'inline-flex';
+          document.getElementById('noPhotoText').innerHTML = '<span style="color: var(--teal-glow); font-weight: 600;">✅ Stamped Photo Attached!</span> (Click image above to preview full size)';
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function clearCurrentPhoto() {
+      currentPhotoBase64 = null;
+      document.getElementById('cameraInput').value = '';
+      document.getElementById('photoPreview').style.display = 'none';
+      document.getElementById('removePhotoBtn').style.display = 'none';
+      document.getElementById('noPhotoText').innerText = 'Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name.';
+      showToast('Photo removed');
+    }
+
+    function previewCurrentPhotoModal() {
+      if (!currentPhotoBase64) return;
+      const owner = document.getElementById('ownerName').value || 'New Entry';
+      const gps = document.getElementById('gpsCoords').value || 'N/A';
+      const date = document.getElementById('surveyDate').value;
+      const time = document.getElementById('surveyTime').value;
+
+      openPhotoModal(currentPhotoBase64, `Photo: ${owner}`, `GPS: ${gps} | Taken: ${date} ${time}`);
+    }
+
+    function getStoredRecords() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveStoredRecords(records) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        updateBadge();
+        return true;
+      } catch (e) {
+        const stripped = records.map(r => ({ ...r, photoData: '' }));
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(stripped));
+          updateBadge();
+          return true;
+        } catch (err) {
+          alert('Storage write failed: ' + err.message);
+          return false;
+        }
+      }
+    }
+
+    function updateBadge() {
+      const records = getStoredRecords();
+      document.getElementById('recordCountBadge').innerText = records.length;
+    }
+
+    function handleFormSubmit(e) {
+      if (e) e.preventDefault();
+      calculateTotalCropHoldings();
+
+      const form = document.getElementById('surveyForm');
+      const formData = new FormData(form);
+      const entry = Object.fromEntries(formData.entries());
+
+      // Get actual village name instead of select index
+      const taluka = document.getElementById('taluka').value;
+      const villageIdx = document.getElementById('village').value;
+      entry.village = SHEET2_FULL_DATABASE[taluka]?.[villageIdx]?.[0] || '';
+
+      entry.lithoDepth1 = document.getElementById('lithoDepth1').value || '1.0';
+      entry.lithoType1 = document.getElementById('lithoType1').value;
+      entry.lithoDepth2 = document.getElementById('lithoDepth2').value || '5.0';
+      entry.lithoType2 = document.getElementById('lithoType2').value;
+      entry.lithoDepth3 = document.getElementById('lithoDepth3').value || '7.0';
+      entry.lithoType3 = document.getElementById('lithoType3').value;
+      entry.lithoType4 = document.getElementById('lithoType4').value;
+      entry.photoData = currentPhotoBase64 || '';
+      entry.timestamp = new Date().toISOString();
+
+      const records = getStoredRecords();
+      records.unshift(entry);
+      
+      const success = saveStoredRecords(records);
+      if (success) {
+        showToast(`Well record #${entry.srNo} saved successfully!`);
+        resetForm();
+        switchTab('recordsList');
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('surveyForm').reset();
+      clearCurrentPhoto();
+      initFormDefaults();
+      onTalukaChange();
+      calculateTotalCropHoldings();
+    }
+
+    function applyFilters() {
+      const query = document.getElementById('searchBar').value.toLowerCase().trim();
+      const talukaFilter = document.getElementById('filterTaluka').value;
+      const typeFilter = document.getElementById('filterWellType').value;
+      
+      const records = getStoredRecords();
+      updateBadge();
+      
+      const filtered = records.filter(r => {
+        const matchesQuery = !query || 
+          (r.ownerName && r.ownerName.toLowerCase().includes(query)) ||
+          (r.village && r.village.toLowerCase().includes(query)) ||
+          (r.gatNo && r.gatNo.toString().toLowerCase().includes(query)) ||
+          (r.srNo && r.srNo.toString().includes(query)) ||
+          (r.censusNo && r.censusNo.toString().includes(query));
+
+        const matchesTaluka = !talukaFilter || r.taluka === talukaFilter;
+        const matchesType = !typeFilter || r.wellType === typeFilter;
+
+        return matchesQuery && matchesTaluka && matchesType;
+      });
+
+      renderFilteredCards(filtered);
+    }
+
+    function renderFilteredCards(records) {
+      const container = document.getElementById('recordsContainer');
+      if (records.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🔍</div>
+            <p>No well survey records match your search or filter criteria.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = records.map(r => {
+        const hasPhoto = r.photoData && r.photoData.length > 50;
+        return `
+        <div class="record-card">
+          <div class="record-top">
+            <div>
+              <div class="record-title">#${r.srNo} — ${r.ownerName || 'Unnamed'}</div>
+              <div class="record-meta">${r.village || '-'}, ${r.taluka || '-'} | Gat: ${r.gatNo || '-'} | ${r.surveyDate} ${r.surveyTime}</div>
+            </div>
+            <span class="record-badge">${r.wellType}</span>
+          </div>
+
+          <div class="record-content-row">
+            ${hasPhoto ? `
+              <div class="record-thumbnail-wrapper" onclick="viewRecordPhoto(${r.srNo})" title="Click to view full stamped photo">
+                <img src="${r.photoData}" alt="Well #${r.srNo} Photo" class="record-thumbnail" />
+                <span class="thumbnail-tag">📷 Photo</span>
+              </div>
+            ` : ''}
+
+            <div class="record-grid-info">
+              <div>GPS: <strong>${r.gpsCoords || 'N/A'}</strong></div>
+              <div>Total Land: <strong>${r.totalLandHolding ? r.totalLandHolding + ' Ha' : '-'}</strong></div>
+              <div>Kharif: <strong>${r.totalKharifHa || '0.00'} Ha</strong></div>
+              <div>Rabi: <strong>${r.totalRabiHa || '0.00'} Ha</strong></div>
+              <div>Perennial: <strong>${r.totalPerennialHa || '0.00'} Ha</strong></div>
+              <div>Summer: <strong>${r.totalSummerHa || '0.00'} Ha</strong></div>
+              <div>Kharif Crop: <strong>${r.kharifCrop1 || '-'}</strong></div>
+              <div>Rabi Crop: <strong>${r.rabiCrop1 || '-'}</strong></div>
+            </div>
+          </div>
+
+          <div class="record-btn-group">
+            ${hasPhoto ? `
+              <button class="btn-icon btn-photo" onclick="viewRecordPhoto(${r.srNo})">📷 View Photo</button>
+            ` : ''}
+            <button class="btn-icon" onclick="viewRecordDetails(${r.srNo})">👁️ Full Details</button>
+            <button class="btn-icon delete" onclick="deleteRecord(${r.srNo})">🗑️ Delete</button>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    function renderRecords() {
+      applyFilters();
+    }
+
+    function viewRecordPhoto(srNo) {
+      const records = getStoredRecords();
+      const r = records.find(item => Number(item.srNo) === Number(srNo));
+      if (!r || !r.photoData) {
+        showToast('No photo available for record #' + srNo);
+        return;
+      }
+      const title = `Well #${r.srNo} — ${r.ownerName || 'Survey Photo'}`;
+      const subtitle = `Village: ${r.village}, Taluka: ${r.taluka} | GPS: ${r.gpsCoords} | Altitude: ${r.altitudeGL} m.MSL | Date: ${r.surveyDate} ${r.surveyTime}`;
+      openPhotoModal(r.photoData, title, subtitle);
+    }
+
+    function openPhotoModal(base64Data, title, subtitle) {
+      activeModalPhoto = base64Data;
+      document.getElementById('photoModalTitle').innerText = title || '📷 Well Site Photograph';
+      document.getElementById('photoModalImg').src = base64Data;
+      document.getElementById('photoModalInfo').innerHTML = `<span>${subtitle || ''}</span>`;
+      document.getElementById('photoModalBackdrop').classList.add('active');
+    }
+
+    function closePhotoModal(event) {
+      if (event && event.target && event.target.classList && !event.target.classList.contains('photo-modal-backdrop')) {
+        return;
+      }
+      document.getElementById('photoModalBackdrop').classList.remove('active');
+      activeModalPhoto = null;
+    }
+
+    function downloadModalPhoto() {
+      if (!activeModalPhoto) return;
+      const a = document.createElement('a');
+      a.href = activeModalPhoto;
+      a.download = `Well_Survey_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('Photo downloaded successfully!');
+    }
+
+    // --- GOOGLE DRIVE MANAGEMENT FUNCTIONS ---
+    function initGDriveLink() {
+      const savedLink = localStorage.getItem(GDRIVE_STORAGE_KEY) || 'https://drive.google.com/';
+      const input = document.getElementById('gdriveUrlInput');
+      if (input) input.value = savedLink;
+    }
+
+    function openGDriveModal() {
+      initGDriveLink();
+      document.getElementById('gdriveModalBackdrop').classList.add('active');
+    }
+
+    function closeGDriveModal(event) {
+      if (event && event.target && event.target.classList && !event.target.classList.contains('photo-modal-backdrop')) {
+        return;
+      }
+      document.getElementById('gdriveModalBackdrop').classList.remove('active');
+    }
+
+    function saveGDriveLink() {
+      const url = document.getElementById('gdriveUrlInput').value.trim();
+      if (!url) {
+        showToast('Please enter a valid Google Drive URL');
+        return;
+      }
+      localStorage.setItem(GDRIVE_STORAGE_KEY, url);
+      showToast('✅ Google Drive link saved!');
+      closeGDriveModal();
+    }
+
+    function openDirectGDrive() {
+      const url = document.getElementById('gdriveUrlInput').value.trim() || localStorage.getItem(GDRIVE_STORAGE_KEY) || 'https://drive.google.com/';
+      window.open(url, '_blank');
+      closeGDriveModal();
+    }
+
+    function deleteRecord(srNo) {
+      if (confirm(`Are you sure you want to delete well record #${srNo}?`)) {
+        let records = getStoredRecords();
+        records = records.filter(r => Number(r.srNo) !== Number(srNo));
+        saveStoredRecords(records);
+        applyFilters();
+        showToast(`Record #${srNo} deleted`);
+      }
+    }
+
+    function viewRecordDetails(srNo) {
+      const records = getStoredRecords();
+      const r = records.find(item => Number(item.srNo) === Number(srNo));
+      if (!r) return;
+
+      alert(`
+=== WELL INVENTORY FORM DETAILS ===
+Sr. No: ${r.srNo} | Date: ${r.surveyDate} ${r.surveyTime}
+Geologist: ${r.geologistName} (${r.designation})
+Owner: ${r.ownerName}
+Location: Vill: ${r.village}, Tal: ${r.taluka}, Dist: ${r.district}
+Gat No: ${r.gatNo} | Census No: ${r.censusNo} | Watershed: ${r.watershedNo}
+GPS: ${r.gpsCoords} | Altitude: ${r.altitudeGL} m.MSL
+Measuring Point: ${r.mpLocation} | Parapet Ht: ${r.parapetHeight}m
+Well Dimensions: Depth: ${r.depthWell}m | Dia: ${r.diaTop}m
+Water Levels: SWL Winter: ${r.swlWinter}m | SWL Summer: ${r.swlSummer}m | DWL: ${r.dwl}m
+Recuperation: Winter: ${r.recupWinter} Hrs | Summer: ${r.recupSummer} Hrs
+Total Land Holding: ${r.totalLandHolding} Ha | Cultivable: ${r.cultivableLand} Ha
+
+CROPS & LAND BREAKDOWN (Ha):
+• Kharif: ${r.kharifCrop1} / ${r.kharifCrop2} -> Total: ${r.totalKharifHa} Ha (Flood: ${r.kharifFloodHa1 || 0}, Drip: ${r.kharifDripHa1 || 0}, Sprinkler: ${r.kharifSprinklerHa1 || 0})
+• Rabi: ${r.rabiCrop1} / ${r.rabiCrop2} -> Total: ${r.totalRabiHa} Ha (Flood: ${r.rabiFloodHa1 || 0}, Drip: ${r.rabiDripHa1 || 0}, Sprinkler: ${r.rabiSprinklerHa1 || 0})
+• Perennial: ${r.perennialCrop1} / ${r.perennialCrop2} -> Total: ${r.totalPerennialHa} Ha (Flood: ${r.perennialFloodHa1 || 0}, Drip: ${r.perennialDripHa1 || 0})
+• Summer: ${r.summerCrop1} / ${r.summerCrop2} -> Total: ${r.totalSummerHa} Ha (Flood: ${r.summerFloodHa1 || 0}, Drip: ${r.summerDripHa1 || 0}, Sprinkler: ${r.summerSprinklerHa1 || 0})
+
+Lithology:
+  • 0 to ${r.lithoDepth1}m: ${r.lithoType1}
+  • to ${r.lithoDepth2}m: ${r.lithoType2}
+  • to ${r.lithoDepth3}m: ${r.lithoType3}
+  • to Bottom: ${r.lithoType4}
+Photo Status: ${r.photoData ? 'Attached' : 'No photo'}
+Remarks: ${r.remarks || 'None'}
+      `);
+    }
+
+    function exportToExcel() {
+      const records = getStoredRecords();
+      if (records.length === 0) {
+        showToast('No records available to export.');
+        return;
+      }
+
+      const sanitized = records.map(({ photoData, ...rest }) => rest);
+      const worksheet = XLSX.utils.json_to_sheet(sanitized);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Well_Survey_Data");
+
+      XLSX.writeFile(workbook, `GSDA_Well_Survey_${new Date().toISOString().split('T')[0]}.xlsx`);
+      showToast('Excel (.xlsx) file downloaded successfully!');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3500);
+    }
+  </script>
+</body>
+</html>
