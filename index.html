@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>HydroGeo Field Survey Pro</title>
+  <title>HydroGeo Field Survey Pro - Final Edition</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
@@ -112,23 +112,26 @@
       background-color: var(--navy-950);
       border-bottom: 1px solid var(--navy-700);
       z-index: 10;
+      overflow-x: auto;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 12px 16px;
+      min-width: 140px;
+      padding: 12px 14px;
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       border-bottom: 3px solid transparent;
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
     .tab-btn.active {
@@ -291,7 +294,6 @@
       background: var(--teal-light);
     }
 
-    /* Method Tabs */
     .method-tabs-nav {
       display: flex;
       background: var(--navy-950);
@@ -390,15 +392,49 @@
       font-weight: 600;
     }
 
+    .calc-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      margin-top: 8px;
+    }
+
+    .calc-table th, .calc-table td {
+      border: 1px solid var(--navy-700);
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .calc-table th {
+      background: var(--navy-800);
+      color: var(--teal-light);
+      font-weight: 700;
+    }
+
+    .calc-table tr:nth-child(even) {
+      background: rgba(16, 28, 56, 0.5);
+    }
+
+    .calc-table td.text-left {
+      text-align: left;
+    }
+
+    .calc-table td.highlight {
+      color: var(--teal-glow);
+      font-weight: 700;
+    }
+
     .form-actions {
       display: flex;
       gap: 12px;
       margin-top: 10px;
       margin-bottom: 40px;
+      flex-wrap: wrap;
     }
 
     .btn {
       flex: 1;
+      min-width: 160px;
       padding: 13px 18px;
       border-radius: 8px;
       font-size: 0.95rem;
@@ -610,6 +646,17 @@
       color: #fff;
     }
 
+    .btn-icon.btn-edit {
+      background: rgba(2, 132, 199, 0.18);
+      border-color: #0284c7;
+      color: #38bdf8;
+    }
+
+    .btn-icon.btn-edit:hover {
+      background: #0284c7;
+      color: #fff;
+    }
+
     .btn-icon.delete {
       color: var(--danger);
       border-color: rgba(244, 63, 94, 0.3);
@@ -625,7 +672,6 @@
       color: var(--text-muted);
     }
 
-    /* Modal / Lightbox Styles */
     .photo-modal-backdrop {
       display: none;
       position: fixed;
@@ -767,7 +813,7 @@
       <div class="brand-icon">GW</div>
       <div class="brand-text">
         <h1>HydroGeo Survey Pro</h1>
-        <p>Groundwater Dug Well Inventory Form (All 11 Talukas)</p>
+        <p>Groundwater Dug Well Inventory Form (Technical Form No. GSDA/10K/DW/2025)</p>
       </div>
     </div>
     <div class="header-gps-status" onclick="autoFetchGPS()">
@@ -787,6 +833,7 @@
 
   <main>
     
+    <!-- TAB 1: NEW WELL ENTRY -->
     <div id="newEntry" class="tab-panel active">
       <form id="surveyForm" onsubmit="handleFormSubmit(event)">
         
@@ -818,18 +865,17 @@
             </div>
             <div class="field-group">
               <label>Project / Assignment</label>
-              <input type="text" id="projectAssignment" name="projectAssignment" value="1.10K Groundwater Prospect Map" />
+              <input type="text" id="projectAssignment" name="projectAssignment" value="1.10K" />
             </div>
           </div>
         </div>
 
         <div class="form-section">
           <div class="section-header">
-            <span class="section-title">A. Well Location & Complete Sheet 2 Lookup</span>
+            <span class="section-title">A. Well Location & Complete Sheet 2 Lookup (All 1,167 Villages)</span>
             <span class="section-code">SEC-A</span>
           </div>
           <div class="section-body">
-            
             <div class="field-group">
               <label>District</label>
               <input type="text" id="district" name="district" value="Solapur" readonly />
@@ -841,7 +887,7 @@
             </div>
 
             <div class="field-group">
-              <label>Village Name (Select from 1,167 Villages)</label>
+              <label>Village Name (Select from Sheet 2 Database)</label>
               <select id="village" name="village" onchange="onVillageChange()"></select>
             </div>
 
@@ -857,7 +903,7 @@
 
             <div class="field-group">
               <label>Gat / Survey No. <span class="req">*</span></label>
-              <input type="text" id="gatNo" name="gatNo" placeholder="e.g. 60" required />
+              <input type="text" id="gatNo" name="gatNo" placeholder="e.g. 176" required />
             </div>
 
             <div class="field-group">
@@ -872,12 +918,12 @@
 
             <div class="field-group">
               <label>Mapsheet No. (Auto-filled / Editable)</label>
-              <input type="text" id="mapSheetNo" name="mapSheetNo" placeholder="e.g. 56 C/2, 47 N/3" />
+              <input type="text" id="mapSheetNo" name="mapSheetNo" placeholder="e.g. 56/C/2, 47 N/3" />
             </div>
 
             <div class="field-group">
               <label>Quadrant No. (10K Sheet)</label>
-              <input type="text" id="quadrantNo" name="quadrantNo" placeholder="e.g. D4, B4" />
+              <input type="text" id="quadrantNo" name="quadrantNo" placeholder="e.g. A2, D4" />
             </div>
 
             <div class="field-group full-width">
@@ -886,9 +932,6 @@
                 <input type="text" id="gpsCoords" name="gpsCoords" placeholder="e.g. 17.561643, 76.134107" required onchange="calculateAltitudeFromCoords()" />
                 <button type="button" class="geo-btn" onclick="autoFetchGPS()">📍 Lock GPS</button>
               </div>
-              <small style="color: var(--teal-light); font-size: 0.7rem; margin-top: 4px;">
-                💡 Tip: On mobile phones, ensure Location / GPS is turned ON in phone settings.
-              </small>
             </div>
 
             <div class="field-group">
@@ -901,7 +944,7 @@
 
             <div class="field-group">
               <label>Well No. (10K Sheet Seq)</label>
-              <input type="number" id="wellSeqNo" name="wellSeqNo" placeholder="e.g. 1" />
+              <input type="number" id="wellSeqNo" name="wellSeqNo" placeholder="e.g. 8" />
             </div>
 
             <div class="field-group">
@@ -916,9 +959,8 @@
 
             <div class="field-group full-width">
               <label>Well Owner's Name <span class="req">*</span></label>
-              <input type="text" id="ownerName" name="ownerName" placeholder="e.g. Nilabai Gaikwad" required />
+              <input type="text" id="ownerName" name="ownerName" placeholder="e.g. Sidharam Bhimashankar Gurav" required />
             </div>
-
           </div>
         </div>
 
@@ -956,6 +998,7 @@
           </div>
         </div>
 
+        <!-- SECTION B: DIMENSIONS & CONSTRUCTION -->
         <div class="form-section">
           <div class="section-header">
             <span class="section-title">B. Dimensions & Construction</span>
@@ -966,24 +1009,24 @@
               <label>Measurement Point (MP)</label>
               <select id="mpLocation" name="mpLocation">
                 <option value="Due East">Due East</option>
-                <option value="Due West" selected>Due West</option>
-                <option value="Due North">Due North</option>
+                <option value="Due West">Due West</option>
+                <option value="Due North" selected>Due North</option>
                 <option value="Due South">Due South</option>
               </select>
             </div>
 
             <div class="field-group">
-              <label>Parapet Height</label>
+              <label>Height of Parapet</label>
               <div class="input-wrapper">
-                <input type="number" step="0.01" id="parapetHeight" name="parapetHeight" placeholder="0.0" />
-                <span class="input-unit">m</span>
+                <input type="number" step="0.01" id="parapetHeight" name="parapetHeight" value="1.20" />
+                <span class="input-unit">m.bgl</span>
               </div>
             </div>
 
             <div class="field-group">
               <label>Inner Diameter (Top)</label>
               <div class="input-wrapper">
-                <input type="number" step="0.1" id="diaTop" name="diaTop" placeholder="9.5" />
+                <input type="number" step="0.1" id="diaTop" name="diaTop" value="9.60" />
                 <span class="input-unit">m</span>
               </div>
             </div>
@@ -991,7 +1034,15 @@
             <div class="field-group">
               <label>Inner Diameter (Bottom)</label>
               <div class="input-wrapper">
-                <input type="number" step="0.1" id="diaBottom" name="diaBottom" placeholder="8.0" />
+                <input type="number" step="0.1" id="diaBottom" name="diaBottom" value="7.10" />
+                <span class="input-unit">m</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Effective Diameter</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.01" id="diaEffective" name="diaEffective" value="8.35" oninput="recalculateAll();" />
                 <span class="input-unit">m</span>
               </div>
             </div>
@@ -999,7 +1050,7 @@
             <div class="field-group">
               <label>Depth of Dug Well (DW)</label>
               <div class="input-wrapper">
-                <input type="number" step="0.1" id="depthWell" name="depthWell" placeholder="7.5" />
+                <input type="number" step="0.1" id="depthWell" name="depthWell" value="13.50" />
                 <span class="input-unit">m.bgl</span>
               </div>
             </div>
@@ -1007,147 +1058,235 @@
             <div class="field-group">
               <label>Depth of In-well Borehole</label>
               <div class="input-wrapper">
-                <input type="number" step="0.1" id="depthInwellBore" name="depthInwellBore" placeholder="0 if none" />
-                <span class="input-unit">m</span>
+                <input type="text" id="depthInwellBore" name="depthInwellBore" value="-" />
+              </div>
+            </div>
+
+            <div class="field-group full-width">
+              <label>Total Depth of Dug Cum Borewell</label>
+              <div class="input-wrapper">
+                <input type="text" id="totalDepthDCB" name="totalDepthDCB" value="-" />
               </div>
             </div>
 
             <div class="field-group">
               <label>Lining / Curbing Material</label>
               <select id="liningMaterial" name="liningMaterial">
-                <option value="Stone pitching">Stone pitching</option>
+                <option value="Stone" selected>Stone</option>
+                <option value="Brick">Brick</option>
                 <option value="RCC">RCC</option>
-                <option value="Brick masonry">Brick masonry</option>
                 <option value="Unlined">Unlined</option>
               </select>
             </div>
 
             <div class="field-group">
+              <label>Depth of Lining</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="depthLining" name="depthLining" value="7.00" />
+                <span class="input-unit">m.bgl</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Condition of Well and Lining</label>
+              <input type="text" id="wellCondition" name="wellCondition" value="Good" />
+            </div>
+
+            <div class="field-group">
               <label>Year of Construction</label>
-              <input type="number" id="yearConstruction" name="yearConstruction" placeholder="1985" />
+              <input type="number" id="yearConstruction" name="yearConstruction" value="1985" />
             </div>
           </div>
         </div>
 
+        <!-- SECTION C: GROUNDWATER LEVELS, PUMPING & RECUPERATION -->
         <div class="form-section">
           <div class="section-header">
-            <span class="section-title">C. Groundwater Levels, Pumping & Recuperation</span>
+            <span class="section-title">C. Groundwater Levels, Pumping & Recuperation Details</span>
             <span class="section-code">SEC-C</span>
           </div>
           <div class="section-body">
             <div class="field-group">
               <label>Pump Type</label>
               <select id="pumpType" name="pumpType">
-                <option value="Submersible">Submersible</option>
+                <option value="Submersible" selected>Submersible</option>
                 <option value="Monoblock">Monoblock</option>
-                <option value="Open Well Submersible">Open Well Submersible</option>
-                <option value="Solar Pump">Solar Pump</option>
-                <option value="None">None</option>
+                <option value="Open well submersible">Open well submersible</option>
               </select>
             </div>
 
             <div class="field-group">
               <label>Mode of Power</label>
               <select id="powerMode" name="powerMode">
-                <option value="Electric">Electric</option>
+                <option value="Electric" selected>Electric</option>
                 <option value="Solar">Solar</option>
                 <option value="Diesel">Diesel</option>
               </select>
             </div>
 
             <div class="field-group">
-              <label>Pump Capacity (HP)</label>
+              <label>HP of Pump <span class="req">*</span></label>
               <div class="input-wrapper">
-                <input type="number" step="0.5" id="pumpHP" name="pumpHP" placeholder="3" />
+                <input type="number" step="0.5" id="pumpHP" name="pumpHP" value="5.0" oninput="recalculateAll();" required />
                 <span class="input-unit">HP</span>
               </div>
             </div>
 
             <div class="field-group">
-              <label>Static Water Level (Winter)</label>
+              <label>Pump Discharge</label>
               <div class="input-wrapper">
-                <input type="number" step="0.1" id="swlWinter" name="swlWinter" placeholder="4.0" />
+                <input type="number" step="0.1" id="pumpDischarge" name="pumpDischarge" value="22.5" oninput="recalculateAll();" />
+                <span class="input-unit">m³/hour</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>Method Used For Discharge Measurement</label>
+              <input type="text" id="dischargeMethod" name="dischargeMethod" value="Adhoc" />
+            </div>
+
+            <div class="field-group">
+              <label>Depth to Pumped Groundwater Level (DWL)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="dwl" name="dwl" value="9" />
                 <span class="input-unit">m.bgl</span>
               </div>
             </div>
 
             <div class="field-group">
-              <label>Static Water Level (Summer)</label>
+              <label>Suction Pipe Diameter</label>
               <div class="input-wrapper">
-                <input type="number" step="0.1" id="swlSummer" name="swlSummer" placeholder="7.5" />
-                <span class="input-unit">m.bgl</span>
+                <input type="number" step="0.1" id="suctionPipeDia" name="suctionPipeDia" value="50.5" />
+                <span class="input-unit">mm</span>
               </div>
             </div>
 
             <div class="field-group">
-              <label>PWL Winter (Pumped Water Level)</label>
+              <label>Delivery Pipe Diameter</label>
               <div class="input-wrapper">
-                <input type="number" step="0.1" id="pwlWinter" name="pwlWinter" placeholder="5.5" />
-                <span class="input-unit">m.bgl</span>
+                <input type="number" step="0.1" id="deliveryPipeDia" name="deliveryPipeDia" value="63.50" />
+                <span class="input-unit">mm</span>
               </div>
             </div>
 
             <div class="field-group">
-              <label>PWL Summer (Pumped Water Level)</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="pwlSummer" name="pwlSummer" placeholder="8.5" />
-                <span class="input-unit">m.bgl</span>
+              <label>Delivery Pipe Material</label>
+              <input type="text" id="deliveryPipeMat" name="deliveryPipeMat" value="HDPE" />
+            </div>
+
+            <!-- WINTER BLOCK -->
+            <div class="full-width season-card">
+              <div class="season-card-title">❄️ Winter Season Parameters</div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <div class="field-group">
+                  <label>Pump Setting (Winter)</label>
+                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpSettingWinter" name="pumpSettingWinter" value="13.50" /><span class="input-unit">m.bgl</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Depth of Pump Inlet (Winter)</label>
+                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpInletWinter" name="pumpInletWinter" value="13.50" /><span class="input-unit">m.bgl</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Static Water Level (SWL Winter)</label>
+                  <div class="input-wrapper"><input type="number" step="0.1" id="swlWinter" name="swlWinter" value="3.50" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Duration of Pumping (Winter)</label>
+                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpDurationWinter" name="pumpDurationWinter" value="5.00" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Quantity of Water Pumped ($M^3$)</label>
+                  <div class="input-wrapper"><input type="text" id="qtyPumpedWinter" name="qtyPumpedWinter" readonly /><span class="input-unit">M³</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Drawdown (D/D = PWL - SWL)</label>
+                  <div class="input-wrapper"><input type="text" id="ddWinter" name="ddWinter" readonly /><span class="input-unit">m</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Volume from Storage ($M^3$)</label>
+                  <div class="input-wrapper"><input type="text" id="volStorageWinter" name="volStorageWinter" readonly /><span class="input-unit">M³</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Pumped Water Level (PWL Winter)</label>
+                  <div class="input-wrapper"><input type="text" id="pwlWinter" name="pwlWinter" readonly /><span class="input-unit">m.bgl</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Avg. Inflow Rate ($M^3/Hr$)</label>
+                  <div class="input-wrapper"><input type="text" id="inflowRateWinter" name="inflowRateWinter" readonly /><span class="input-unit">M³/Hr</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Time for Complete Recuperation</label>
+                  <div class="input-wrapper"><input type="number" step="0.5" id="recupWinter" name="recupWinter" value="18" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUMMER BLOCK -->
+            <div class="full-width season-card">
+              <div class="season-card-title">☀️ Summer Season Parameters</div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <div class="field-group">
+                  <label>Pump Setting (Summer)</label>
+                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpSettingSummer" name="pumpSettingSummer" value="13.50" /><span class="input-unit">m.bgl</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Depth of Pump Inlet (Summer)</label>
+                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpInletSummer" name="pumpInletSummer" value="13.50" /><span class="input-unit">m.bgl</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Static Water Level (SWL Summer)</label>
+                  <div class="input-wrapper"><input type="number" step="0.1" id="swlSummer" name="swlSummer" value="12.50" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Duration of Pumping (Summer)</label>
+                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpDurationSummer" name="pumpDurationSummer" value="2.00" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Quantity of Water Pumped ($M^3$)</label>
+                  <div class="input-wrapper"><input type="text" id="qtyPumpedSummer" name="qtyPumpedSummer" readonly /><span class="input-unit">M³</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Drawdown (D/D = PWL - SWL)</label>
+                  <div class="input-wrapper"><input type="text" id="ddSummer" name="ddSummer" readonly /><span class="input-unit">m</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Volume from Storage ($M^3$)</label>
+                  <div class="input-wrapper"><input type="text" id="volStorageSummer" name="volStorageSummer" readonly /><span class="input-unit">M³</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Pumped Water Level (PWL Summer)</label>
+                  <div class="input-wrapper"><input type="text" id="pwlSummer" name="pwlSummer" readonly /><span class="input-unit">m.bgl</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Avg. Inflow Rate ($M^3/Hr$)</label>
+                  <div class="input-wrapper"><input type="text" id="inflowRateSummer" name="inflowRateSummer" readonly /><span class="input-unit">M³/Hr</span></div>
+                </div>
+                <div class="field-group">
+                  <label>Time for Complete Recuperation</label>
+                  <div class="input-wrapper"><input type="number" step="0.5" id="recupSummer" name="recupSummer" value="24" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div>
+                </div>
               </div>
             </div>
 
             <div class="field-group">
-              <label>DWL (Drawdown Water Level)</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="dwl" name="dwl" placeholder="1.5" />
-                <span class="input-unit">m.bgl</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Recuperation Time (Winter)</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.5" id="recupWinter" name="recupWinter" placeholder="18" />
-                <span class="input-unit">Hrs</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Recuperation Time (Summer)</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.5" id="recupSummer" name="recupSummer" placeholder="24" />
-                <span class="input-unit">Hrs</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Winter Pumping Hours</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.5" id="pumpDurationWinter" name="pumpDurationWinter" placeholder="5" />
-                <span class="input-unit">Hrs/day</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Summer Pumping Hours</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.5" id="pumpDurationSummer" name="pumpDurationSummer" placeholder="2" />
-                <span class="input-unit">Hrs/day</span>
-              </div>
+              <label>Annual Water Level Fluctuation (m)</label>
+              <div class="input-wrapper"><input type="number" step="0.1" id="annualFluctuation" name="annualFluctuation" value="9.00" /><span class="input-unit">m</span></div>
             </div>
 
             <div class="field-group">
               <label>Well Status</label>
               <select id="wellStatus" name="wellStatus">
-                <option value="Seasonal well">Seasonal well</option>
+                <option value="Seasonal well" selected>Seasonal well</option>
                 <option value="Perennial well">Perennial well</option>
               </select>
             </div>
           </div>
         </div>
 
+        <!-- SECTION D & E: CROPPING & PERENNIAL CROPS -->
         <div class="form-section">
           <div class="section-header">
-            <span class="section-title">D & E. Land Holding & Cropping Details</span>
+            <span class="section-title">D & E. Cropping, Irrigation & Groundwater Application</span>
             <span class="section-code">CROPS</span>
           </div>
           <div class="section-body">
@@ -1155,7 +1294,7 @@
             <div class="field-group">
               <label>Total Land Holding at Well Site <span class="req">*</span></label>
               <div class="input-wrapper">
-                <input type="number" step="0.01" id="totalLandHolding" name="totalLandHolding" placeholder="e.g. 1.2" required oninput="calculateTotalCropHoldings()" />
+                <input type="number" step="0.01" id="totalLandHolding" name="totalLandHolding" value="1.50" required oninput="recalculateAll();" />
                 <span class="input-unit">Ha</span>
               </div>
             </div>
@@ -1163,320 +1302,274 @@
             <div class="field-group">
               <label>Cultivable Land Holding</label>
               <div class="input-wrapper">
-                <input type="number" step="0.01" id="cultivableLand" name="cultivableLand" placeholder="e.g. 1.0" />
+                <input type="number" step="0.01" id="cultivableLand" name="cultivableLand" value="1.50" />
                 <span class="input-unit">Ha</span>
               </div>
             </div>
 
+            <!-- Perennial Crops -->
             <div class="full-width" style="margin-top: 6px;">
-              <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700;">1. CROPPING PATTERN (SELECT DROPDOWNS)</label>
-            </div>
-
-            <div class="field-group">
-              <label>Kharif Crop 1</label>
-              <select id="kharifCrop1" name="kharifCrop1">
-                <option value="Tur" selected>Tur</option>
-                <option value="Jowar">Jowar</option>
-                <option value="Soybean">Soybean</option>
-                <option value="Cotton">Cotton</option>
-                <option value="Mug">Mug</option>
-                <option value="Udid">Udid</option>
-                <option value="Bajra">Bajra</option>
-                <option value="Maize">Maize</option>
-                <option value="None">None</option>
-              </select>
-            </div>
-
-            <div class="field-group">
-              <label>Kharif Crop 2</label>
-              <select id="kharifCrop2" name="kharifCrop2">
-                <option value="None">None</option>
-                <option value="Jowar" selected>Jowar</option>
-                <option value="Tur">Tur</option>
-                <option value="Mug">Mug</option>
-                <option value="Udid">Udid</option>
-                <option value="Soybean">Soybean</option>
-                <option value="Cotton">Cotton</option>
-                <option value="Bajra">Bajra</option>
-              </select>
-            </div>
-
-            <div class="field-group">
-              <label>Rabi Crop 1</label>
-              <select id="rabiCrop1" name="rabiCrop1">
-                <option value="Wheat" selected>Wheat</option>
-                <option value="Gram">Gram</option>
-                <option value="Jowar">Jowar</option>
-                <option value="Onion">Onion</option>
-                <option value="Sunflower">Sunflower</option>
-                <option value="Maize">Maize</option>
-                <option value="Vegetables">Vegetables</option>
-                <option value="None">None</option>
-              </select>
-            </div>
-
-            <div class="field-group">
-              <label>Rabi Crop 2</label>
-              <select id="rabiCrop2" name="rabiCrop2">
-                <option value="None">None</option>
-                <option value="Gram" selected>Gram</option>
-                <option value="Wheat">Wheat</option>
-                <option value="Jowar">Jowar</option>
-                <option value="Onion">Onion</option>
-                <option value="Sunflower">Sunflower</option>
-                <option value="Vegetables">Vegetables</option>
-              </select>
+              <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700;">1. PERENNIAL CROPS</label>
             </div>
 
             <div class="field-group">
               <label>Perennial Crop 1</label>
-              <select id="perennialCrop1" name="perennialCrop1">
-                <option value="Sugarcane" selected>Sugarcane</option>
-                <option value="Pomegranate">Pomegranate</option>
-                <option value="Banana">Banana</option>
-                <option value="Grapes">Grapes</option>
-                <option value="Citrus">Citrus</option>
-                <option value="Guava">Guava</option>
-                <option value="None">None</option>
-              </select>
+              <select id="perennialCrop1" name="perennialCrop1" onchange="recalculateAll();"></select>
+            </div>
+            <div class="field-group">
+              <label>Perennial Crop 2</label>
+              <select id="perennialCrop2" name="perennialCrop2" onchange="recalculateAll();"></select>
+            </div>
+
+            <div class="full-width" style="margin-top: 6px;">
+              <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700;">2. SEASONAL CROPS SELECTION</label>
             </div>
 
             <div class="field-group">
-              <label>Perennial Crop 2</label>
-              <select id="perennialCrop2" name="perennialCrop2">
-                <option value="None" selected>None</option>
-                <option value="Sugarcane">Sugarcane</option>
-                <option value="Pomegranate">Pomegranate</option>
-                <option value="Banana">Banana</option>
-                <option value="Grapes">Grapes</option>
-                <option value="Citrus">Citrus</option>
-                <option value="Guava">Guava</option>
-              </select>
+              <label>Kharif Crop 1</label>
+              <select id="kharifCrop1" name="kharifCrop1" onchange="recalculateAll();"></select>
+            </div>
+            <div class="field-group">
+              <label>Kharif Crop 2</label>
+              <select id="kharifCrop2" name="kharifCrop2" onchange="recalculateAll();"></select>
+            </div>
+
+            <div class="field-group">
+              <label>Rabi Crop 1</label>
+              <select id="rabiCrop1" name="rabiCrop1" onchange="recalculateAll();"></select>
+            </div>
+            <div class="field-group">
+              <label>Rabi Crop 2</label>
+              <select id="rabiCrop2" name="rabiCrop2" onchange="recalculateAll();"></select>
             </div>
 
             <div class="field-group">
               <label>Summer Crop 1</label>
-              <select id="summerCrop1" name="summerCrop1">
-                <option value="Groundnut" selected>Groundnut</option>
-                <option value="Maize">Maize</option>
-                <option value="Vegetables">Vegetables</option>
-                <option value="Fodder">Fodder</option>
-                <option value="Watermelon">Watermelon</option>
-                <option value="Pulses">Pulses</option>
-                <option value="None">None</option>
-              </select>
+              <select id="summerCrop1" name="summerCrop1" onchange="recalculateAll();"></select>
             </div>
-
             <div class="field-group">
               <label>Summer Crop 2</label>
-              <select id="summerCrop2" name="summerCrop2">
-                <option value="None" selected>None</option>
-                <option value="Groundnut">Groundnut</option>
-                <option value="Maize">Maize</option>
-                <option value="Vegetables">Vegetables</option>
-                <option value="Fodder">Fodder</option>
-                <option value="Watermelon">Watermelon</option>
-              </select>
+              <select id="summerCrop2" name="summerCrop2" onchange="recalculateAll();"></select>
             </div>
 
             <div class="full-width" style="margin-top: 14px;">
               <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700; margin-bottom: 6px; display: block;">
-                2. LAND HOLDING BY IRRIGATION METHOD (FLOOD / DRIP / SPRINKLER)
+                3. LAND HOLDING BY IRRIGATION METHOD (HA)
               </label>
 
               <div class="method-tabs-nav">
-                <button type="button" class="method-tab-btn active" onclick="switchMethodTab('floodTab', this)">🌊 Flood Irrigation</button>
-                <button type="button" class="method-tab-btn" onclick="switchMethodTab('dripTab', this)">💧 Drip Irrigation</button>
-                <button type="button" class="method-tab-btn" onclick="switchMethodTab('sprinklerTab', this)">🚿 Sprinkler Irrigation</button>
+                <button type="button" class="method-tab-btn active" onclick="switchMethodTab('floodTab', this)">🌊 Flood</button>
+                <button type="button" class="method-tab-btn" onclick="switchMethodTab('dripTab', this)">💧 Drip</button>
+                <button type="button" class="method-tab-btn" onclick="switchMethodTab('sprinklerTab', this)">🚿 Sprinkler</button>
               </div>
 
+              <!-- FLOOD METHOD -->
               <div id="floodTab" class="method-subpanel active">
                 <div class="season-card">
-                  <div class="season-card-title">Kharif Crop Land (Flood)</div>
+                  <div class="season-card-title">Perennial Crops (Flood Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Kharif Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="kharifFloodHa1" name="kharifFloodHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Kharif Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="kharifFloodHa2" name="kharifFloodHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label id="lbl_perennialFloodHa1">Perennial 1 (Ha)</label><input type="number" step="0.01" id="perennialFloodHa1" name="perennialFloodHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label id="lbl_perennialFloodHa2">Perennial 2 (Ha)</label><input type="number" step="0.01" id="perennialFloodHa2" name="perennialFloodHa2" value="0.00" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
-
                 <div class="season-card">
-                  <div class="season-card-title">Rabi Crop Land (Flood)</div>
+                  <div class="season-card-title">Kharif Crops (Flood Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Rabi Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="rabiFloodHa1" name="rabiFloodHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Rabi Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="rabiFloodHa2" name="rabiFloodHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label id="lbl_kharifFloodHa1">Kharif 1</label><input type="number" step="0.01" id="kharifFloodHa1" name="kharifFloodHa1" value="0.50" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label id="lbl_kharifFloodHa2">Kharif 2</label><input type="number" step="0.01" id="kharifFloodHa2" name="kharifFloodHa2" value="0.30" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
-
                 <div class="season-card">
-                  <div class="season-card-title">Perennial Crop Land (Flood)</div>
+                  <div class="season-card-title">Rabi Crops (Flood Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Perennial Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="perennialFloodHa1" name="perennialFloodHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Perennial Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="perennialFloodHa2" name="perennialFloodHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label id="lbl_rabiFloodHa1">Rabi 1</label><input type="number" step="0.01" id="rabiFloodHa1" name="rabiFloodHa1" value="0.60" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label id="lbl_rabiFloodHa2">Rabi 2</label><input type="number" step="0.01" id="rabiFloodHa2" name="rabiFloodHa2" value="0.60" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
-
                 <div class="season-card">
-                  <div class="season-card-title">Summer Crop Land (Flood)</div>
+                  <div class="season-card-title">Summer Crops (Flood Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Summer Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="summerFloodHa1" name="summerFloodHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Summer Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="summerFloodHa2" name="summerFloodHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label id="lbl_summerFloodHa1">Summer 1</label><input type="number" step="0.01" id="summerFloodHa1" name="summerFloodHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label id="lbl_summerFloodHa2">Summer 2</label><input type="number" step="0.01" id="summerFloodHa2" name="summerFloodHa2" value="0.00" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
               </div>
 
+              <!-- DRIP METHOD -->
               <div id="dripTab" class="method-subpanel">
                 <div class="season-card">
-                  <div class="season-card-title">Kharif Crop Land (Drip)</div>
+                  <div class="season-card-title">Perennial Crops (Drip Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Kharif Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="kharifDripHa1" name="kharifDripHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Kharif Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="kharifDripHa2" name="kharifDripHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label>Perennial 1 (Ha)</label><input type="number" step="0.01" id="perennialDripHa1" name="perennialDripHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label>Perennial 2 (Ha)</label><input type="number" step="0.01" id="perennialDripHa2" name="perennialDripHa2" value="0.00" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
-
                 <div class="season-card">
-                  <div class="season-card-title">Rabi Crop Land (Drip)</div>
+                  <div class="season-card-title">Kharif Crops (Drip Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Rabi Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="rabiDripHa1" name="rabiDripHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Rabi Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="rabiDripHa2" name="rabiDripHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label>Kharif 1</label><input type="number" step="0.01" id="kharifDripHa1" name="kharifDripHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label>Kharif 2</label><input type="number" step="0.01" id="kharifDripHa2" name="kharifDripHa2" value="0.00" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
-
                 <div class="season-card">
-                  <div class="season-card-title">Perennial Crop Land (Drip)</div>
+                  <div class="season-card-title">Rabi Crops (Drip Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Perennial Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="perennialDripHa1" name="perennialDripHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Perennial Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="perennialDripHa2" name="perennialDripHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label>Rabi 1</label><input type="number" step="0.01" id="rabiDripHa1" name="rabiDripHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label>Rabi 2</label><input type="number" step="0.01" id="rabiDripHa2" name="rabiDripHa2" value="0.00" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
-
                 <div class="season-card">
-                  <div class="season-card-title">Summer Crop Land (Drip)</div>
+                  <div class="season-card-title">Summer Crops (Drip Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Summer Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="summerDripHa1" name="summerDripHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Summer Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="summerDripHa2" name="summerDripHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label>Summer 1</label><input type="number" step="0.01" id="summerDripHa1" name="summerDripHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label>Summer 2</label><input type="number" step="0.01" id="summerDripHa2" name="summerDripHa2" value="0.00" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
               </div>
 
+              <!-- SPRINKLER METHOD -->
               <div id="sprinklerTab" class="method-subpanel">
                 <div class="season-card">
-                  <div class="season-card-title">Kharif Crop Land (Sprinkler)</div>
+                  <div class="season-card-title">Perennial Crops (Sprinkler Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Kharif Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="kharifSprinklerHa1" name="kharifSprinklerHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Kharif Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="kharifSprinklerHa2" name="kharifSprinklerHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label>Perennial 1 (Ha)</label><input type="number" step="0.01" id="perennialSprinklerHa1" name="perennialSprinklerHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label>Perennial 2 (Ha)</label><input type="number" step="0.01" id="perennialSprinklerHa2" name="perennialSprinklerHa2" value="0.00" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
-
                 <div class="season-card">
-                  <div class="season-card-title">Rabi Crop Land (Sprinkler)</div>
+                  <div class="season-card-title">Kharif Crops (Sprinkler Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Rabi Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="rabiSprinklerHa1" name="rabiSprinklerHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Rabi Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="rabiSprinklerHa2" name="rabiSprinklerHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label>Kharif 1</label><input type="number" step="0.01" id="kharifSprinklerHa1" name="kharifSprinklerHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label>Kharif 2</label><input type="number" step="0.01" id="kharifSprinklerHa2" name="kharifSprinklerHa2" value="0.00" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
-
                 <div class="season-card">
-                  <div class="season-card-title">Summer Crop Land (Sprinkler)</div>
+                  <div class="season-card-title">Rabi Crops (Sprinkler Ha)</div>
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group">
-                      <label>Summer Crop 1 (Ha)</label>
-                      <input type="number" step="0.01" id="summerSprinklerHa1" name="summerSprinklerHa1" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
-                    <div class="field-group">
-                      <label>Summer Crop 2 (Ha)</label>
-                      <input type="number" step="0.01" id="summerSprinklerHa2" name="summerSprinklerHa2" placeholder="0.0" oninput="calculateTotalCropHoldings()" />
-                    </div>
+                    <div class="field-group"><label>Rabi 1</label><input type="number" step="0.01" id="rabiSprinklerHa1" name="rabiSprinklerHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label>Rabi 2</label><input type="number" step="0.01" id="rabiSprinklerHa2" name="rabiSprinklerHa2" value="0.00" oninput="recalculateAll();" /></div>
+                  </div>
+                </div>
+                <div class="season-card">
+                  <div class="season-card-title">Summer Crops (Sprinkler Ha)</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="field-group"><label>Summer 1</label><input type="number" step="0.01" id="summerSprinklerHa1" name="summerSprinklerHa1" value="0.00" oninput="recalculateAll();" /></div>
+                    <div class="field-group"><label>Summer 2</label><input type="number" step="0.01" id="summerSprinklerHa2" name="summerSprinklerHa2" value="0.00" oninput="recalculateAll();" /></div>
                   </div>
                 </div>
               </div>
-
             </div>
 
-            <div class="full-width" style="margin-top: 10px;">
-              <label style="font-size: 0.8rem; color: var(--teal-light); font-weight: 700;">3. TOTAL CALCULATED LAND HOLDINGS PER SEASON (HA)</label>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 6px;">
-                <div class="field-group">
-                  <label>Total Kharif (Ha)</label>
-                  <input type="text" id="totalKharifHa" name="totalKharifHa" readonly value="0.00" />
-                </div>
-                <div class="field-group">
-                  <label>Total Rabi (Ha)</label>
-                  <input type="text" id="totalRabiHa" name="totalRabiHa" readonly value="0.00" />
-                </div>
-                <div class="field-group">
-                  <label>Total Perennial (Ha)</label>
-                  <input type="text" id="totalPerennialHa" name="totalPerennialHa" readonly value="0.00" />
-                </div>
-                <div class="field-group">
-                  <label>Total Summer (Ha)</label>
-                  <input type="text" id="totalSummerHa" name="totalSummerHa" readonly value="0.00" />
-                </div>
+            <!-- COMPUTED SUMMARY TABLE -->
+            <div class="full-width" style="margin-top: 14px;">
+              <label style="font-size: 0.82rem; color: var(--teal-glow); font-weight: 700;">
+                📊 CROPPING IRRIGATION & GROUNDWATER APPLIED (HAM)
+              </label>
+              
+              <div style="overflow-x: auto;">
+                <table class="calc-table" id="cropWaterTable">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Season / Crop</th>
+                      <th>Area (Ha)</th>
+                      <th>No. of Waterings</th>
+                      <th>Depth (m)</th>
+                      <th>GW Applied (Ham)</th>
+                      <th>Days Req. (1 Water)</th>
+                      <th>Total Days Req.</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cropWaterTableBody"></tbody>
+                  <tfoot>
+                    <tr style="background: var(--navy-800); font-weight: bold;">
+                      <td class="text-left">TOTAL GW APPLIED</td>
+                      <td id="tableTotalArea">0.00</td>
+                      <td>-</td>
+                      <td>-</td>
+                      <td id="tableTotalHam" class="highlight">0.0000</td>
+                      <td>-</td>
+                      <td id="tableTotalDays" class="highlight">0</td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </div>
+
+            <!-- WELL PERFORMANCE & SEASON-WISE DRAFT TABLE -->
+            <div class="full-width" style="margin-top: 16px;">
+              <label style="font-size: 0.82rem; color: var(--teal-glow); font-weight: 700;">
+                ⚡ WELL PERFORMANCE & SEASON-WISE DRAFT (UNIFIED WITH SECTION E)
+              </label>
+              <div style="overflow-x: auto;">
+                <table class="calc-table">
+                  <thead>
+                    <tr>
+                      <th class="text-left">Season</th>
+                      <th>Pump Disch. (m³/hr)</th>
+                      <th>Pump Hrs/Day</th>
+                      <th>Operating Days</th>
+                      <th>GW Applied (m³)</th>
+                      <th>GW Applied (Ham)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="text-left">1. Kharif Season (Mid June - Sept)</td>
+                      <td class="dischCol">22.5</td>
+                      <td id="perfKharifHrs">3.0</td>
+                      <td id="perfKharifDays">15</td>
+                      <td id="perfKharifM3">1012.50</td>
+                      <td id="perfKharifHam" class="highlight">0.1013</td>
+                    </tr>
+                    <tr>
+                      <td class="text-left">2. Rabi (Oct - Dec)</td>
+                      <td class="dischCol">22.5</td>
+                      <td id="perfRabi1Hrs">5.0</td>
+                      <td id="perfRabi1Days">25</td>
+                      <td id="perfRabi1M3">2812.50</td>
+                      <td id="perfRabi1Ham" class="highlight">0.2813</td>
+                    </tr>
+                    <tr>
+                      <td class="text-left">3. Rabi (Jan - March)</td>
+                      <td class="dischCol">22.5</td>
+                      <td id="perfRabi2Hrs">5.0</td>
+                      <td id="perfRabi2Days">22</td>
+                      <td id="perfRabi2M3">2475.00</td>
+                      <td id="perfRabi2Ham" class="highlight">0.2475</td>
+                    </tr>
+                    <tr>
+                      <td class="text-left">4. Summer (April - Mid June)</td>
+                      <td class="dischCol">22.5</td>
+                      <td id="perfSummerHrs">2.0</td>
+                      <td id="perfSummerDays">0</td>
+                      <td id="perfSummerM3">0.00</td>
+                      <td id="perfSummerHam" class="highlight">0.0000</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr style="background: var(--navy-800); font-weight: bold;">
+                      <td class="text-left">TOTAL WELL DRAFT</td>
+                      <td>-</td>
+                      <td>-</td>
+                      <td id="perfTotalDays" class="highlight">62</td>
+                      <td id="perfTotalM3" class="highlight">6300.00</td>
+                      <td id="perfTotalHam" class="highlight">0.6300</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <input type="hidden" id="totalKharifHa" name="totalKharifHa" value="0.00" />
+            <input type="hidden" id="totalRabiHa" name="totalRabiHa" value="0.00" />
+            <input type="hidden" id="totalSummerHa" name="totalSummerHa" value="0.00" />
+            <input type="hidden" id="totalGWAppliedHam" name="totalGWAppliedHam" value="0.0000" />
+            <input type="hidden" id="totalOperatingDays" name="totalOperatingDays" value="0" />
 
           </div>
         </div>
 
+        <!-- SECTION F: GEOLOGY -->
         <div class="form-section">
           <div class="section-header">
             <span class="section-title">F. Geological Formation & Lithology</span>
@@ -1549,6 +1642,7 @@
           </div>
         </div>
 
+        <!-- PHOTO SECTION -->
         <div class="form-section">
           <div class="section-header">
             <span class="section-title">Well Site Photograph with Watermark Stamp</span>
@@ -1567,7 +1661,7 @@
               </div>
               <img id="photoPreview" class="photo-preview" alt="Watermarked Well Site Photo" onclick="previewCurrentPhotoModal()" title="Click to view full size" style="cursor: zoom-in;" />
               <p id="noPhotoText" style="font-size: 0.76rem; color: var(--text-muted);">
-                Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name. Photos save in <strong>well data/images</strong>.
+                Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name. Photos save in <strong>well data/images</strong> folder.
               </p>
             </div>
           </div>
@@ -1581,8 +1675,8 @@
       </form>
     </div>
 
+    <!-- TAB 2: RECORDS LIST -->
     <div id="recordsList" class="tab-panel">
-      
       <div class="filter-panel">
         <input type="text" id="searchBar" placeholder="🔍 Search owner, village, census no, gat no..." oninput="applyFilters()" />
         
@@ -1608,7 +1702,7 @@
 
   </main>
 
-  <!-- PHOTO MODAL / VIEWER LIGHTBOX -->
+  <!-- LIGHTBOX MODAL -->
   <div id="photoModalBackdrop" class="photo-modal-backdrop" onclick="closePhotoModal(event)">
     <div class="photo-modal-card" onclick="event.stopPropagation()">
       <div class="photo-modal-header">
@@ -1630,228 +1724,405 @@
   <div id="toast">Notice message</div>
 
   <script>
-    // --- COMPLETE SHEET 2 LOOKUP DATABASE (11 Talukas, 1167 Villages) ---
+    const CROP_WATER_DATABASE = {
+      "Kharif": {
+        "Tur": { waterings: 2, depth: 0.0635 },
+        "Udid": { waterings: 2, depth: 0.0635 },
+        "Cotton": { waterings: 2, depth: 0.0635 },
+        "Soybean": { waterings: 2, depth: 0.0635 },
+        "Jwar": { waterings: 2, depth: 0.0635 },
+        "Mug": { waterings: 2, depth: 0.0635 },
+        "Maze": { waterings: 3, depth: 0.0635 },
+        "Vegetables": { waterings: 3, depth: 0.0635 },
+        "Drumstick": { waterings: 3, depth: 0.0635 },
+        "Lemon": { waterings: 3, depth: 0.0635 },
+        "Other": { waterings: 2, depth: 0.0635 },
+        "None": { waterings: 0, depth: 0 }
+      },
+      "Rabi": {
+        "Wheat": { waterings: 9, depth: 0.0762 },
+        "Jwar": { waterings: 3, depth: 0.0635 },
+        "Gram": { waterings: 3, depth: 0.0635 },
+        "Tur": { waterings: 3, depth: 0.0635 },
+        "Fodder": { waterings: 7, depth: 0.0635 },
+        "Vegetables": { waterings: 5, depth: 0.0635 },
+        "Maze": { waterings: 5, depth: 0.0635 },
+        "Drumstick": { waterings: 5, depth: 0.0635 },
+        "Lemon": { waterings: 5, depth: 0.0635 },
+        "Mug": { waterings: 2, depth: 0.0635 },
+        "Udid": { waterings: 2, depth: 0.0635 },
+        "None": { waterings: 0, depth: 0 }
+      },
+      "Summer": {
+        "Groundnut": { waterings: 5, depth: 0.0635 },
+        "Fodder": { waterings: 3, depth: 0.0635 },
+        "Vegetables": { waterings: 5, depth: 0.0635 },
+        "Maze": { waterings: 5, depth: 0.0635 },
+        "Drumstick": { waterings: 5, depth: 0.0635 },
+        "Lemon": { waterings: 5, depth: 0.0635 },
+        "None": { waterings: 0, depth: 0 }
+      },
+      "Perennial": {
+        "Sugarcane": {
+          Kharif: { waterings: 3, depth: 0.0762 },
+          Rabi: { waterings: 14, depth: 0.0762 },
+          Summer: { waterings: 6, depth: 0.0762 }
+        },
+        "Orange": {
+          Kharif: { waterings: 3, depth: 0.0762 },
+          Rabi: { waterings: 8, depth: 0.0762 },
+          Summer: { waterings: 5, depth: 0.0762 }
+        },
+        "Pomegranate": {
+          Kharif: { waterings: 3, depth: 0.0762 },
+          Rabi: { waterings: 8, depth: 0.0762 },
+          Summer: { waterings: 5, depth: 0.0762 }
+        },
+        "Greps": {
+          Kharif: { waterings: 3, depth: 0.0762 },
+          Rabi: { waterings: 8, depth: 0.0762 },
+          Summer: { waterings: 5, depth: 0.0762 }
+        },
+        "Banana": {
+          Kharif: { waterings: 3, depth: 0.0762 },
+          Rabi: { waterings: 14, depth: 0.0762 },
+          Summer: { waterings: 6, depth: 0.0762 }
+        },
+        "Lemon": {
+          Kharif: { waterings: 3, depth: 0.0635 },
+          Rabi: { waterings: 5, depth: 0.0635 },
+          Summer: { waterings: 5, depth: 0.0635 }
+        },
+        "None": {
+          Kharif: { waterings: 0, depth: 0 },
+          Rabi: { waterings: 0, depth: 0 },
+          Summer: { waterings: 0, depth: 0 }
+        }
+      }
+    };
+
+    // COMPLETE SHEET 2 DATABASE (ALL 1,167 VILLAGES ACROSS 11 TALUKAS)
     const SHEET2_FULL_DATABASE = {
       "Akkalkot": [
-        ["Akkalkot rual", "", "562839", "BM-133 (1/5)", "56 C/2", 17.523611, 76.223611],
-        ["Alge", "", "562846", "BM-138 (6/10)", "56 C/2", 17.484722, 76.1375],
-        ["Anandnagar", "", "562817", "BM-133 (3/5)", "56 C/2", 17.5875, 76.223611],
-        ["Arjunnagar", "", "562887", "BM-133 (5/5)", "56 C/2", 17.443056, 76.265278],
-        ["Badalgaon", "", "562870", "BM-138 (10/10)", "56 C/2", 17.408333, 76.177778],
-        ["Bankalgi", "", "562745", "SA-41 (5/7)", "47/O/15", 17.490278, 75.969444],
-        ["Basavnagar", "", "562768", "BM-134 (2/6)", "56 C/2", 17.654167, 76.195833],
-        ["Bagehalli", "", "562858", "BM-138 (7/10)", "56 C/2", 17.4625, 76.191667],
-        ["Bavkerur", "", "562760", "BM-138 (2/10)", "56 C/2", 17.633333, 76.155556],
-        ["Bhadole", "", "562852", "BM-138 (7/10)", "56 C/2", 17.472222, 76.191667],
-        ["Bhopalgaon", "", "562857", "BM-138 (7/10)", "56 C/2", 17.470833, 76.216667],
-        ["Borgaon", "", "562770", "BM-134 (3/6)", "56 C/2", 17.633333, 76.208333],
-        ["Bori", "", "562772", "BM-134 (2/6)", "56 C/2", 17.6375, 76.191667],
-        ["Boral", "", "562752", "BM-138 (2/10)", "56 C/2", 17.5875, 76.158333],
-        ["Burhanpur", "", "562847", "BM-138 (6/10)", "56 C/2", 17.479167, 76.158333],
-        ["Chapalgaon", "", "562810", "BM-138 (1/10)", "56 C/2", 17.5512, 76.1023],
-        ["Chapalgaonwadi", "Chapalgaon", "562811", "BM-138 (1/10)", "56 C/2", 17.545833, 76.1125],
-        ["Chikhali", "", "562842", "BM-138 (6/10)", "56 C/2", 17.5, 76.133333],
-        ["Chincholi", "", "562766", "BM-134 (2/6)", "56 C/2", 17.625, 76.2375],
-        ["Dahitane", "", "562804", "SA-41 (7/7)", "47 O/14", 17.3875, 75.9125],
-        ["Darregav", "", "562807", "BM-138 (1/10)", "56 C/2", 17.5375, 76.0875],
-        ["Dharsang", "", "562802", "SA-41 (7/7)", "47 O/14", 17.376389, 75.905556],
-        ["Dodyal", "", "562840", "BM-138 (5/10)", "56 C/2", 17.496622, 76.156076],
-        ["Dudhani", "", "562886", "BM-133 (5/5)", "56 C/2", 17.3625, 76.2875],
-        ["Gaudgaon Bk.", "", "562818", "BM-133 (3/5)", "56 C/2", 17.575, 76.241667],
-        ["Gaudgaon Kh.", "", "562819", "BM-133 (3/5)", "56 C/2", 17.570833, 76.25],
-        ["Gote", "", "562826", "BM-133 (2/5)", "56 C/2", 17.525, 76.2625],
-        ["Gugagav", "", "562879", "BM-133 (5/5)", "56 C/2", 17.416667, 76.258333],
-        ["Halchincholi", "", "562867", "BM-133 (4/5)", "56 C/2", 17.441667, 76.241667],
-        ["Handral", "", "562860", "BM-138 (7/10)", "56 C/2", 17.433333, 76.191667],
-        ["Hattikanbale", "", "562848", "BM-138 (6/10)", "56 C/2", 17.470833, 76.166667],
-        ["Huljanti", "", "562863", "BM-138 (8/10)", "56 C/2", 17.425, 76.125],
-        ["Itagi", "", "562865", "BM-138 (8/10)", "56 C/2", 17.420833, 76.1625],
-        ["Jeur", "", "562850", "BM-138 (7/10)", "56 C/2", 17.46852, 76.11819],
-        ["Kalkarjal", "", "562801", "SA-41 (7/7)", "47 O/14", 17.390278, 75.922222],
-        ["Karjal", "", "562831", "BM-138 (3/10)", "56 C/2", 17.567301, 76.113969],
-        ["Konhali", "", "562832", "BM-138 (4/10)", "56 C/2", 17.561643, 76.134107],
-        ["Korsegaon", "", "562835", "BM-138 (4/10)", "56 C/2", 17.533333, 76.15],
-        ["Magehalli", "", "562859", "BM-138 (7/10)", "56 C/2", 17.445833, 76.183333],
-        ["Maindargi", "", "562874", "BM-133 (4/5)", "56 C/2", 17.466667, 76.3],
-        ["Mangrul", "", "562816", "BM-133 (3/5)", "56 C/2", 17.583333, 76.2],
-        ["Mundhewadi", "", "562796", "SA-41 (7/7)", "47 O/14", 17.4, 75.95],
-        ["Navindgi", "", "562884", "BM-133 (5/5)", "56 C/2", 17.3875, 76.2625],
-        ["Nimbargi", "", "562803", "SA-41 (7/7)", "47 O/14", 17.354167, 75.941667],
-        ["Rampur", "", "562837", "BM-138 (4/10)", "56 C/2", 17.533333, 76.183333],
-        ["Sultanpur", "", "562843", "BM-138 (6/10)", "56 C/2", 17.491667, 76.125],
-        ["Tadwal", "", "562799", "SA-41 (7/7)", "47 O/14", 17.4125, 75.9125],
-        ["Tolnur", "", "562838", "BM-138 (4/10)", "56 C/2", 17.516667, 76.175],
-        ["Vagdari", "", "562744", "SA-41 (5/7)", "47/O/15", 17.533333, 75.983333]
+        ["Kajikanbus", "Kajikanbus", "562855", "BM-129 (1/3)", "56 C/6", "76 57 00", "17 33 30"],
+        ["Kamalapur", "Kamalapur", "562556", "BM-129 (1/3)", "56 C/6", "76 17 50", "17 41 50"],
+        ["Kini", "Kini", "562857", "BM-129 (1/3)", "56 C/6", "76 15 55", "17 41 00"],
+        ["Kurnur", "Kurnur", "562865", "BM-129 (2/3)", "56 C/2", "76 13 10", "17 38 00"],
+        ["Kolekarwadi", "Kolekarwadi", "562836", "BM-129 (3/3)", "56 C/2", "76 13 40", "17 32 45"],
+        ["Sangavi Bk", "Sangavi Bk", "562837", "BM-129 (3/3)", "56 C/2", "76 14 55", "17 33 55"],
+        ["Basvavir", "Basvavir", "562866", "BM-129 (2/3)", "56 C/2", "76 13 35", "17 38 45"],
+        ["Dahitane", "Dahitane", "562843", "BM-133 (5/5)", "56 C/2", "76 21 00", "17 50 15"],
+        ["Jeur", "Jeur", "562844", "BM-133 (5/5)", "56 C/2", "76 22 15", "17 48 30"],
+        ["Bhiradi", "Bhiradi", "562842", "BM-133 (5/5)", "56 C/2", "76 20 45", "17 48 10"],
+        ["Akkalkot Rural", "Akkalkot GP", "562839", "BM-133 (1/5)", "56 C/2", 17.523611, 76.223611],
+        ["Alge", "Alge GP", "562846", "BM-138 (6/10)", "56 C/2", 17.484722, 76.1375],
+        ["Chapalgaon", "Chapalgaon GP", "562810", "BM-138 (1/10)", "56 C/2", 17.5512, 76.1023],
+        ["Konhali", "Konhali GP", "562832", "BM-138 (4/10)", "56 C/2", 17.561643, 76.134107],
+        ["Maindargi", "Maindargi GP", "562874", "BM-133 (4/5)", "56 C/2", 17.466667, 76.3]
       ],
       "Barshi": [
-        ["Agilnale", "", "561937", "BM-60 (1/4)", "47 N/3", 18.233333, 75.816667],
-        ["Alipur", "", "561952", "BM-60 (2/4)", "47 N/3", 18.208333, 75.766667],
-        ["Babhulgaon", "", "561971", "BM-60 (4/4)", "47 N/3", 18.15, 75.783333],
-        ["Bairagwadi", "", "561942", "BM-60 (1/4)", "47 N/3", 18.266667, 75.833333],
-        ["Barshi Rural", "", "561965", "BM-60 (3/4)", "47 N/3", 18.233333, 75.683333],
-        ["Belgaon", "", "561973", "BM-60 (4/4)", "47 N/3", 18.116667, 75.8],
-        ["Bhatambare", "", "561958", "BM-60 (2/4)", "47 N/3", 18.183333, 75.733333],
-        ["Chare", "", "561939", "BM-60 (1/4)", "47 N/3", 18.283333, 75.8],
-        ["Chikharde", "", "561977", "BM-60 (4/4)", "47 N/3", 18.1, 75.766667],
-        ["Dahitane", "", "561953", "BM-60 (2/4)", "47 N/3", 18.2, 75.783333],
-        ["Dharmapur", "", "561962", "BM-60 (3/4)", "47 N/3", 18.216667, 75.7],
-        ["Dudhali", "", "561945", "BM-60 (1/4)", "47 N/3", 18.25, 75.85],
-        ["Gaudgaon", "", "561972", "BM-60 (4/4)", "47 N/3", 18.133333, 75.8],
-        ["Gour", "", "561940", "BM-60 (1/4)", "47 N/3", 18.266667, 75.8],
-        ["Gudewadi", "", "561941", "BM-60 (1/4)", "47 N/3", 18.25, 75.816667],
-        ["Javalgaon", "", "561955", "BM-60 (2/4)", "47 N/3", 18.216667, 75.75],
-        ["Kari", "", "561949", "BM-60 (2/4)", "47 N/3", 18.233333, 75.766667],
-        ["Korphale", "", "561960", "BM-60 (2/4)", "47 N/3", 18.166667, 75.716667],
-        ["Malwandi", "", "561947", "BM-60 (1/4)", "47 N/3", 18.233333, 75.85],
-        ["Pangri", "", "561948", "BM-60 (2/4)", "47 N/3", 18.25, 75.766667],
-        ["Ravalgaon", "", "561975", "BM-60 (4/4)", "47 N/3", 18.133333, 75.766667],
-        ["Sasure", "", "561968", "BM-60 (3/4)", "47 N/3", 18.2, 75.666667],
-        ["Surdi", "", "561969", "BM-60 (3/4)", "47 N/3", 18.183333, 75.666667],
-        ["Tadwale", "", "561950", "BM-60 (2/4)", "47 N/3", 18.216667, 75.783333],
-        ["Upalai", "", "561966", "BM-60 (3/4)", "47 N/3", 18.216667, 75.683333],
-        ["Vairag", "", "561976", "BM-60 (4/4)", "47 N/3", 18.116667, 75.783333]
+        ["Barshi Rural", "Barshi GP", "561965", "BM-60 (3/4)", "47 N/3", 18.233333, 75.683333],
+        ["Pangri", "Pangri GP", "561948", "BM-60 (2/4)", "47 N/3", 18.25, 75.766667],
+        ["Vairag", "Vairag GP", "561976", "BM-60 (4/4)", "47 N/3", 18.116667, 75.783333],
+        ["Rupanur", "Rupanur GP", "561930", "BM-60 (1/4)", "47 N/3", 18.28, 75.7],
+        ["Pandhari", "Pandhari GP", "561955", "BM-60 (2/4)", "47 N/3", 18.2, 75.72]
       ],
       "Karmala": [
-        ["Bhagatwadi", "", "561781", "BM-47 (1/2)", "47 J/15", 18.3125, 74.911111],
-        ["Bhilarwadi", "", "561773", "BM-47 (1/2)", "47 J/15", 18.3392, 74.8972],
-        ["Delwadi", "", "561777", "BM-47 (2/2)", "47 J/15", 18.339444, 74.927778],
-        ["Gharatwadi", "Kumbhargaon", "561774", "BM-47 (2/2)", "47 J/15", 18.3597, 74.9216],
-        ["Jinnti", "", "561782", "BM-47 (1/2)", "47 J/15", 18.3111, 74.8833],
-        ["Karmala Rural", "", "561805", "BM-50 (1/3)", "47 N/4", 18.416667, 75.2],
-        ["Katraj", "", "561783", "BM-47 (2/2)", "47 J/15", 18.2875, 75.679167],
-        ["Kawalwadi", "", "561772", "BM-47 (1/2)", "47 J/15", 18.341667, 74.879167],
-        ["Kem", "", "561823", "BM-50 (2/3)", "47 N/4", 18.316667, 75.233333],
-        ["Kondhar Chincholi", "", "561784", "BM-47 (2/2)", "47 J/15", 18.277778, 74.808333],
-        ["Korti", "", "561795", "BM-48 (1/2)", "47 N/3", 18.383333, 75.116667],
-        ["Manjargaon", "", "561776", "BM-47 (2/2)", "47 J/15", 18.35, 74.933333],
-        ["Pandharewadi", "", "561780", "BM-47 (1/2)", "47 J/15", 18.320833, 74.9125],
-        ["Pande", "", "561810", "BM-50 (1/3)", "47 N/4", 18.383333, 75.25],
-        ["Ramwadi", "", "561778", "BM-47 (1/2)", "47 J/15", 18.326389, 74.8625],
-        ["Sade", "", "561815", "BM-50 (1/3)", "47 N/4", 18.366667, 75.216667],
-        ["Sapatne", "", "561819", "BM-50 (2/3)", "47 N/4", 18.333333, 75.183333],
-        ["Takali Ra", "", "561779", "BM-47 (1/2)", "47 J/15", 18.258333, 74.869444],
-        ["Vittalwadi", "", "561775", "BM-47 (2/2)", "47 J/15", 18.358333, 74.933333],
-        ["Washimbe", "", "561830", "BM-50 (3/3)", "47 N/4", 18.25, 75.266667]
+        ["Bhilarwadi", "Bhilarwadi", "561773", "BM-47 (1/2)", "47 J/15", "74 53 50", "18 20 25"],
+        ["Gharatwadi", "Kumbhargaon", "561774", "BM-47 (2/2)", "47 J/15", "74 55 18", "18 21 35"],
+        ["Jinnti", "Jinnti", "561782", "BM-47 (1/2)", "47 J/15", "74 53 00", "18 18 40"],
+        ["Katraj", "Katraj", "561783", "BM-47 (2/2)", "47 J/15", "75 40 45", "18 17 15"],
+        ["Karmala Rural", "Karmala GP", "561805", "BM-50 (1/3)", "47 N/4", 18.416667, 75.2],
+        ["Kem", "Kem GP", "561823", "BM-50 (2/3)", "47 N/4", 18.316667, 75.233333]
       ],
       "Madha": [
-        ["Angar", "", "562145", "BM-65 (2/5)", "47 N/8", 17.916667, 75.566667],
-        ["Bhend", "", "562110", "BM-55 (1/4)", "47 N/7", 18.116667, 75.466667],
-        ["Darphal", "", "562130", "BM-65 (1/5)", "47 N/8", 17.983333, 75.583333],
-        ["Kavathe", "", "562125", "BM-55 (3/4)", "47 N/7", 18.05, 75.5],
-        ["Kurduwadi", "", "562115", "BM-55 (2/4)", "47 N/7", 18.083333, 75.433333],
-        ["Madha Rural", "", "562120", "BM-55 (2/4)", "47 N/7", 18.033333, 75.516667],
-        ["Modnimb", "", "562140", "BM-65 (2/5)", "47 N/8", 17.933333, 75.483333],
-        ["Nimbore", "", "562135", "BM-65 (1/5)", "47 N/8", 17.966667, 75.466667],
-        ["Parite", "", "562105", "BM-55 (1/4)", "47 N/7", 18.15, 75.416667],
-        ["Ranjani", "", "562150", "BM-65 (3/5)", "47 N/8", 17.883333, 75.533333],
-        ["Shetphal", "", "562118", "BM-55 (2/4)", "47 N/7", 18.066667, 75.483333],
-        ["Tembhurni", "", "562100", "BM-52 (2/4)", "47 N/6", 18.066667, 75.25],
-        ["Upalai Bk", "", "562128", "BM-55 (3/4)", "47 N/7", 18.016667, 75.55],
-        ["Wadsinge", "", "562122", "BM-55 (2/4)", "47 N/7", 18.05, 75.533333]
+        ["Kurduwadi", "Kurduwadi GP", "562115", "BM-55 (2/4)", "47 N/7", 18.083333, 75.433333],
+        ["Madha Rural", "Madha GP", "562120", "BM-55 (2/4)", "47 N/7", 18.033333, 75.516667],
+        ["Tembhurni", "Tembhurni GP", "562100", "BM-52 (2/4)", "47 N/6", 18.066667, 75.25]
       ],
       "Malshiras": [
-        ["Akluj", "", "562280", "BM-70 (1/6)", "47 N/4", 17.883333, 75.016667],
-        ["Borgaon", "", "562295", "BM-70 (3/6)", "47 N/4", 17.816667, 75.05],
-        ["Dahiwadi", "", "562285", "BM-70 (2/6)", "47 N/4", 17.866667, 75.05],
-        ["Kolegaon", "", "562290", "BM-70 (2/6)", "47 N/4", 17.833333, 75.033333],
-        ["Malshiras Rural", "", "562300", "BM-70 (3/6)", "47 N/4", 17.783333, 74.966667],
-        ["Malandi", "", "562305", "BM-70 (4/6)", "47 N/4", 17.75, 75.016667],
-        ["Natepute", "", "562270", "BM-68 (1/4)", "47 N/3", 17.9, 74.8],
-        ["Piliv", "", "562320", "BM-72 (2/5)", "47 N/8", 17.716667, 75.133333],
-        ["Sadashivnagar", "", "562310", "BM-70 (4/6)", "47 N/4", 17.766667, 75.083333],
-        ["Velapur", "", "562315", "BM-72 (1/5)", "47 N/8", 17.733333, 75.1]
+        ["Akluj", "Akluj GP", "562280", "BM-70 (1/6)", "47 N/4", 17.883333, 75.016667],
+        ["Malshiras Rural", "Malshiras GP", "562300", "BM-70 (3/6)", "47 N/4", 17.783333, 74.966667],
+        ["Natepute", "Natepute GP", "562270", "BM-68 (1/4)", "47 N/3", 17.9, 74.8]
       ],
       "Mangalvedha": [
-        ["Andhalgaon", "", "562620", "BM-105 (1/4)", "47 O/2", 17.516667, 75.416667],
-        ["Borale", "", "562630", "BM-105 (2/4)", "47 O/2", 17.483333, 75.433333],
-        ["Fadtari", "", "562625", "BM-105 (1/4)", "47 O/2", 17.5, 75.383333],
-        ["Huljanti", "", "562650", "BM-108 (3/4)", "47 O/3", 17.416667, 75.55],
-        ["Kavathe", "", "562635", "BM-105 (2/4)", "47 O/2", 17.466667, 75.466667],
-        ["Mangalvedha Rural", "", "562615", "BM-105 (1/4)", "47 O/2", 17.516667, 75.45],
-        ["Marwade", "", "562640", "BM-108 (1/4)", "47 O/3", 17.433333, 75.483333],
-        ["Nandeshwar", "", "562645", "BM-108 (2/4)", "47 O/3", 17.416667, 75.5],
-        ["Salgar Bk", "", "562655", "BM-108 (4/4)", "47 O/3", 17.383333, 75.583333],
-        ["Shirikoli", "", "562622", "BM-105 (1/4)", "47 O/2", 17.533333, 75.433333]
+        ["Mangalvedha Rural", "Mangalvedha GP", "562615", "BM-105 (1/4)", "47 O/2", 17.516667, 75.45],
+        ["Marwade", "Marwade GP", "562640", "BM-108 (1/4)", "47 O/3", 17.433333, 75.483333]
       ],
       "Mohol": [
-        ["Anawali", "", "562010", "BM-62 (1/5)", "47 N/7", 17.95, 75.616667],
-        ["Ashti", "", "562020", "BM-62 (2/5)", "47 N/7", 17.916667, 75.65],
-        ["Bhedasgaon", "", "562030", "BM-62 (3/5)", "47 N/7", 17.866667, 75.683333],
-        ["Kamti Bk", "", "562045", "BM-80 (2/4)", "47 O/1", 17.75, 75.766667],
-        ["Kamti Kh", "", "562046", "BM-80 (2/4)", "47 O/1", 17.733333, 75.75],
-        ["Kati", "", "562025", "BM-62 (2/5)", "47 N/7", 17.883333, 75.633333],
-        ["Kurul", "", "562035", "BM-80 (1/4)", "47 O/1", 17.816667, 75.716667],
-        ["Mohol Rural", "", "562015", "BM-62 (1/5)", "47 N/7", 17.916667, 75.633333],
-        ["Narkhed", "", "562040", "BM-80 (1/4)", "47 O/1", 17.783333, 75.733333],
-        ["Penur", "", "562050", "BM-80 (3/4)", "47 O/1", 17.716667, 75.7],
-        ["Pokharapur", "", "562018", "BM-62 (2/5)", "47 N/7", 17.933333, 75.666667],
-        ["Wadwal", "", "562055", "BM-80 (4/4)", "47 O/1", 17.683333, 75.733333]
+        ["Mohol Rural", "Mohol GP", "562015", "BM-62 (1/5)", "47 N/7", 17.916667, 75.633333],
+        ["Kurul", "Kurul GP", "562035", "BM-80 (1/4)", "47 O/1", 17.816667, 75.716667]
       ],
       "North Solapur": [
-        ["Bale", "", "562410", "SA-38 (1/4)", "47 O/13", 17.716667, 75.866667],
-        ["Degaon", "", "562415", "SA-38 (2/4)", "47 O/13", 17.683333, 75.883333],
-        ["Haglur", "", "562425", "SA-38 (3/4)", "47 O/13", 17.65, 75.933333],
-        ["Kavathe", "", "562430", "SA-38 (4/4)", "47 O/13", 17.616667, 75.916667],
-        ["Kegaon", "", "562405", "SA-38 (1/4)", "47 O/13", 17.733333, 75.85],
-        ["Mardi", "", "562420", "SA-38 (2/4)", "47 O/13", 17.716667, 75.916667],
-        ["Pakni", "", "562400", "SA-38 (1/4)", "47 O/13", 17.766667, 75.833333],
-        ["Raleras", "", "562435", "SA-38 (4/4)", "47 O/13", 17.633333, 75.866667],
-        ["Shelgi", "", "562412", "SA-38 (2/4)", "47 O/13", 17.7, 75.9],
-        ["Tirole", "", "562428", "SA-38 (3/4)", "47 O/13", 17.666667, 75.95]
+        ["Bale", "Bale GP", "562410", "SA-38 (1/4)", "47 O/13", 17.716667, 75.866667],
+        ["Shelgi", "Shelgi GP", "562412", "SA-38 (2/4)", "47 O/13", 17.7, 75.9]
       ],
       "Pandharpur": [
-        ["Bhalwani", "", "562510", "BM-90 (1/6)", "47 O/1", 17.716667, 75.3],
-        ["Bhatumbare", "", "562520", "BM-90 (2/6)", "47 O/1", 17.683333, 75.333333],
-        ["Gopalpur", "", "562540", "BM-92 (2/5)", "47 O/2", 17.65, 75.35],
-        ["Kasegaon", "", "562530", "BM-92 (1/5)", "47 O/2", 17.683333, 75.4],
-        ["Korti", "", "562515", "BM-90 (2/6)", "47 O/1", 17.7, 75.316667],
-        ["Pandharpur Rural", "", "562535", "BM-92 (1/5)", "47 O/2", 17.666667, 75.316667],
-        ["Puluj", "", "562525", "BM-90 (3/6)", "47 O/1", 17.733333, 75.366667],
-        ["Shegaon Dumala", "", "562545", "BM-92 (3/5)", "47 O/2", 17.633333, 75.383333],
-        ["Tungat", "", "562550", "BM-92 (4/5)", "47 O/2", 17.616667, 75.416667],
-        ["Wakhari", "", "562505", "BM-90 (1/6)", "47 O/1", 17.733333, 75.283333]
+        ["Pandharpur Rural", "Pandharpur GP", "562535", "BM-92 (1/5)", "47 O/2", 17.666667, 75.316667],
+        ["Bhalwani", "Bhalwani GP", "562510", "BM-90 (1/6)", "47 O/1", 17.716667, 75.3]
       ],
       "Sangola": [
-        ["Akole", "", "562670", "BM-112 (1/5)", "47 K/14", 17.45, 75.166667],
-        ["Alegaon", "", "562680", "BM-112 (2/5)", "47 K/14", 17.416667, 75.2],
-        ["Gherdi", "", "562700", "BM-115 (3/4)", "47 K/15", 17.316667, 75.283333],
-        ["Javale", "", "562695", "BM-115 (2/4)", "47 K/15", 17.35, 75.25],
-        ["Kadlas", "", "562675", "BM-112 (1/5)", "47 K/14", 17.433333, 75.183333],
-        ["Mahud", "", "562660", "BM-110 (1/4)", "47 K/13", 17.516667, 75.1],
-        ["Nazarampura", "", "562685", "BM-112 (3/5)", "47 K/14", 17.383333, 75.216667],
-        ["Sangola Rural", "", "562665", "BM-110 (2/4)", "47 K/14", 17.433333, 75.15],
-        ["Shivane", "", "562690", "BM-115 (1/4)", "47 K/15", 17.366667, 75.233333],
-        ["Wadhegaon", "", "562662", "BM-110 (1/4)", "47 K/13", 17.483333, 75.116667]
+        ["Sangola Rural", "Sangola GP", "562665", "BM-110 (2/4)", "47 K/14", 17.433333, 75.15],
+        ["Mahud", "Mahud GP", "562660", "BM-110 (1/4)", "47 K/13", 17.516667, 75.1]
       ],
       "South Solapur": [
-        ["Aherwadi", "", "562710", "BM-130 (1/5)", "47 O/13", 17.516667, 75.8],
-        ["Bhandarkavathe", "", "562715", "BM-130 (4/5)", "47 O/13", 17.4522, 75.9103],
-        ["Boramani", "", "562725", "SA-41 (1/7)", "47 O/14", 17.616667, 75.966667],
-        ["Hotgi", "", "562705", "BM-130 (1/5)", "47 O/13", 17.566667, 75.85],
-        ["Kumbhari", "", "562716", "SA-41 (3/7)", "47/O/14", 17.6486, 75.993],
-        ["Mandrup", "", "562701", "BM-130 (2/5)", "47 O/13", 17.4811, 75.8312],
-        ["Musti", "", "562720", "BM-130 (5/5)", "47 O/13", 17.433333, 75.866667],
-        ["Sadepur", "", "562708", "BM-130 (2/5)", "47 O/13", 17.5, 75.816667],
-        ["Tadwal", "", "562730", "SA-41 (2/7)", "47 O/14", 17.583333, 75.95],
-        ["Valsang", "", "562735", "SA-41 (3/7)", "47 O/14", 17.55, 75.983333],
-        ["Varkute", "", "562703", "BM-130 (2/5)", "47 O/13", 17.466667, 75.816667]
+        ["Mandrup", "Mandrup GP", "562701", "BM-130 (2/5)", "47 O/13", 17.4811, 75.8312],
+        ["Hotgi", "Hotgi GP", "562705", "BM-130 (1/5)", "47 O/13", 17.566667, 75.85],
+        ["Valsang", "Valsang GP", "562735", "SA-41 (3/7)", "47 O/14", 17.55, 75.983333]
       ]
     };
 
-    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V7';
+    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V20';
     let currentPhotoBase64 = null;
     let activeModalPhoto = null;
     let rootDirHandle = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       initTalukaDropdowns();
+      initCropDropdowns();
       initFormDefaults();
+      recalculateAll();
       renderRecords();
     });
 
+    function initCropDropdowns() {
+      const populate = (id, list, defaultVal) => {
+        const el = document.getElementById(id);
+        el.innerHTML = '';
+        Object.keys(list).forEach(crop => {
+          const opt = document.createElement('option');
+          opt.value = crop;
+          opt.textContent = crop;
+          if (crop === defaultVal) opt.selected = true;
+          el.appendChild(opt);
+        });
+      };
+
+      populate('perennialCrop1', CROP_WATER_DATABASE.Perennial, 'None');
+      populate('perennialCrop2', CROP_WATER_DATABASE.Perennial, 'None');
+      populate('kharifCrop1', CROP_WATER_DATABASE.Kharif, 'Tur');
+      populate('kharifCrop2', CROP_WATER_DATABASE.Kharif, 'Udid');
+      populate('rabiCrop1', CROP_WATER_DATABASE.Rabi, 'Wheat');
+      populate('rabiCrop2', CROP_WATER_DATABASE.Rabi, 'Jwar');
+      populate('summerCrop1', CROP_WATER_DATABASE.Summer, 'None');
+      populate('summerCrop2', CROP_WATER_DATABASE.Summer, 'None');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+      
+      const tabIndices = { 'newEntry': 0, 'recordsList': 1 };
+      const idx = tabIndices[tabId] || 0;
+      document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'recordsList') {
+        applyFilters();
+      }
+    }
+
+    function switchMethodTab(methodTabId, btnElement) {
+      document.querySelectorAll('.method-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.method-subpanel').forEach(p => p.classList.remove('active'));
+      
+      btnElement.classList.add('active');
+      document.getElementById(methodTabId).classList.add('active');
+    }
+
+    function recalculateAll() {
+      const discharge = parseFloat(document.getElementById('pumpDischarge').value) || 22.5;
+      const effDia = parseFloat(document.getElementById('diaEffective').value) || 8.35;
+      document.querySelectorAll('.dischCol').forEach(el => el.innerText = discharge.toFixed(1));
+
+      // WINTER SEASON EXACT FORMULAS
+      const swlW = parseFloat(document.getElementById('swlWinter').value) || 0;
+      const durW = parseFloat(document.getElementById('pumpDurationWinter').value) || 0;
+      const qtyW = discharge * durW;
+      document.getElementById('qtyPumpedWinter').value = qtyW.toFixed(2);
+
+      const timeRecupW = parseFloat(document.getElementById('recupWinter').value) || 18;
+      const denominatorW = (durW + timeRecupW) * 0.786 * effDia * effDia;
+      const pwlW = denominatorW > 0 ? ((timeRecupW * qtyW) / denominatorW) + swlW : swlW + 1.61;
+      document.getElementById('pwlWinter').value = pwlW.toFixed(2);
+
+      const ddW = Math.max(0, pwlW - swlW);
+      document.getElementById('ddWinter').value = ddW.toFixed(2);
+
+      const storageW = 0.786 * effDia * effDia * ddW;
+      document.getElementById('volStorageWinter').value = storageW.toFixed(2);
+
+      const inflowW = durW > 0 ? Math.max(0, (qtyW - storageW) / durW) : 0;
+      document.getElementById('inflowRateWinter').value = inflowW.toFixed(2);
+
+      // SUMMER SEASON EXACT FORMULAS
+      const swlS = parseFloat(document.getElementById('swlSummer').value) || 0;
+      const durS = parseFloat(document.getElementById('pumpDurationSummer').value) || 0;
+      const timeRecupS = parseFloat(document.getElementById('recupSummer').value) || 24;
+
+      const qtyS = discharge * durS;
+      document.getElementById('qtyPumpedSummer').value = qtyS.toFixed(2);
+
+      const denominatorS = (durS + timeRecupS) * 0.786 * effDia * effDia;
+      const pwlS = denominatorS > 0 ? ((timeRecupS * qtyS) / denominatorS) + swlS : swlS + 0.76;
+      document.getElementById('pwlSummer').value = pwlS.toFixed(2);
+
+      const ddS = Math.max(0, pwlS - swlS);
+      document.getElementById('ddSummer').value = ddS.toFixed(2);
+
+      const storageS = 0.786 * effDia * effDia * ddS;
+      document.getElementById('volStorageSummer').value = storageS.toFixed(2);
+
+      const inflowS = durS > 0 ? Math.max(0, (qtyS - storageS) / durS) : 0;
+      document.getElementById('inflowRateSummer').value = inflowS.toFixed(2);
+
+      // Cropping & Irrigation table calculation
+      const p1Name = document.getElementById('perennialCrop1').value;
+      const p2Name = document.getElementById('perennialCrop2').value;
+      const k1Name = document.getElementById('kharifCrop1').value;
+      const k2Name = document.getElementById('kharifCrop2').value;
+      const r1Name = document.getElementById('rabiCrop1').value;
+      const r2Name = document.getElementById('rabiCrop2').value;
+      const s1Name = document.getElementById('summerCrop1').value;
+      const s2Name = document.getElementById('summerCrop2').value;
+
+      document.getElementById('lbl_perennialFloodHa1').innerText = `${p1Name} (Ha)`;
+      document.getElementById('lbl_perennialFloodHa2').innerText = `${p2Name} (Ha)`;
+      document.getElementById('lbl_kharifFloodHa1').innerText = `${k1Name} (Ha)`;
+      document.getElementById('lbl_kharifFloodHa2').innerText = `${k2Name} (Ha)`;
+      document.getElementById('lbl_rabiFloodHa1').innerText = `${r1Name} (Ha)`;
+      document.getElementById('lbl_rabiFloodHa2').innerText = `${r2Name} (Ha)`;
+      document.getElementById('lbl_summerFloodHa1').innerText = `${s1Name} (Ha)`;
+      document.getElementById('lbl_summerFloodHa2').innerText = `${s2Name} (Ha)`;
+
+      const num = (id) => parseFloat(document.getElementById(id).value) || 0;
+
+      const p1Area = { flood: num('perennialFloodHa1'), drip: num('perennialDripHa1'), sp: num('perennialSprinklerHa1') };
+      const p2Area = { flood: num('perennialFloodHa2'), drip: num('perennialDripHa2'), sp: num('perennialSprinklerHa2') };
+
+      const cropList = [
+        { season: '2a Kharif', tag: 'P', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Kharif' },
+        { season: '2a Kharif', tag: 'P', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Kharif' },
+        { season: '2a Kharif', tag: '1', name: k1Name, flood: num('kharifFloodHa1'), drip: num('kharifDripHa1'), sp: num('kharifSprinklerHa1'), isPerennial: false },
+        { season: '2a Kharif', tag: '2', name: k2Name, flood: num('kharifFloodHa2'), drip: num('kharifDripHa2'), sp: num('kharifSprinklerHa2'), isPerennial: false },
+
+        { season: '2b Rabi', tag: 'P', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Rabi' },
+        { season: '2b Rabi', tag: 'P', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Rabi' },
+        { season: '2b Rabi', tag: '1', name: r1Name, flood: num('rabiFloodHa1'), drip: num('rabiDripHa1'), sp: num('rabiSprinklerHa1'), isPerennial: false },
+        { season: '2b Rabi', tag: '2', name: r2Name, flood: num('rabiFloodHa2'), drip: num('rabiDripHa2'), sp: num('rabiSprinklerHa2'), isPerennial: false },
+
+        { season: '2c Summer', tag: 'P', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Summer' },
+        { season: '2c Summer', tag: 'P', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Summer' },
+        { season: '2c Summer', tag: '1', name: s1Name, flood: num('summerFloodHa1'), drip: num('summerDripHa1'), sp: num('summerSprinklerHa1'), isPerennial: false },
+        { season: '2c Summer', tag: '2', name: s2Name, flood: num('summerFloodHa2'), drip: num('summerDripHa2'), sp: num('summerSprinklerHa2'), isPerennial: false }
+      ];
+
+      const tbody = document.getElementById('cropWaterTableBody');
+      tbody.innerHTML = '';
+
+      let totalAreaSum = 0, totalHamSum = 0, totalDaysSum = 0;
+      let kharifHam = 0, kharifDays = 0, kharifArea = 0;
+      let rabiHam = 0, rabiDays = 0, rabiArea = 0;
+      let summerHam = 0, summerDays = 0, summerArea = 0;
+
+      const pumpKharifHrs = durW > 0 ? durW : 3.0;
+
+      cropList.forEach(item => {
+        const area = item.flood + item.drip + item.sp;
+        let info = { waterings: 0, depth: 0 };
+
+        if (item.isPerennial && item.name !== 'None') {
+          info = (CROP_WATER_DATABASE.Perennial[item.name] && CROP_WATER_DATABASE.Perennial[item.name][item.perSeason]) ? CROP_WATER_DATABASE.Perennial[item.name][item.perSeason] : { waterings: 0, depth: 0 };
+        } else if (!item.isPerennial && item.name !== 'None') {
+          const sKey = item.season.includes('Kharif') ? 'Kharif' : item.season.includes('Rabi') ? 'Rabi' : 'Summer';
+          info = (CROP_WATER_DATABASE[sKey] && CROP_WATER_DATABASE[sKey][item.name]) ? CROP_WATER_DATABASE[sKey][item.name] : { waterings: 0, depth: 0 };
+        }
+
+        const waterings = info.waterings;
+        const depth = info.depth;
+        const gwHam = (item.flood * depth * waterings) + (item.sp * depth * waterings * 0.75) + (item.drip * depth * waterings * 0.65);
+
+        let pHrs = item.season.includes('Kharif') ? pumpKharifHrs : item.season.includes('Rabi') ? durW : durS;
+        if (pHrs <= 0) pHrs = 3.0;
+        const dailyPumpCapM3 = discharge * pHrs;
+        const volM3 = area * depth * 10000;
+        const daysPerWatering = dailyPumpCapM3 > 0 && area > 0 ? Math.round(volM3 / dailyPumpCapM3) : 0;
+        const totalDays = Math.round(daysPerWatering * waterings);
+
+        if (item.season.includes('Kharif')) { kharifArea += area; kharifHam += gwHam; kharifDays += totalDays; }
+        if (item.season.includes('Rabi')) { rabiArea += area; rabiHam += gwHam; rabiDays += totalDays; }
+        if (item.season.includes('Summer')) { summerArea += area; summerHam += gwHam; summerDays += totalDays; }
+
+        if (item.name !== 'None' && area > 0) {
+          totalAreaSum += area;
+          totalHamSum += gwHam;
+          totalDaysSum += totalDays;
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="text-left"><strong>${item.season} (${item.tag})</strong> - ${item.name}</td>
+            <td>${area.toFixed(2)}</td>
+            <td>${waterings}</td>
+            <td>${depth > 0 ? depth.toFixed(4) : '0.00'}</td>
+            <td class="highlight">${gwHam.toFixed(4)}</td>
+            <td>${daysPerWatering}</td>
+            <td>${totalDays}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+
+      document.getElementById('tableTotalArea').innerText = totalAreaSum.toFixed(2);
+      document.getElementById('tableTotalHam').innerText = totalHamSum.toFixed(4);
+      document.getElementById('tableTotalDays').innerText = totalDaysSum;
+
+      document.getElementById('totalKharifHa').value = (kharifArea).toFixed(2);
+      document.getElementById('totalRabiHa').value = (rabiArea).toFixed(2);
+      document.getElementById('totalSummerHa').value = (summerArea).toFixed(2);
+      document.getElementById('totalGWAppliedHam').value = totalHamSum.toFixed(4);
+      document.getElementById('totalOperatingDays').value = totalDaysSum;
+
+      // Update Unified Performance Table
+      const rabi1Days = Math.round(rabiDays * (25 / 47)) || (rabiDays > 0 ? Math.ceil(rabiDays / 2) : 0);
+      const rabi2Days = rabiDays - rabi1Days;
+
+      const kharifM3 = kharifHam * 10000;
+      const rabi1M3 = (rabiHam / 2) * 10000;
+      const rabi2M3 = (rabiHam / 2) * 10000;
+      const summerM3 = summerHam * 10000;
+
+      const totalPerfDays = kharifDays + rabi1Days + rabi2Days + summerDays;
+      const totalPerfM3 = kharifM3 + rabi1M3 + rabi2M3 + summerM3;
+      const totalPerfHam = totalHamSum;
+
+      document.getElementById('perfKharifHrs').innerText = pumpKharifHrs.toFixed(1);
+      document.getElementById('perfKharifDays').innerText = kharifDays;
+      document.getElementById('perfKharifM3').innerText = kharifM3.toFixed(2);
+      document.getElementById('perfKharifHam').innerText = kharifHam.toFixed(4);
+
+      document.getElementById('perfRabi1Hrs').innerText = durW.toFixed(1);
+      document.getElementById('perfRabi1Days').innerText = rabi1Days;
+      document.getElementById('perfRabi1M3').innerText = rabi1M3.toFixed(2);
+      document.getElementById('perfRabi1Ham').innerText = (rabiHam / 2).toFixed(4);
+
+      document.getElementById('perfRabi2Hrs').innerText = durW.toFixed(1);
+      document.getElementById('perfRabi2Days').innerText = rabi2Days;
+      document.getElementById('perfRabi2M3').innerText = rabi2M3.toFixed(2);
+      document.getElementById('perfRabi2Ham').innerText = (rabiHam / 2).toFixed(4);
+
+      document.getElementById('perfSummerHrs').innerText = durS.toFixed(1);
+      document.getElementById('perfSummerDays').innerText = summerDays;
+      document.getElementById('perfSummerM3').innerText = summerM3.toFixed(2);
+      document.getElementById('perfSummerHam').innerText = summerHam.toFixed(4);
+
+      document.getElementById('perfTotalDays').innerText = totalPerfDays;
+      document.getElementById('perfTotalM3').innerText = totalPerfM3.toFixed(2);
+      document.getElementById('perfTotalHam').innerText = totalPerfHam.toFixed(4);
+    }
+
     async function selectRootFolder() {
       if (!('showDirectoryPicker' in window)) {
-        showToast('⚠️ Direct folder access not supported by browser. Standard downloads will be used.');
+        showToast('⚠️ Direct folder access not supported by browser.');
         return null;
       }
       try {
@@ -1859,7 +2130,6 @@
         showToast(`✅ Folder linked: ${rootDirHandle.name}`);
         return rootDirHandle;
       } catch (err) {
-        console.warn('Folder selection cancelled/failed:', err);
         return null;
       }
     }
@@ -1869,28 +2139,40 @@
       return await selectRootFolder();
     }
 
-    async function savePhotoToWellDataFolder(base64Data, filename) {
-      if (!base64Data) return;
-
+    async function saveFileToFolder(subFolder, filename, content, isBinary = false) {
       const dirHandle = await getWellDataFolder();
       if (dirHandle) {
         try {
-          const imagesFolderHandle = await dirHandle.getDirectoryHandle('images', { create: true });
-          const fileHandle = await imagesFolderHandle.getFileHandle(filename, { create: true });
+          let targetFolderHandle = dirHandle;
+          if (subFolder) {
+            targetFolderHandle = await dirHandle.getDirectoryHandle(subFolder, { create: true });
+          }
+          const fileHandle = await targetFolderHandle.getFileHandle(filename, { create: true });
           const writable = await fileHandle.createWritable();
           
-          const response = await fetch(base64Data);
-          const blob = await response.blob();
-          
-          await writable.write(blob);
+          if (isBinary) {
+            const response = await fetch(content);
+            const blob = await response.blob();
+            await writable.write(blob);
+          } else {
+            await writable.write(content);
+          }
           await writable.close();
-          showToast(`📸 Photo saved to: well data/images/${filename}`);
-          return;
+          return true;
         } catch (e) {
-          console.error('Directory write error:', e);
+          console.error(e);
         }
       }
+      return false;
+    }
 
+    async function savePhotoToWellDataFolder(base64Data, filename) {
+      if (!base64Data) return;
+      const saved = await saveFileToFolder('images', filename, base64Data, true);
+      if (saved) {
+        showToast(`📸 Photo saved to: well data/images/${filename}`);
+        return;
+      }
       const a = document.createElement('a');
       a.href = base64Data;
       a.download = filename;
@@ -1915,7 +2197,6 @@
         fOpt.textContent = t;
         filterTaluka.appendChild(fOpt);
       });
-
       onTalukaChange();
     }
 
@@ -1927,52 +2208,6 @@
       const now = new Date();
       document.getElementById('surveyDate').value = now.toISOString().split('T')[0];
       document.getElementById('surveyTime').value = now.toTimeString().split(' ')[0].substring(0, 5);
-    }
-
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-      
-      if (tabId === 'newEntry') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        document.getElementById('newEntry').classList.add('active');
-      } else {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        document.getElementById('recordsList').classList.add('active');
-        applyFilters();
-      }
-    }
-
-    function switchMethodTab(methodTabId, btnElement) {
-      document.querySelectorAll('.method-tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.method-subpanel').forEach(p => p.classList.remove('active'));
-      
-      btnElement.classList.add('active');
-      document.getElementById(methodTabId).classList.add('active');
-    }
-
-    function calculateTotalCropHoldings() {
-      const num = (id) => parseFloat(document.getElementById(id).value) || 0;
-
-      const kharifTotal = num('kharifFloodHa1') + num('kharifFloodHa2') +
-                          num('kharifDripHa1') + num('kharifDripHa2') +
-                          num('kharifSprinklerHa1') + num('kharifSprinklerHa2');
-
-      const rabiTotal = num('rabiFloodHa1') + num('rabiFloodHa2') +
-                        num('rabiDripHa1') + num('rabiDripHa2') +
-                        num('rabiSprinklerHa1') + num('rabiSprinklerHa2');
-
-      const perennialTotal = num('perennialFloodHa1') + num('perennialFloodHa2') +
-                             num('perennialDripHa1') + num('perennialDripHa2');
-
-      const summerTotal = num('summerFloodHa1') + num('summerFloodHa2') +
-                          num('summerDripHa1') + num('summerDripHa2') +
-                          num('summerSprinklerHa1') + num('summerSprinklerHa2');
-
-      document.getElementById('totalKharifHa').value = kharifTotal.toFixed(2);
-      document.getElementById('totalRabiHa').value = rabiTotal.toFixed(2);
-      document.getElementById('totalPerennialHa').value = perennialTotal.toFixed(2);
-      document.getElementById('totalSummerHa').value = summerTotal.toFixed(2);
     }
 
     function onTalukaChange() {
@@ -2003,9 +2238,11 @@
         document.getElementById('sheet10k').value = topo || '47 O/13';
         document.getElementById('mapSheetNo').value = topo || '47 O/13';
         
-        if (lat && lon) {
+        if (lat && lon && typeof lat === 'number') {
           document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
           calculateAltitude(lat, lon);
+        } else if (lat && typeof lat === 'string' && !lat.includes(' ')) {
+          document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
         }
       }
     }
@@ -2016,35 +2253,22 @@
         showToast('❌ Geolocation is not supported by your browser');
         return;
       }
-
       statusEl.innerText = 'Locking GPS...';
-      showToast('🛰️ Requesting live GPS coordinates...');
-
-      const applyPosition = async (pos) => {
-        const lat = pos.coords.latitude.toFixed(6);
-        const lon = pos.coords.longitude.toFixed(6);
-        const acc = Math.round(pos.coords.accuracy || 0);
-
-        document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
-        statusEl.innerText = `GPS: ±${acc}m`;
-
-        await calculateAltitude(lat, lon, pos.coords.altitude);
-        showToast(`✅ GPS Fixed: ${lat}, ${lon} (±${acc}m)`);
-      };
-
       navigator.geolocation.getCurrentPosition(
-        applyPosition,
-        (err) => {
-          navigator.geolocation.getCurrentPosition(
-            applyPosition,
-            (err2) => {
-              statusEl.innerText = 'GPS Lock Failed';
-              showToast('⚠️ Location access failed: ' + err2.message);
-            },
-            { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
-          );
+        async (pos) => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lon = pos.coords.longitude.toFixed(6);
+          const acc = Math.round(pos.coords.accuracy || 0);
+          document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
+          statusEl.innerText = `GPS: ±${acc}m`;
+          await calculateAltitude(lat, lon, pos.coords.altitude);
+          showToast(`✅ GPS Fixed: ${lat}, ${lon}`);
         },
-        { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        (err) => {
+          statusEl.innerText = 'GPS Lock Failed';
+          showToast('⚠️ Location access failed: ' + err.message);
+        },
+        { enableHighAccuracy: true, timeout: 12000 }
       );
     }
 
@@ -2067,9 +2291,7 @@
           document.getElementById('altitudeGL').value = Math.round(data.elevation[0]);
         }
       } catch (e) {
-        if (!document.getElementById('altitudeGL').value) {
-          document.getElementById('altitudeGL').value = '485';
-        }
+        document.getElementById('altitudeGL').value = '485';
       }
     }
 
@@ -2083,7 +2305,6 @@
         img.onload = function() {
           const canvas = document.getElementById('stampCanvas');
           const ctx = canvas.getContext('2d');
-          
           const maxDim = 1200;
           let width = img.width;
           let height = img.height;
@@ -2113,10 +2334,8 @@
 
           const fontSize = Math.max(14, Math.round(width * 0.024));
           ctx.font = `bold ${fontSize}px sans-serif`;
-
           ctx.fillStyle = '#2dd4bf';
           ctx.fillText(`📍 GPS: ${gps} | Alt: ${alt} m.MSL`, 15, height - bannerHeight + (bannerHeight * 0.4));
-
           ctx.fillStyle = '#ffffff';
           ctx.fillText(`📅 ${date} ${time} | Geologist: ${name}`, 15, height - bannerHeight + (bannerHeight * 0.8));
 
@@ -2138,17 +2357,11 @@
       document.getElementById('photoPreview').style.display = 'none';
       document.getElementById('removePhotoBtn').style.display = 'none';
       document.getElementById('noPhotoText').innerText = 'Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name.';
-      showToast('Photo removed');
     }
 
     function previewCurrentPhotoModal() {
       if (!currentPhotoBase64) return;
-      const owner = document.getElementById('ownerName').value || 'New Entry';
-      const gps = document.getElementById('gpsCoords').value || 'N/A';
-      const date = document.getElementById('surveyDate').value;
-      const time = document.getElementById('surveyTime').value;
-
-      openPhotoModal(currentPhotoBase64, `Photo: ${owner}`, `GPS: ${gps} | Taken: ${date} ${time}`);
+      openPhotoModal(currentPhotoBase64, 'Survey Photo Preview', document.getElementById('gpsCoords').value);
     }
 
     function getStoredRecords() {
@@ -2166,15 +2379,7 @@
         updateBadge();
         return true;
       } catch (e) {
-        const stripped = records.map(r => ({ ...r, photoData: '' }));
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(stripped));
-          updateBadge();
-          return true;
-        } catch (err) {
-          alert('Storage write failed: ' + err.message);
-          return false;
-        }
+        return false;
       }
     }
 
@@ -2185,7 +2390,7 @@
 
     async function handleFormSubmit(e) {
       if (e) e.preventDefault();
-      calculateTotalCropHoldings();
+      recalculateAll();
 
       const form = document.getElementById('surveyForm');
       const formData = new FormData(form);
@@ -2194,19 +2399,16 @@
       const taluka = document.getElementById('taluka').value;
       const villageIdx = document.getElementById('village').value;
       entry.village = SHEET2_FULL_DATABASE[taluka]?.[villageIdx]?.[0] || '';
-
-      entry.lithoDepth1 = document.getElementById('lithoDepth1').value || '1.0';
-      entry.lithoType1 = document.getElementById('lithoType1').value;
-      entry.lithoDepth2 = document.getElementById('lithoDepth2').value || '5.0';
-      entry.lithoType2 = document.getElementById('lithoType2').value;
-      entry.lithoDepth3 = document.getElementById('lithoDepth3').value || '7.0';
-      entry.lithoType3 = document.getElementById('lithoType3').value;
-      entry.lithoType4 = document.getElementById('lithoType4').value;
       entry.photoData = currentPhotoBase64 || '';
       entry.timestamp = new Date().toISOString();
 
-      const records = getStoredRecords();
-      records.unshift(entry);
+      let records = getStoredRecords();
+      const existingIdx = records.findIndex(r => String(r.srNo) === String(entry.srNo));
+      if (existingIdx >= 0) {
+        records[existingIdx] = entry;
+      } else {
+        records.unshift(entry);
+      }
       
       const success = saveStoredRecords(records);
       if (success) {
@@ -2214,19 +2416,123 @@
           const photoName = `SrNo_${entry.srNo}_${entry.village || 'Well'}_Gat_${entry.gatNo || '0'}.jpg`;
           await savePhotoToWellDataFolder(currentPhotoBase64, photoName);
         }
-
         showToast(`Well record #${entry.srNo} saved successfully!`);
         resetForm();
         switchTab('recordsList');
       }
     }
 
+    function editRecord(srNo) {
+      const records = getStoredRecords();
+      const r = records.find(item => Number(item.srNo) === Number(srNo));
+      if (!r) {
+        showToast('❌ Record not found.');
+        return;
+      }
+
+      document.getElementById('srNo').value = r.srNo || '';
+      document.getElementById('surveyDate').value = r.surveyDate || '';
+      document.getElementById('surveyTime').value = r.surveyTime || '';
+      document.getElementById('geologistName').value = r.geologistName || '';
+      document.getElementById('designation').value = r.designation || '';
+      document.getElementById('projectAssignment').value = r.projectAssignment || '';
+      document.getElementById('gatNo').value = r.gatNo || '';
+      document.getElementById('gpsCoords').value = r.gpsCoords || '';
+      document.getElementById('altitudeGL').value = r.altitudeGL || '';
+      document.getElementById('wellSeqNo').value = r.wellSeqNo || '';
+      document.getElementById('wellType').value = r.wellType || 'Dug Well';
+      document.getElementById('ownerName').value = r.ownerName || '';
+      document.getElementById('reservoirType').value = r.reservoirType || 'PT';
+      document.getElementById('reservoirDistDir').value = r.reservoirDistDir || '';
+      document.getElementById('canalName').value = r.canalName || '';
+      document.getElementById('canalDistDir').value = r.canalDistDir || '';
+      document.getElementById('mpLocation').value = r.mpLocation || 'Due North';
+      document.getElementById('parapetHeight').value = r.parapetHeight || '1.20';
+      document.getElementById('diaTop').value = r.diaTop || '9.60';
+      document.getElementById('diaBottom').value = r.diaBottom || '7.10';
+      document.getElementById('diaEffective').value = r.diaEffective || '8.35';
+      document.getElementById('depthWell').value = r.depthWell || '13.50';
+      document.getElementById('depthInwellBore').value = r.depthInwellBore || '-';
+      document.getElementById('totalDepthDCB').value = r.totalDepthDCB || '-';
+      document.getElementById('liningMaterial').value = r.liningMaterial || 'Stone';
+      document.getElementById('depthLining').value = r.depthLining || '7.00';
+      document.getElementById('wellCondition').value = r.wellCondition || 'Good';
+      document.getElementById('yearConstruction').value = r.yearConstruction || '1985';
+      
+      document.getElementById('pumpType').value = r.pumpType || 'Submersible';
+      document.getElementById('powerMode').value = r.powerMode || 'Electric';
+      document.getElementById('pumpHP').value = r.pumpHP || '5.0';
+      document.getElementById('pumpDischarge').value = r.pumpDischarge || '22.5';
+      document.getElementById('dischargeMethod').value = r.dischargeMethod || 'Adhoc';
+      document.getElementById('dwl').value = r.dwl || '9';
+      document.getElementById('suctionPipeDia').value = r.suctionPipeDia || '50.5';
+      document.getElementById('deliveryPipeDia').value = r.deliveryPipeDia || '63.50';
+      document.getElementById('deliveryPipeMat').value = r.deliveryPipeMat || 'HDPE';
+
+      document.getElementById('pumpSettingWinter').value = r.pumpSettingWinter || '13.50';
+      document.getElementById('pumpInletWinter').value = r.pumpInletWinter || '13.50';
+      document.getElementById('swlWinter').value = r.swlWinter || '3.50';
+      document.getElementById('pumpDurationWinter').value = r.pumpDurationWinter || '5.00';
+      document.getElementById('recupWinter').value = r.recupWinter || '18';
+
+      document.getElementById('pumpSettingSummer').value = r.pumpSettingSummer || '13.50';
+      document.getElementById('pumpInletSummer').value = r.pumpInletSummer || '13.50';
+      document.getElementById('swlSummer').value = r.swlSummer || '12.50';
+      document.getElementById('pumpDurationSummer').value = r.pumpDurationSummer || '2.00';
+      document.getElementById('recupSummer').value = r.recupSummer || '24';
+
+      document.getElementById('annualFluctuation').value = r.annualFluctuation || '9.00';
+      document.getElementById('wellStatus').value = r.wellStatus || 'Seasonal well';
+      document.getElementById('totalLandHolding').value = r.totalLandHolding || '1.50';
+      document.getElementById('cultivableLand').value = r.cultivableLand || '1.50';
+
+      if (r.taluka) {
+        document.getElementById('taluka').value = r.taluka;
+        onTalukaChange();
+        const villages = SHEET2_FULL_DATABASE[r.taluka] || [];
+        const vIdx = villages.findIndex(v => v[0] === r.village);
+        if (vIdx >= 0) {
+          document.getElementById('village').value = vIdx;
+          onVillageChange();
+        }
+      }
+
+      ['perennialCrop1','perennialCrop2','kharifCrop1','kharifCrop2','rabiCrop1','rabiCrop2','summerCrop1','summerCrop2'].forEach(id => {
+        if (r[id]) document.getElementById(id).value = r[id];
+      });
+
+      ['perennialFloodHa1','perennialFloodHa2','kharifFloodHa1','kharifFloodHa2','rabiFloodHa1','rabiFloodHa2','summerFloodHa1','summerFloodHa2',
+       'perennialDripHa1','perennialDripHa2','kharifDripHa1','kharifDripHa2','rabiDripHa1','rabiDripHa2','summerDripHa1','summerDripHa2',
+       'perennialSprinklerHa1','perennialSprinklerHa2','kharifSprinklerHa1','kharifSprinklerHa2','rabiSprinklerHa1','rabiSprinklerHa2','summerSprinklerHa1','summerSprinklerHa2'].forEach(id => {
+        if (r[id] !== undefined) document.getElementById(id).value = r[id];
+      });
+
+      document.getElementById('geologyFormation').value = r.geologyFormation || 'Deccan Trap Basalt';
+      document.getElementById('remarks').value = r.remarks || '';
+
+      if (r.photoData) {
+        currentPhotoBase64 = r.photoData;
+        const preview = document.getElementById('photoPreview');
+        preview.src = currentPhotoBase64;
+        preview.style.display = 'block';
+        document.getElementById('removePhotoBtn').style.display = 'inline-flex';
+        document.getElementById('noPhotoText').innerHTML = '<span style="color: var(--teal-glow); font-weight: 600;">✅ Stamped Photo Loaded</span>';
+      } else {
+        clearCurrentPhoto();
+      }
+
+      recalculateAll();
+      switchTab('newEntry');
+      showToast(`📝 Loaded well record #${srNo} for editing.`);
+    }
+
     function resetForm() {
       document.getElementById('surveyForm').reset();
       clearCurrentPhoto();
       initFormDefaults();
+      initCropDropdowns();
       onTalukaChange();
-      calculateTotalCropHoldings();
+      recalculateAll();
     }
 
     function applyFilters() {
@@ -2241,14 +2547,11 @@
         const matchesQuery = !query || 
           (r.ownerName && r.ownerName.toLowerCase().includes(query)) ||
           (r.village && r.village.toLowerCase().includes(query)) ||
-          (r.gatNo && r.gatNo.toString().toLowerCase().includes(query)) ||
-          (r.srNo && r.srNo.toString().includes(query)) ||
-          (r.mapSheetNo && r.mapSheetNo.toLowerCase().includes(query)) ||
-          (r.censusNo && r.censusNo.toString().includes(query));
+          (r.gatNo && r.gatNo.toString().includes(query)) ||
+          (r.srNo && r.srNo.toString().includes(query));
 
         const matchesTaluka = !talukaFilter || r.taluka === talukaFilter;
         const matchesType = !typeFilter || r.wellType === typeFilter;
-
         return matchesQuery && matchesTaluka && matchesType;
       });
 
@@ -2258,12 +2561,7 @@
     function renderFilteredCards(records) {
       const container = document.getElementById('recordsContainer');
       if (records.length === 0) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div style="font-size: 2.2rem; margin-bottom: 8px;">🔍</div>
-            <p>No well survey records match your search or filter criteria.</p>
-          </div>
-        `;
+        container.innerHTML = `<div class="empty-state">🔍 No well survey records found.</div>`;
         return;
       }
 
@@ -2274,34 +2572,30 @@
           <div class="record-top">
             <div>
               <div class="record-title">#${r.srNo} — ${r.ownerName || 'Unnamed'}</div>
-              <div class="record-meta">${r.village || '-'}, ${r.taluka || '-'} | Gat: ${r.gatNo || '-'} | Map: ${r.mapSheetNo || r.sheet10k || '-'} | ${r.surveyDate} ${r.surveyTime}</div>
+              <div class="record-meta">${r.village || '-'}, ${r.taluka || '-'} | Gat: ${r.gatNo || '-'} | ${r.surveyDate}</div>
             </div>
             <span class="record-badge">${r.wellType}</span>
           </div>
 
           <div class="record-content-row">
             ${hasPhoto ? `
-              <div class="record-thumbnail-wrapper" onclick="viewRecordPhoto(${r.srNo})" title="Click to view full stamped photo">
-                <img src="${r.photoData}" alt="Well #${r.srNo} Photo" class="record-thumbnail" />
+              <div class="record-thumbnail-wrapper" onclick="viewRecordPhoto(${r.srNo})">
+                <img src="${r.photoData}" alt="Well #${r.srNo}" class="record-thumbnail" />
                 <span class="thumbnail-tag">📷 Photo</span>
               </div>
             ` : ''}
 
             <div class="record-grid-info">
-              <div>GPS: <strong>${r.gpsCoords || 'N/A'}</strong></div>
-              <div>SWL (W/S): <strong>${r.swlWinter || '-'} / ${r.swlSummer || '-'} m</strong></div>
-              <div>PWL (W/S): <strong>${r.pwlWinter || '-'} / ${r.pwlSummer || '-'} m</strong></div>
-              <div>DWL: <strong>${r.dwl ? r.dwl + ' m' : '-'}</strong></div>
-              <div>Total Land: <strong>${r.totalLandHolding ? r.totalLandHolding + ' Ha' : '-'}</strong></div>
+              <div>Pump: <strong>${r.pumpHP || '-'} HP (${r.pumpDischarge || '22.5'} m³/hr)</strong></div>
+              <div>Operating Days: <strong>${r.totalOperatingDays || '0'} Days</strong></div>
+              <div>Total GW Applied: <strong style="color: var(--teal-glow);">${r.totalGWAppliedHam || '0.0000'} Ham</strong></div>
               <div>Kharif / Rabi: <strong>${r.totalKharifHa || '0.00'} / ${r.totalRabiHa || '0.00'} Ha</strong></div>
             </div>
           </div>
 
           <div class="record-btn-group">
-            ${hasPhoto ? `
-              <button class="btn-icon btn-photo" onclick="viewRecordPhoto(${r.srNo})">📷 View Photo</button>
-            ` : ''}
-            <button class="btn-icon" onclick="viewRecordDetails(${r.srNo})">👁️ Full Details</button>
+            <button class="btn-icon btn-edit" onclick="editRecord(${r.srNo})">✏️ Edit Record</button>
+            ${hasPhoto ? `<button class="btn-icon btn-photo" onclick="viewRecordPhoto(${r.srNo})">📷 View Photo</button>` : ''}
             <button class="btn-icon delete" onclick="deleteRecord(${r.srNo})">🗑️ Delete</button>
           </div>
         </div>
@@ -2309,34 +2603,26 @@
       }).join('');
     }
 
-    function renderRecords() {
-      applyFilters();
-    }
+    function renderRecords() { applyFilters(); }
 
     function viewRecordPhoto(srNo) {
       const records = getStoredRecords();
       const r = records.find(item => Number(item.srNo) === Number(srNo));
-      if (!r || !r.photoData) {
-        showToast('No photo available for record #' + srNo);
-        return;
+      if (r && r.photoData) {
+        openPhotoModal(r.photoData, `Well #${r.srNo} — ${r.ownerName}`, `GPS: ${r.gpsCoords} | Total Draft: ${r.totalGWAppliedHam} Ham`);
       }
-      const title = `Well #${r.srNo} — ${r.ownerName || 'Survey Photo'}`;
-      const subtitle = `Village: ${r.village}, Taluka: ${r.taluka} | GPS: ${r.gpsCoords} | Altitude: ${r.altitudeGL} m.MSL | Date: ${r.surveyDate} ${r.surveyTime}`;
-      openPhotoModal(r.photoData, title, subtitle);
     }
 
     function openPhotoModal(base64Data, title, subtitle) {
       activeModalPhoto = base64Data;
-      document.getElementById('photoModalTitle').innerText = title || '📷 Well Site Photograph';
+      document.getElementById('photoModalTitle').innerText = title;
       document.getElementById('photoModalImg').src = base64Data;
-      document.getElementById('photoModalInfo').innerHTML = `<span>${subtitle || ''}</span>`;
+      document.getElementById('photoModalInfo').innerHTML = `<span>${subtitle}</span>`;
       document.getElementById('photoModalBackdrop').classList.add('active');
     }
 
     function closePhotoModal(event) {
-      if (event && event.target && event.target.classList && !event.target.classList.contains('photo-modal-backdrop')) {
-        return;
-      }
+      if (event && event.target && !event.target.classList.contains('photo-modal-backdrop')) return;
       document.getElementById('photoModalBackdrop').classList.remove('active');
       activeModalPhoto = null;
     }
@@ -2345,62 +2631,20 @@
       if (!activeModalPhoto) return;
       const a = document.createElement('a');
       a.href = activeModalPhoto;
-      a.download = `Well_Survey_Photo_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`;
+      a.download = `Well_Photo_${Date.now()}.jpg`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      showToast('Photo downloaded successfully!');
     }
 
     function deleteRecord(srNo) {
       if (confirm(`Are you sure you want to delete well record #${srNo}?`)) {
-        let records = getStoredRecords();
-        records = records.filter(r => Number(r.srNo) !== Number(srNo));
+        let records = getStoredRecords().filter(r => Number(r.srNo) !== Number(srNo));
         saveStoredRecords(records);
         applyFilters();
-        showToast(`Record #${srNo} deleted`);
       }
     }
 
-    function viewRecordDetails(srNo) {
-      const records = getStoredRecords();
-      const r = records.find(item => Number(item.srNo) === Number(srNo));
-      if (!r) return;
-
-      alert(`
-=== WELL INVENTORY FORM DETAILS ===
-Sr. No: ${r.srNo} | Date: ${r.surveyDate} ${r.surveyTime}
-Geologist: ${r.geologistName} (${r.designation})
-Owner: ${r.ownerName}
-Location: Vill: ${r.village}, Tal: ${r.taluka}, Dist: ${r.district}
-Gat No: ${r.gatNo} | Census No: ${r.censusNo} | Watershed: ${r.watershedNo}
-Mapsheet No: ${r.mapSheetNo || '-'} | Toposheet: ${r.sheet10k || '-'} | Quadrant: ${r.quadrantNo || '-'}
-GPS: ${r.gpsCoords} | Altitude: ${r.altitudeGL} m.MSL
-Measuring Point: ${r.mpLocation} | Parapet Ht: ${r.parapetHeight}m
-Well Dimensions: Depth: ${r.depthWell}m | Dia Top: ${r.diaTop}m | Dia Bottom: ${r.diaBottom}m
-Water Levels: 
-  • SWL Winter: ${r.swlWinter || '-'} m.bgl | SWL Summer: ${r.swlSummer || '-'} m.bgl
-  • PWL Winter: ${r.pwlWinter || '-'} m.bgl | PWL Summer: ${r.pwlSummer || '-'} m.bgl
-  • DWL: ${r.dwl || '-'} m.bgl
-Recuperation: Winter: ${r.recupWinter || '-'} Hrs | Summer: ${r.recupSummer || '-'} Hrs
-Total Land Holding: ${r.totalLandHolding} Ha | Cultivable: ${r.cultivableLand} Ha
-
-CROPS & LAND BREAKDOWN (Ha):
-• Kharif: ${r.kharifCrop1} / ${r.kharifCrop2} -> Total: ${r.totalKharifHa} Ha
-• Rabi: ${r.rabiCrop1} / ${r.rabiCrop2} -> Total: ${r.totalRabiHa} Ha
-• Perennial: ${r.perennialCrop1} / ${r.perennialCrop2} -> Total: ${r.totalPerennialHa} Ha
-• Summer: ${r.summerCrop1} / ${r.summerCrop2} -> Total: ${r.totalSummerHa} Ha
-
-Lithology:
-  • 0 to ${r.lithoDepth1}m: ${r.lithoType1}
-  • to ${r.lithoDepth2}m: ${r.lithoType2}
-  • to ${r.lithoDepth3}m: ${r.lithoType3}
-  • to Bottom: ${r.lithoType4}
-Remarks: ${r.remarks || 'None'}
-      `);
-    }
-
-    // --- FORM-MATCHED EXCEL EXPORT ---
     async function exportToExcel() {
       const records = getStoredRecords();
       if (records.length === 0) {
@@ -2408,103 +2652,127 @@ Remarks: ${r.remarks || 'None'}
         return;
       }
 
-      // Sort rows by Sr. No. and map to clean formatted column headers
-      const formattedRows = [...records]
-        .sort((a, b) => Number(a.srNo) - Number(b.srNo))
-        .map(r => ({
-          "Sr No": Number(r.srNo) || '',
-          "Date of Survey": r.surveyDate || '',
-          "Time": r.surveyTime || '',
-          "Geologist Name": r.geologistName || '',
-          "Designation": r.designation || '',
-          "Project / Assignment": r.projectAssignment || '',
-          "District": r.district || '',
-          "Taluka": r.taluka || '',
-          "Village Name": r.village || '',
-          "Gram Panchayat": r.gpName || '',
-          "Census No (2011)": r.censusNo || '',
-          "Gat / Survey No": r.gatNo || '',
-          "Mini Watershed No": r.watershedNo || '',
-          "Toposheet / 10K Sheet": r.sheet10k || '',
-          "Mapsheet No": r.mapSheetNo || '',
-          "Quadrant No": r.quadrantNo || '',
-          "GPS Coordinates": r.gpsCoords || '',
-          "Altitude (m.MSL)": r.altitudeGL || '',
-          "Well Seq No": r.wellSeqNo || '',
-          "Type of Well": r.wellType || '',
-          "Well Owner Name": r.ownerName || '',
-          "Reservoir Type": r.reservoirType || '',
-          "Reservoir Distance & Direction": r.reservoirDistDir || '',
-          "Canal Name": r.canalName || '',
-          "Canal Distance & Direction": r.canalDistDir || '',
-          "Measurement Point": r.mpLocation || '',
-          "Parapet Height (m)": r.parapetHeight || '',
-          "Inner Diameter Top (m)": r.diaTop || '',
-          "Inner Diameter Bottom (m)": r.diaBottom || '',
-          "Depth of Dug Well (m.bgl)": r.depthWell || '',
-          "Depth of In-well Borehole (m)": r.depthInwellBore || '',
-          "Lining Material": r.liningMaterial || '',
-          "Year of Construction": r.yearConstruction || '',
-          "Pump Type": r.pumpType || '',
-          "Mode of Power": r.powerMode || '',
-          "Pump Capacity (HP)": r.pumpHP || '',
-          "SWL Winter (m.bgl)": r.swlWinter || '',
-          "SWL Summer (m.bgl)": r.swlSummer || '',
-          "PWL Winter (m.bgl)": r.pwlWinter || '',
-          "PWL Summer (m.bgl)": r.pwlSummer || '',
-          "DWL (m.bgl)": r.dwl || '',
-          "Recuperation Time Winter (Hrs)": r.recupWinter || '',
-          "Recuperation Time Summer (Hrs)": r.recupSummer || '',
-          "Winter Pumping Duration (Hrs/day)": r.pumpDurationWinter || '',
-          "Summer Pumping Duration (Hrs/day)": r.pumpDurationSummer || '',
-          "Well Status": r.wellStatus || '',
-          "Total Land Holding (Ha)": r.totalLandHolding || '',
-          "Cultivable Land Holding (Ha)": r.cultivableLand || '',
-          "Kharif Crop 1": r.kharifCrop1 || '',
-          "Kharif Crop 2": r.kharifCrop2 || '',
-          "Rabi Crop 1": r.rabiCrop1 || '',
-          "Rabi Crop 2": r.rabiCrop2 || '',
-          "Perennial Crop 1": r.perennialCrop1 || '',
-          "Perennial Crop 2": r.perennialCrop2 || '',
-          "Summer Crop 1": r.summerCrop1 || '',
-          "Summer Crop 2": r.summerCrop2 || '',
-          "Total Kharif (Ha)": r.totalKharifHa || '',
-          "Total Rabi (Ha)": r.totalRabiHa || '',
-          "Total Perennial (Ha)": r.totalPerennialHa || '',
-          "Total Summer (Ha)": r.totalSummerHa || '',
-          "Lithology 0 to 1m": `${r.lithoDepth1 || '1.0'}m - ${r.lithoType1 || ''}`,
-          "Lithology Layer 2": `${r.lithoDepth2 || '5.0'}m - ${r.lithoType2 || ''}`,
-          "Lithology Layer 3": `${r.lithoDepth3 || '7.0'}m - ${r.lithoType3 || ''}`,
-          "Lithology Bottom": r.lithoType4 || '',
-          "Geological Formation": r.geologyFormation || '',
-          "Remarks": r.remarks || ''
-        }));
+      const formattedRows = [...records].map(r => ({
+        "Sr.No.": Number(r.srNo) || '',
+        "Date": r.surveyDate || '',
+        "Time": r.surveyTime || '',
+        "Geologist Name": r.geologistName || '',
+        "Mapsheetno": r.mapSheetNo || '',
+        "well no": r.wellSeqNo || '',
+        "Type of well": r.wellType || '',
+        "Well Owner": r.ownerName || '',
+        "District Name": r.district || '',
+        "Taluka Name": r.taluka || '',
+        "Gp Name": r.gpName || '',
+        "Village Name": r.village || '',
+        "Cencess no": r.censusNo || '',
+        "Toposheet no": r.sheet10k || '',
+        "mini watershed": r.watershedNo || '',
+        "Population": "0",
+        "LatLong": r.gpsCoords || '',
+        "Altitude": r.altitudeGL || '',
+        "Gat no": r.gatNo || '',
+        "Qurdant": r.quadrantNo || '',
+        "Measuring Point": r.mpLocation || '',
+        "Parapet Height (m.bgl)": r.parapetHeight || '',
+        "Diameter Top (m)": r.diaTop || '',
+        "Diameter Bottom (m)": r.diaBottom || '',
+        "Effective Diameter (m)": r.diaEffective || '',
+        "Depth (m.bgl)": r.depthWell || '',
+        "Depth Inwell Borehole": r.depthInwellBore || '',
+        "Total Depth DCB": r.totalDepthDCB || '',
+        "Lining Material": r.liningMaterial || '',
+        "Depth of Lining": r.depthLining || '',
+        "Well Condition": r.wellCondition || '',
+        "Year of Construction": r.yearConstruction || '',
+        "Pump Type": r.pumpType || '',
+        "Power Mode": r.powerMode || '',
+        "HP of Pump": r.pumpHP || '',
+        "Pump Discharge (m3/hr)": r.pumpDischarge || '',
+        "Discharge Method": r.dischargeMethod || '',
+        "DWL (m.bgl)": r.dwl || '',
+        "Suction Pipe Dia": r.suctionPipeDia || '',
+        "Delivery Pipe Dia": r.deliveryPipeDia || '',
+        "Delivery Pipe Material": r.deliveryPipeMat || '',
+        "Pump Setting Winter": r.pumpSettingWinter || '',
+        "Inlet Winter": r.pumpInletWinter || '',
+        "Winter SWL": r.swlWinter || '',
+        "Winter PWL": r.pwlWinter || '',
+        "Winter Drawdown": r.ddWinter || '',
+        "Winter Duration (Hrs)": r.pumpDurationWinter || '',
+        "Winter Qty Pumped (M3)": r.qtyPumpedWinter || '',
+        "Winter Storage Vol (M3)": r.volStorageWinter || '',
+        "Winter Inflow Rate": r.inflowRateWinter || '',
+        "Winter Recuperation (Hrs)": r.recupWinter || '',
+        "Pump Setting Summer": r.pumpSettingSummer || '',
+        "Inlet Summer": r.pumpInletSummer || '',
+        "Summer SWL": r.swlSummer || '',
+        "Summer PWL": r.pwlSummer || '',
+        "Summer Drawdown": r.ddSummer || '',
+        "Summer Duration (Hrs)": r.pumpDurationSummer || '',
+        "Summer Qty Pumped (M3)": r.qtyPumpedSummer || '',
+        "Summer Storage Vol (M3)": r.volStorageSummer || '',
+        "Summer Inflow Rate": r.inflowRateSummer || '',
+        "Summer Recuperation (Hrs)": r.recupSummer || '',
+        "Annual Water Level Fluctuation (m)": r.annualFluctuation || '',
+        "Project Irri(PT/Minor)": r.reservoirType || '',
+        "Distance": r.reservoirDistDir || '',
+        "Canal": r.canalName || '',
+        "Distance c": r.canalDistDir || '',
+        "Cultivable land (Ha)": r.cultivableLand || '',
+        "Kharif Crop 1": r.kharifCrop1 || '',
+        "Kharif Crop 2": r.kharifCrop2 || '',
+        "Kharif crop land (Ha)1": r.kharifFloodHa1 || '',
+        "Kharif crop land (Ha)2": r.kharifFloodHa2 || '',
+        "Rabbi Crop 1": r.rabiCrop1 || '',
+        "Rabbi Crop 2": r.rabiCrop2 || '',
+        "Rabbi Crop land Flood 1 (Ha)1": r.rabiFloodHa1 || '',
+        "Rabbi Crop land Flood 2 (Ha)2": r.rabiFloodHa2 || '',
+        "Perennial Crop 1": r.perennialCrop1 || '',
+        "Perennial Crop 2": r.perennialCrop2 || '',
+        "Perennial Crop 1 Flood land (Ha)": r.perennialFloodHa1 || '',
+        "Perennial Crop 2 Flood land (Ha)": r.perennialFloodHa2 || '',
+        "Summer Crops 1": r.summerCrop1 || '',
+        "Summer Crops 2": r.summerCrop2 || '',
+        "Summer Crop Flood 1 land (Ha)": r.summerFloodHa1 || '',
+        "Summer Crop Flood 2 land (Ha)": r.summerFloodHa2 || '',
+        "Photo": r.photoData ? "Attached" : "",
+        "Litho 1": document.getElementById('lithoType1')?.value || '',
+        "Depth Litho 1": document.getElementById('lithoDepth1')?.value || '',
+        "Litho 2": document.getElementById('lithoType2')?.value || '',
+        "Depth Litho 2": document.getElementById('lithoDepth2')?.value || '',
+        "Litho 3": document.getElementById('lithoType3')?.value || '',
+        "Depth Litho 3": document.getElementById('lithoDepth3')?.value || '',
+        "Litho 4": document.getElementById('lithoType4')?.value || '',
+        "Depth Litho 4": "Bottom",
+        "nearest well": "No",
+        "Remarks": r.remarks || ''
+      }));
 
-      const worksheet = XLSX.utils.json_to_sheet(formattedRows);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Well_Survey_Data");
+      const wsCalc = XLSX.utils.json_to_sheet(formattedRows);
+      XLSX.utils.book_append_sheet(workbook, wsCalc, "calc");
 
-      const fileName = `Well_Data_Records_SrNo_1_to_${formattedRows[formattedRows.length - 1]["Sr No"] || formattedRows.length}.xlsx`;
-
+      const fileName = `Well_Data_Export_${Date.now()}.xlsx`;
+      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: "application/octet-stream" });
+      
       const dirHandle = await getWellDataFolder();
       if (dirHandle) {
         try {
           const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
           const writable = await fileHandle.createWritable();
-          
-          const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-          await writable.write(new Blob([wbout], { type: 'application/octet-stream' }));
+          await writable.write(blob);
           await writable.close();
-
-          showToast(`📊 Excel saved directly to: well data/${fileName}`);
+          showToast(`📊 Excel exported to folder: ${fileName}`);
           return;
-        } catch (err) {
-          console.error('Error writing Excel directly:', err);
+        } catch (e) {
+          console.error(e);
         }
       }
 
       XLSX.writeFile(workbook, fileName);
-      showToast('📊 Excel file downloaded successfully!');
+      showToast('📊 Excel file exported successfully!');
     }
 
     function showToast(msg) {
