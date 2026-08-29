@@ -463,14 +463,14 @@
       color: #fff;
     }
 
-    .btn-gdrive {
-      background: #1a73e8;
-      border-color: #4285f4;
+    .btn-folder {
+      background: #0284c7;
+      border-color: #38bdf8;
       color: #fff;
     }
 
-    .btn-gdrive:hover {
-      background: #1557b0;
+    .btn-folder:hover {
+      background: #0369a1;
     }
 
     .record-card {
@@ -735,20 +735,6 @@
       gap: 10px;
     }
 
-    /* Google Drive Configuration Modal */
-    .gdrive-modal-card {
-      background: var(--navy-900);
-      border: 2px solid #4285f4;
-      border-radius: 12px;
-      max-width: 580px;
-      width: 100%;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-    }
-
     #toast {
       position: fixed;
       bottom: 24px;
@@ -885,6 +871,11 @@
             </div>
 
             <div class="field-group">
+              <label>Mapsheet No. (Auto-filled / Editable)</label>
+              <input type="text" id="mapSheetNo" name="mapSheetNo" placeholder="e.g. 56 C/2, 47 N/3" />
+            </div>
+
+            <div class="field-group">
               <label>Quadrant No. (10K Sheet)</label>
               <input type="text" id="quadrantNo" name="quadrantNo" placeholder="e.g. D4, B4" />
             </div>
@@ -896,7 +887,7 @@
                 <button type="button" class="geo-btn" onclick="autoFetchGPS()">📍 Lock GPS</button>
               </div>
               <small style="color: var(--teal-light); font-size: 0.7rem; margin-top: 4px;">
-                💡 Tip: On mobile phones, ensure Location / GPS is turned ON in phone settings and your browser has location permission enabled.
+                💡 Tip: On mobile phones, ensure Location / GPS is turned ON in phone settings.
               </small>
             </div>
 
@@ -1089,9 +1080,25 @@
             </div>
 
             <div class="field-group">
-              <label>Depth to Pumped Level (DWL/PWL)</label>
+              <label>PWL Winter (Pumped Water Level)</label>
               <div class="input-wrapper">
-                <input type="number" step="0.1" id="dwl" name="dwl" placeholder="5.5" />
+                <input type="number" step="0.1" id="pwlWinter" name="pwlWinter" placeholder="5.5" />
+                <span class="input-unit">m.bgl</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>PWL Summer (Pumped Water Level)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="pwlSummer" name="pwlSummer" placeholder="8.5" />
+                <span class="input-unit">m.bgl</span>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>DWL (Drawdown Water Level)</label>
+              <div class="input-wrapper">
+                <input type="number" step="0.1" id="dwl" name="dwl" placeholder="1.5" />
                 <span class="input-unit">m.bgl</span>
               </div>
             </div>
@@ -1560,7 +1567,7 @@
               </div>
               <img id="photoPreview" class="photo-preview" alt="Watermarked Well Site Photo" onclick="previewCurrentPhotoModal()" title="Click to view full size" style="cursor: zoom-in;" />
               <p id="noPhotoText" style="font-size: 0.76rem; color: var(--text-muted);">
-                Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name.
+                Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name. Photos save in <strong>well data/images</strong>.
               </p>
             </div>
           </div>
@@ -1591,8 +1598,8 @@
         </select>
 
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn-sm btn-folder" onclick="selectRootFolder()">📂 Set 'well data' Folder</button>
           <button class="btn-sm btn-export" onclick="exportToExcel()">📊 Export Excel (.xlsx)</button>
-          <button class="btn-sm btn-gdrive" onclick="openGDriveModal()">📁 Google Drive Link</button>
         </div>
       </div>
 
@@ -1615,30 +1622,6 @@
       <div class="photo-modal-actions">
         <button type="button" class="btn-sm btn-export" onclick="downloadModalPhoto()">💾 Download Photo</button>
         <button type="button" class="btn-sm" onclick="closePhotoModal()">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- GOOGLE DRIVE LINK / CLOUD FOLDER MODAL -->
-  <div id="gdriveModalBackdrop" class="photo-modal-backdrop" onclick="closeGDriveModal(event)">
-    <div class="gdrive-modal-card" onclick="event.stopPropagation()">
-      <div class="photo-modal-header" style="background:transparent; padding:0; border-bottom:1px solid var(--navy-700); padding-bottom:8px;">
-        <div class="photo-modal-title" style="color: #4285f4; font-size:1.05rem;">📁 Google Drive Survey Folder Link</div>
-        <button class="photo-modal-close" onclick="closeGDriveModal()">&times;</button>
-      </div>
-      
-      <p style="font-size:0.82rem; color:var(--text-muted); line-height: 1.4;">
-        Set your designated Google Drive folder link to easily upload exported Excel sheets and photos, or click <strong>Open Drive</strong> to go directly to your backup folder.
-      </p>
-
-      <div class="field-group">
-        <label>Your Google Drive Survey Folder URL</label>
-        <input type="url" id="gdriveUrlInput" placeholder="https://drive.google.com/drive/folders/..." />
-      </div>
-
-      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px;">
-        <button type="button" class="btn-sm" onclick="saveGDriveLink()">💾 Save Link</button>
-        <button type="button" class="btn-sm btn-gdrive" onclick="openDirectGDrive()">🚀 Open Google Drive</button>
       </div>
     </div>
   </div>
@@ -1855,17 +1838,66 @@
       ]
     };
 
-    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V6';
-    const GDRIVE_STORAGE_KEY = 'HYDROGEO_GDRIVE_LINK_V1';
+    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V7';
     let currentPhotoBase64 = null;
     let activeModalPhoto = null;
+    let rootDirHandle = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       initTalukaDropdowns();
       initFormDefaults();
       renderRecords();
-      initGDriveLink();
     });
+
+    async function selectRootFolder() {
+      if (!('showDirectoryPicker' in window)) {
+        showToast('⚠️ Direct folder access not supported by browser. Standard downloads will be used.');
+        return null;
+      }
+      try {
+        rootDirHandle = await window.showDirectoryPicker();
+        showToast(`✅ Folder linked: ${rootDirHandle.name}`);
+        return rootDirHandle;
+      } catch (err) {
+        console.warn('Folder selection cancelled/failed:', err);
+        return null;
+      }
+    }
+
+    async function getWellDataFolder() {
+      if (rootDirHandle) return rootDirHandle;
+      return await selectRootFolder();
+    }
+
+    async function savePhotoToWellDataFolder(base64Data, filename) {
+      if (!base64Data) return;
+
+      const dirHandle = await getWellDataFolder();
+      if (dirHandle) {
+        try {
+          const imagesFolderHandle = await dirHandle.getDirectoryHandle('images', { create: true });
+          const fileHandle = await imagesFolderHandle.getFileHandle(filename, { create: true });
+          const writable = await fileHandle.createWritable();
+          
+          const response = await fetch(base64Data);
+          const blob = await response.blob();
+          
+          await writable.write(blob);
+          await writable.close();
+          showToast(`📸 Photo saved to: well data/images/${filename}`);
+          return;
+        } catch (e) {
+          console.error('Directory write error:', e);
+        }
+      }
+
+      const a = document.createElement('a');
+      a.href = base64Data;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
 
     function initTalukaDropdowns() {
       const talukaSelect = document.getElementById('taluka');
@@ -1969,6 +2001,7 @@
         document.getElementById('censusNo').value = census || '';
         document.getElementById('watershedNo').value = watershed || '';
         document.getElementById('sheet10k').value = topo || '47 O/13';
+        document.getElementById('mapSheetNo').value = topo || '47 O/13';
         
         if (lat && lon) {
           document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
@@ -1977,7 +2010,6 @@
       }
     }
 
-    // --- MOBILE-ROBUST GPS AUTO-FETCH WITH FALLBACK STRATEGY ---
     function autoFetchGPS() {
       const statusEl = document.getElementById('gpsStatusText');
       if (!navigator.geolocation) {
@@ -1985,7 +2017,7 @@
         return;
       }
 
-      statusEl.innerText = 'Locking High-Accuracy GPS...';
+      statusEl.innerText = 'Locking GPS...';
       showToast('🛰️ Requesting live GPS coordinates...');
 
       const applyPosition = async (pos) => {
@@ -2000,29 +2032,14 @@
         showToast(`✅ GPS Fixed: ${lat}, ${lon} (±${acc}m)`);
       };
 
-      // Attempt 1: High Accuracy (Satellite / Assisted GPS)
       navigator.geolocation.getCurrentPosition(
         applyPosition,
         (err) => {
-          console.warn('High-accuracy GPS failed, trying fallback mode...', err);
-          statusEl.innerText = 'Retrying GPS (Cell/WiFi)...';
-
-          // Attempt 2: Fallback with relaxed accuracy and cached coordinates
           navigator.geolocation.getCurrentPosition(
             applyPosition,
             (err2) => {
               statusEl.innerText = 'GPS Lock Failed';
-              let msg = 'Could not get location. ';
-              if (err2.code === 1) {
-                msg += 'Location permission denied. Please allow location in phone/browser settings.';
-              } else if (err2.code === 2) {
-                msg += 'GPS signal unavailable. Please turn on Phone Location / GPS.';
-              } else if (err2.code === 3) {
-                msg += 'GPS request timed out. Retrying with village lookup coordinates.';
-              } else {
-                msg += err2.message;
-              }
-              showToast('⚠️ ' + msg);
+              showToast('⚠️ Location access failed: ' + err2.message);
             },
             { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
           );
@@ -2108,7 +2125,7 @@
           preview.src = currentPhotoBase64;
           preview.style.display = 'block';
           document.getElementById('removePhotoBtn').style.display = 'inline-flex';
-          document.getElementById('noPhotoText').innerHTML = '<span style="color: var(--teal-glow); font-weight: 600;">✅ Stamped Photo Attached!</span> (Click image above to preview full size)';
+          document.getElementById('noPhotoText').innerHTML = '<span style="color: var(--teal-glow); font-weight: 600;">✅ Stamped Photo Attached!</span>';
         };
         img.src = e.target.result;
       };
@@ -2166,7 +2183,7 @@
       document.getElementById('recordCountBadge').innerText = records.length;
     }
 
-    function handleFormSubmit(e) {
+    async function handleFormSubmit(e) {
       if (e) e.preventDefault();
       calculateTotalCropHoldings();
 
@@ -2174,7 +2191,6 @@
       const formData = new FormData(form);
       const entry = Object.fromEntries(formData.entries());
 
-      // Get actual village name instead of select index
       const taluka = document.getElementById('taluka').value;
       const villageIdx = document.getElementById('village').value;
       entry.village = SHEET2_FULL_DATABASE[taluka]?.[villageIdx]?.[0] || '';
@@ -2194,6 +2210,11 @@
       
       const success = saveStoredRecords(records);
       if (success) {
+        if (currentPhotoBase64) {
+          const photoName = `SrNo_${entry.srNo}_${entry.village || 'Well'}_Gat_${entry.gatNo || '0'}.jpg`;
+          await savePhotoToWellDataFolder(currentPhotoBase64, photoName);
+        }
+
         showToast(`Well record #${entry.srNo} saved successfully!`);
         resetForm();
         switchTab('recordsList');
@@ -2222,6 +2243,7 @@
           (r.village && r.village.toLowerCase().includes(query)) ||
           (r.gatNo && r.gatNo.toString().toLowerCase().includes(query)) ||
           (r.srNo && r.srNo.toString().includes(query)) ||
+          (r.mapSheetNo && r.mapSheetNo.toLowerCase().includes(query)) ||
           (r.censusNo && r.censusNo.toString().includes(query));
 
         const matchesTaluka = !talukaFilter || r.taluka === talukaFilter;
@@ -2252,7 +2274,7 @@
           <div class="record-top">
             <div>
               <div class="record-title">#${r.srNo} — ${r.ownerName || 'Unnamed'}</div>
-              <div class="record-meta">${r.village || '-'}, ${r.taluka || '-'} | Gat: ${r.gatNo || '-'} | ${r.surveyDate} ${r.surveyTime}</div>
+              <div class="record-meta">${r.village || '-'}, ${r.taluka || '-'} | Gat: ${r.gatNo || '-'} | Map: ${r.mapSheetNo || r.sheet10k || '-'} | ${r.surveyDate} ${r.surveyTime}</div>
             </div>
             <span class="record-badge">${r.wellType}</span>
           </div>
@@ -2267,13 +2289,11 @@
 
             <div class="record-grid-info">
               <div>GPS: <strong>${r.gpsCoords || 'N/A'}</strong></div>
+              <div>SWL (W/S): <strong>${r.swlWinter || '-'} / ${r.swlSummer || '-'} m</strong></div>
+              <div>PWL (W/S): <strong>${r.pwlWinter || '-'} / ${r.pwlSummer || '-'} m</strong></div>
+              <div>DWL: <strong>${r.dwl ? r.dwl + ' m' : '-'}</strong></div>
               <div>Total Land: <strong>${r.totalLandHolding ? r.totalLandHolding + ' Ha' : '-'}</strong></div>
-              <div>Kharif: <strong>${r.totalKharifHa || '0.00'} Ha</strong></div>
-              <div>Rabi: <strong>${r.totalRabiHa || '0.00'} Ha</strong></div>
-              <div>Perennial: <strong>${r.totalPerennialHa || '0.00'} Ha</strong></div>
-              <div>Summer: <strong>${r.totalSummerHa || '0.00'} Ha</strong></div>
-              <div>Kharif Crop: <strong>${r.kharifCrop1 || '-'}</strong></div>
-              <div>Rabi Crop: <strong>${r.rabiCrop1 || '-'}</strong></div>
+              <div>Kharif / Rabi: <strong>${r.totalKharifHa || '0.00'} / ${r.totalRabiHa || '0.00'} Ha</strong></div>
             </div>
           </div>
 
@@ -2332,42 +2352,6 @@
       showToast('Photo downloaded successfully!');
     }
 
-    // --- GOOGLE DRIVE MANAGEMENT FUNCTIONS ---
-    function initGDriveLink() {
-      const savedLink = localStorage.getItem(GDRIVE_STORAGE_KEY) || 'https://drive.google.com/';
-      const input = document.getElementById('gdriveUrlInput');
-      if (input) input.value = savedLink;
-    }
-
-    function openGDriveModal() {
-      initGDriveLink();
-      document.getElementById('gdriveModalBackdrop').classList.add('active');
-    }
-
-    function closeGDriveModal(event) {
-      if (event && event.target && event.target.classList && !event.target.classList.contains('photo-modal-backdrop')) {
-        return;
-      }
-      document.getElementById('gdriveModalBackdrop').classList.remove('active');
-    }
-
-    function saveGDriveLink() {
-      const url = document.getElementById('gdriveUrlInput').value.trim();
-      if (!url) {
-        showToast('Please enter a valid Google Drive URL');
-        return;
-      }
-      localStorage.setItem(GDRIVE_STORAGE_KEY, url);
-      showToast('✅ Google Drive link saved!');
-      closeGDriveModal();
-    }
-
-    function openDirectGDrive() {
-      const url = document.getElementById('gdriveUrlInput').value.trim() || localStorage.getItem(GDRIVE_STORAGE_KEY) || 'https://drive.google.com/';
-      window.open(url, '_blank');
-      closeGDriveModal();
-    }
-
     function deleteRecord(srNo) {
       if (confirm(`Are you sure you want to delete well record #${srNo}?`)) {
         let records = getStoredRecords();
@@ -2390,43 +2374,137 @@ Geologist: ${r.geologistName} (${r.designation})
 Owner: ${r.ownerName}
 Location: Vill: ${r.village}, Tal: ${r.taluka}, Dist: ${r.district}
 Gat No: ${r.gatNo} | Census No: ${r.censusNo} | Watershed: ${r.watershedNo}
+Mapsheet No: ${r.mapSheetNo || '-'} | Toposheet: ${r.sheet10k || '-'} | Quadrant: ${r.quadrantNo || '-'}
 GPS: ${r.gpsCoords} | Altitude: ${r.altitudeGL} m.MSL
 Measuring Point: ${r.mpLocation} | Parapet Ht: ${r.parapetHeight}m
-Well Dimensions: Depth: ${r.depthWell}m | Dia: ${r.diaTop}m
-Water Levels: SWL Winter: ${r.swlWinter}m | SWL Summer: ${r.swlSummer}m | DWL: ${r.dwl}m
-Recuperation: Winter: ${r.recupWinter} Hrs | Summer: ${r.recupSummer} Hrs
+Well Dimensions: Depth: ${r.depthWell}m | Dia Top: ${r.diaTop}m | Dia Bottom: ${r.diaBottom}m
+Water Levels: 
+  • SWL Winter: ${r.swlWinter || '-'} m.bgl | SWL Summer: ${r.swlSummer || '-'} m.bgl
+  • PWL Winter: ${r.pwlWinter || '-'} m.bgl | PWL Summer: ${r.pwlSummer || '-'} m.bgl
+  • DWL: ${r.dwl || '-'} m.bgl
+Recuperation: Winter: ${r.recupWinter || '-'} Hrs | Summer: ${r.recupSummer || '-'} Hrs
 Total Land Holding: ${r.totalLandHolding} Ha | Cultivable: ${r.cultivableLand} Ha
 
 CROPS & LAND BREAKDOWN (Ha):
-• Kharif: ${r.kharifCrop1} / ${r.kharifCrop2} -> Total: ${r.totalKharifHa} Ha (Flood: ${r.kharifFloodHa1 || 0}, Drip: ${r.kharifDripHa1 || 0}, Sprinkler: ${r.kharifSprinklerHa1 || 0})
-• Rabi: ${r.rabiCrop1} / ${r.rabiCrop2} -> Total: ${r.totalRabiHa} Ha (Flood: ${r.rabiFloodHa1 || 0}, Drip: ${r.rabiDripHa1 || 0}, Sprinkler: ${r.rabiSprinklerHa1 || 0})
-• Perennial: ${r.perennialCrop1} / ${r.perennialCrop2} -> Total: ${r.totalPerennialHa} Ha (Flood: ${r.perennialFloodHa1 || 0}, Drip: ${r.perennialDripHa1 || 0})
-• Summer: ${r.summerCrop1} / ${r.summerCrop2} -> Total: ${r.totalSummerHa} Ha (Flood: ${r.summerFloodHa1 || 0}, Drip: ${r.summerDripHa1 || 0}, Sprinkler: ${r.summerSprinklerHa1 || 0})
+• Kharif: ${r.kharifCrop1} / ${r.kharifCrop2} -> Total: ${r.totalKharifHa} Ha
+• Rabi: ${r.rabiCrop1} / ${r.rabiCrop2} -> Total: ${r.totalRabiHa} Ha
+• Perennial: ${r.perennialCrop1} / ${r.perennialCrop2} -> Total: ${r.totalPerennialHa} Ha
+• Summer: ${r.summerCrop1} / ${r.summerCrop2} -> Total: ${r.totalSummerHa} Ha
 
 Lithology:
   • 0 to ${r.lithoDepth1}m: ${r.lithoType1}
   • to ${r.lithoDepth2}m: ${r.lithoType2}
   • to ${r.lithoDepth3}m: ${r.lithoType3}
   • to Bottom: ${r.lithoType4}
-Photo Status: ${r.photoData ? 'Attached' : 'No photo'}
 Remarks: ${r.remarks || 'None'}
       `);
     }
 
-    function exportToExcel() {
+    // --- FORM-MATCHED EXCEL EXPORT ---
+    async function exportToExcel() {
       const records = getStoredRecords();
       if (records.length === 0) {
         showToast('No records available to export.');
         return;
       }
 
-      const sanitized = records.map(({ photoData, ...rest }) => rest);
-      const worksheet = XLSX.utils.json_to_sheet(sanitized);
+      // Sort rows by Sr. No. and map to clean formatted column headers
+      const formattedRows = [...records]
+        .sort((a, b) => Number(a.srNo) - Number(b.srNo))
+        .map(r => ({
+          "Sr No": Number(r.srNo) || '',
+          "Date of Survey": r.surveyDate || '',
+          "Time": r.surveyTime || '',
+          "Geologist Name": r.geologistName || '',
+          "Designation": r.designation || '',
+          "Project / Assignment": r.projectAssignment || '',
+          "District": r.district || '',
+          "Taluka": r.taluka || '',
+          "Village Name": r.village || '',
+          "Gram Panchayat": r.gpName || '',
+          "Census No (2011)": r.censusNo || '',
+          "Gat / Survey No": r.gatNo || '',
+          "Mini Watershed No": r.watershedNo || '',
+          "Toposheet / 10K Sheet": r.sheet10k || '',
+          "Mapsheet No": r.mapSheetNo || '',
+          "Quadrant No": r.quadrantNo || '',
+          "GPS Coordinates": r.gpsCoords || '',
+          "Altitude (m.MSL)": r.altitudeGL || '',
+          "Well Seq No": r.wellSeqNo || '',
+          "Type of Well": r.wellType || '',
+          "Well Owner Name": r.ownerName || '',
+          "Reservoir Type": r.reservoirType || '',
+          "Reservoir Distance & Direction": r.reservoirDistDir || '',
+          "Canal Name": r.canalName || '',
+          "Canal Distance & Direction": r.canalDistDir || '',
+          "Measurement Point": r.mpLocation || '',
+          "Parapet Height (m)": r.parapetHeight || '',
+          "Inner Diameter Top (m)": r.diaTop || '',
+          "Inner Diameter Bottom (m)": r.diaBottom || '',
+          "Depth of Dug Well (m.bgl)": r.depthWell || '',
+          "Depth of In-well Borehole (m)": r.depthInwellBore || '',
+          "Lining Material": r.liningMaterial || '',
+          "Year of Construction": r.yearConstruction || '',
+          "Pump Type": r.pumpType || '',
+          "Mode of Power": r.powerMode || '',
+          "Pump Capacity (HP)": r.pumpHP || '',
+          "SWL Winter (m.bgl)": r.swlWinter || '',
+          "SWL Summer (m.bgl)": r.swlSummer || '',
+          "PWL Winter (m.bgl)": r.pwlWinter || '',
+          "PWL Summer (m.bgl)": r.pwlSummer || '',
+          "DWL (m.bgl)": r.dwl || '',
+          "Recuperation Time Winter (Hrs)": r.recupWinter || '',
+          "Recuperation Time Summer (Hrs)": r.recupSummer || '',
+          "Winter Pumping Duration (Hrs/day)": r.pumpDurationWinter || '',
+          "Summer Pumping Duration (Hrs/day)": r.pumpDurationSummer || '',
+          "Well Status": r.wellStatus || '',
+          "Total Land Holding (Ha)": r.totalLandHolding || '',
+          "Cultivable Land Holding (Ha)": r.cultivableLand || '',
+          "Kharif Crop 1": r.kharifCrop1 || '',
+          "Kharif Crop 2": r.kharifCrop2 || '',
+          "Rabi Crop 1": r.rabiCrop1 || '',
+          "Rabi Crop 2": r.rabiCrop2 || '',
+          "Perennial Crop 1": r.perennialCrop1 || '',
+          "Perennial Crop 2": r.perennialCrop2 || '',
+          "Summer Crop 1": r.summerCrop1 || '',
+          "Summer Crop 2": r.summerCrop2 || '',
+          "Total Kharif (Ha)": r.totalKharifHa || '',
+          "Total Rabi (Ha)": r.totalRabiHa || '',
+          "Total Perennial (Ha)": r.totalPerennialHa || '',
+          "Total Summer (Ha)": r.totalSummerHa || '',
+          "Lithology 0 to 1m": `${r.lithoDepth1 || '1.0'}m - ${r.lithoType1 || ''}`,
+          "Lithology Layer 2": `${r.lithoDepth2 || '5.0'}m - ${r.lithoType2 || ''}`,
+          "Lithology Layer 3": `${r.lithoDepth3 || '7.0'}m - ${r.lithoType3 || ''}`,
+          "Lithology Bottom": r.lithoType4 || '',
+          "Geological Formation": r.geologyFormation || '',
+          "Remarks": r.remarks || ''
+        }));
+
+      const worksheet = XLSX.utils.json_to_sheet(formattedRows);
       const workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "Well_Survey_Data");
 
-      XLSX.writeFile(workbook, `GSDA_Well_Survey_${new Date().toISOString().split('T')[0]}.xlsx`);
-      showToast('Excel (.xlsx) file downloaded successfully!');
+      const fileName = `Well_Data_Records_SrNo_1_to_${formattedRows[formattedRows.length - 1]["Sr No"] || formattedRows.length}.xlsx`;
+
+      const dirHandle = await getWellDataFolder();
+      if (dirHandle) {
+        try {
+          const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+          const writable = await fileHandle.createWritable();
+          
+          const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+          await writable.write(new Blob([wbout], { type: 'application/octet-stream' }));
+          await writable.close();
+
+          showToast(`📊 Excel saved directly to: well data/${fileName}`);
+          return;
+        } catch (err) {
+          console.error('Error writing Excel directly:', err);
+        }
+      }
+
+      XLSX.writeFile(workbook, fileName);
+      showToast('📊 Excel file downloaded successfully!');
     }
 
     function showToast(msg) {
