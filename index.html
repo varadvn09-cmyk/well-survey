@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>HydroGeo Field Survey Pro - Final</title>
+  <title>HydroGeo Field Survey Pro - Final Edition</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
@@ -123,7 +123,7 @@
 
     .photo-modal-backdrop { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(7, 13, 24, 0.88); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; padding: 16px; }
     .photo-modal-backdrop.active { display: flex; }
-    .photo-modal-card { background: var(--navy-900); border: 2px solid var(--teal-accent); border-radius: 12px; max-width: 900px; width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); animation: modalFadeIn 0.25s ease-out; }
+    .photo-modal-card { background: var(--navy-900); border: 2px solid var(--teal-accent); border-radius: 12px; max-width: 900px; width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8); animation: modalFadeIn 0.25s ease-out; }
     @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     .photo-modal-header { padding: 12px 16px; background: var(--navy-950); border-bottom: 1px solid var(--navy-700); display: flex; justify-content: space-between; align-items: center; }
     .photo-modal-title { font-size: 0.95rem; font-weight: 700; color: var(--teal-glow); }
@@ -149,8 +149,8 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn-db" onclick="document.getElementById('dbInput').click()">📂 Load Full Village DB</button>
-      <input type="file" id="dbInput" accept=".xlsx, .xls" style="display: none;" onchange="loadVillageDatabase(event)" />
+      <button class="btn-db" onclick="document.getElementById('dbInput').click()">📂 Load DBs (Village & Crop)</button>
+      <input type="file" id="dbInput" accept=".xlsx, .xls" style="display: none;" onchange="loadDatabases(event)" />
       
       <div class="header-gps-status" onclick="autoFetchGPS()">
         <div class="status-dot"></div>
@@ -160,109 +160,45 @@
   </header>
 
   <nav class="tab-bar">
-    <button class="tab-btn active" onclick="switchTab('newEntry')">
-      📝 New Well Entry
-    </button>
-    <button class="tab-btn" onclick="switchTab('recordsList')">
-      📋 Records List <span class="badge" id="recordCountBadge">0</span>
-    </button>
+    <button class="tab-btn active" onclick="switchTab('newEntry')">📝 New Well Entry</button>
+    <button class="tab-btn" onclick="switchTab('recordsList')">📋 Records List <span class="badge" id="recordCountBadge">0</span></button>
   </nav>
 
   <main>
-    
-    <!-- TAB 1: NEW WELL ENTRY -->
     <div id="newEntry" class="tab-panel active">
       <form id="surveyForm" onsubmit="handleFormSubmit(event)">
         
+        <!-- META -->
         <div class="form-section">
-          <div class="section-header">
-            <span class="section-title">Survey Officer & Metadata</span>
-            <span class="section-code">META</span>
-          </div>
+          <div class="section-header"><span class="section-title">Survey Officer & Metadata</span><span class="section-code">META</span></div>
           <div class="section-body">
-            <div class="field-group">
-              <label>Sr. No. (Auto)</label>
-              <input type="text" id="srNo" name="srNo" readonly />
-            </div>
-            <div class="field-group">
-              <label>Date of Survey</label>
-              <input type="date" id="surveyDate" name="surveyDate" required />
-            </div>
-            <div class="field-group">
-              <label>Time</label>
-              <input type="time" id="surveyTime" name="surveyTime" required />
-            </div>
-            <div class="field-group">
-              <label>Name of Geologist <span class="req">*</span></label>
-              <input type="text" id="geologistName" name="geologistName" value="VN Nimbalkar" required />
-            </div>
-            <div class="field-group">
-              <label>Designation</label>
-              <input type="text" id="designation" name="designation" value="Assistant Geologist" required />
-            </div>
-            <div class="field-group">
-              <label>Project / Assignment</label>
-              <input type="text" id="projectAssignment" name="projectAssignment" value="1.10K" />
-            </div>
+            <div class="field-group"><label>Sr. No. (Auto)</label><input type="text" id="srNo" name="srNo" readonly /></div>
+            <div class="field-group"><label>Date of Survey</label><input type="date" id="surveyDate" name="surveyDate" required /></div>
+            <div class="field-group"><label>Time</label><input type="time" id="surveyTime" name="surveyTime" required /></div>
+            <div class="field-group"><label>Name of Geologist <span class="req">*</span></label><input type="text" id="geologistName" name="geologistName" value="VN Nimbalkar" required /></div>
+            <div class="field-group"><label>Designation</label><input type="text" id="designation" name="designation" value="Assistant Geologist" required /></div>
+            <div class="field-group"><label>Project / Assignment</label><input type="text" id="projectAssignment" name="projectAssignment" value="1.10K" /></div>
           </div>
         </div>
 
+        <!-- SECTION A -->
         <div class="form-section">
-          <div class="section-header">
-            <span class="section-title">A. Well Location & Complete Sheet 2 Lookup</span>
-            <span class="section-code">SEC-A</span>
-          </div>
+          <div class="section-header"><span class="section-title">A. Well Location & Complete Sheet 2 Lookup</span><span class="section-code">SEC-A</span></div>
           <div class="section-body">
-            <div class="field-group">
-              <label>District</label>
-              <input type="text" id="district" name="district" value="Solapur" readonly />
-            </div>
-
-            <div class="field-group">
-              <label>Taluka</label>
-              <select id="taluka" name="taluka" onchange="onTalukaChange()"></select>
-            </div>
-
-            <div class="field-group">
-              <label>Village Name</label>
-              <select id="village" name="village" onchange="onVillageChange()"></select>
-            </div>
-
-            <div class="field-group">
-              <label>G.P. Name (Auto-filled)</label>
-              <input type="text" id="gpName" name="gpName" readonly />
-            </div>
-
-            <div class="field-group">
-              <label>Census No. 2011 (Auto-filled)</label>
-              <input type="text" id="censusNo" name="censusNo" readonly />
-            </div>
-
-            <div class="field-group">
-              <label>Gat / Survey No. <span class="req">*</span></label>
-              <input type="text" id="gatNo" name="gatNo" placeholder="e.g. 176" required />
-            </div>
-
-            <div class="field-group">
-              <label>Mini Watershed No. (Auto-filled)</label>
-              <input type="text" id="watershedNo" name="watershedNo" readonly />
-            </div>
-
-            <div class="field-group">
-              <label>Toposheet / 10K Sheet No. (Auto-filled)</label>
-              <input type="text" id="sheet10k" name="sheet10k" />
-            </div>
-
-            <div class="field-group">
-              <label>Mapsheet No. (Auto-filled / Editable)</label>
-              <input type="text" id="mapSheetNo" name="mapSheetNo" placeholder="e.g. 56/C/2, 47 N/3" />
-            </div>
-
-            <div class="field-group">
-              <label>Quadrant No. (10K Sheet)</label>
-              <input type="text" id="quadrantNo" name="quadrantNo" placeholder="e.g. A2, D4" />
-            </div>
-
+            <div class="field-group"><label>District</label><input type="text" id="district" name="district" value="Solapur" readonly /></div>
+            <div class="field-group"><label>Taluka</label><select id="taluka" name="taluka" onchange="onTalukaChange()"></select></div>
+            <div class="field-group"><label>Village Name</label><select id="village" name="village" onchange="onVillageChange()"></select></div>
+            <div class="field-group"><label>G.P. Name (Auto-filled)</label><input type="text" id="gpName" name="gpName" readonly /></div>
+            <div class="field-group"><label>Census No. 2011 (Auto-filled)</label><input type="text" id="censusNo" name="censusNo" readonly /></div>
+            
+            <div class="field-group"><label>Population (Auto-filled / Editable)</label><input type="text" id="population" name="population" placeholder="e.g. 1500" /></div>
+            
+            <div class="field-group"><label>Gat / Survey No. <span class="req">*</span></label><input type="text" id="gatNo" name="gatNo" placeholder="e.g. 176" required /></div>
+            <div class="field-group"><label>Mini Watershed No. (Auto-filled)</label><input type="text" id="watershedNo" name="watershedNo" readonly /></div>
+            
+            <div class="field-group"><label>Toposheet / 10K Sheet No. (Auto-filled)</label><input type="text" id="sheet10k" name="sheet10k" readonly /></div>
+            <div class="field-group"><label>Mapsheet No. (Editable)</label><input type="text" id="mapSheetNo" name="mapSheetNo" placeholder="e.g. 56/C/2, 47 N/3" /></div>
+            <div class="field-group"><label>Quadrant No. (10K Sheet)</label><input type="text" id="quadrantNo" name="quadrantNo" placeholder="e.g. A2, D4" /></div>
             <div class="field-group full-width">
               <label>GPS Coordinates (Lat, Long) & Elevation <span class="req">*</span></label>
               <div style="display: flex; gap: 8px;">
@@ -270,20 +206,11 @@
                 <button type="button" class="geo-btn" onclick="autoFetchGPS()">📍 Lock GPS</button>
               </div>
             </div>
-
             <div class="field-group">
               <label>Calculated Altitude (m.MSL)</label>
-              <div class="input-wrapper">
-                <input type="text" id="altitudeGL" name="altitudeGL" readonly placeholder="Auto-calculated MSL" />
-                <span class="input-unit">m</span>
-              </div>
+              <div class="input-wrapper"><input type="text" id="altitudeGL" name="altitudeGL" readonly placeholder="Auto-calculated MSL" /><span class="input-unit">m</span></div>
             </div>
-
-            <div class="field-group">
-              <label>Well No. (10K Sheet Seq)</label>
-              <input type="number" id="wellSeqNo" name="wellSeqNo" placeholder="e.g. 8" />
-            </div>
-
+            <div class="field-group"><label>Well No. (10K Sheet Seq)</label><input type="number" id="wellSeqNo" name="wellSeqNo" placeholder="e.g. 8" /></div>
             <div class="field-group">
               <label>Type of Well <span class="req">*</span></label>
               <select id="wellType" name="wellType" required>
@@ -293,19 +220,13 @@
                 <option value="Tubewell">Tubewell (TW)</option>
               </select>
             </div>
-
-            <div class="field-group full-width">
-              <label>Well Owner's Name <span class="req">*</span></label>
-              <input type="text" id="ownerName" name="ownerName" placeholder="e.g. Sidharam Bhimashankar Gurav" required />
-            </div>
+            <div class="field-group full-width"><label>Well Owner's Name <span class="req">*</span></label><input type="text" id="ownerName" name="ownerName" placeholder="e.g. Sidharam Bhimashankar Gurav" required /></div>
           </div>
         </div>
 
+        <!-- COMMAND AREA -->
         <div class="form-section">
-          <div class="section-header">
-            <span class="section-title">Command Area & Reservoir / Canal Proximity</span>
-            <span class="section-code">COMMAND</span>
-          </div>
+          <div class="section-header"><span class="section-title">Command Area & Reservoir / Canal Proximity</span><span class="section-code">COMMAND</span></div>
           <div class="section-body">
             <div class="field-group">
               <label>Reservoir (Project) Type</label>
@@ -314,33 +235,18 @@
                 <option value="Minor">Minor</option>
                 <option value="Medium">Medium</option>
                 <option value="Major">Major</option>
-                <option value="None">None</option>
+                <option value="None" selected>None</option>
               </select>
             </div>
-
-            <div class="field-group">
-              <label>Distance & Direction of Reservoir from Well</label>
-              <input type="text" id="reservoirDistDir" name="reservoirDistDir" placeholder="e.g. 250m Due South" />
-            </div>
-
-            <div class="field-group">
-              <label>Name of the Nearest Canal of Project</label>
-              <input type="text" id="canalName" name="canalName" placeholder="e.g. Left Bank Main Canal" />
-            </div>
-
-            <div class="field-group">
-              <label>Distance & Direction of Canal from Well</label>
-              <input type="text" id="canalDistDir" name="canalDistDir" placeholder="e.g. 500m Due East" />
-            </div>
+            <div class="field-group"><label>Distance & Direction of Reservoir from Well</label><input type="text" id="reservoirDistDir" name="reservoirDistDir" placeholder="e.g. 250m Due South" /></div>
+            <div class="field-group"><label>Name of the Nearest Canal of Project</label><input type="text" id="canalName" name="canalName" placeholder="e.g. Left Bank Main Canal" /></div>
+            <div class="field-group"><label>Distance & Direction of Canal from Well</label><input type="text" id="canalDistDir" name="canalDistDir" placeholder="e.g. 500m Due East" /></div>
           </div>
         </div>
 
-        <!-- SECTION B: DIMENSIONS & CONSTRUCTION -->
+        <!-- SECTION B -->
         <div class="form-section">
-          <div class="section-header">
-            <span class="section-title">B. Dimensions & Construction</span>
-            <span class="section-code">SEC-B</span>
-          </div>
+          <div class="section-header"><span class="section-title">B. Dimensions & Construction</span><span class="section-code">SEC-B</span></div>
           <div class="section-body">
             <div class="field-group">
               <label>Measurement Point (MP)</label>
@@ -351,61 +257,13 @@
                 <option value="Due South">Due South</option>
               </select>
             </div>
-
-            <div class="field-group">
-              <label>Height of Parapet</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.01" id="parapetHeight" name="parapetHeight" value="1.20" />
-                <span class="input-unit">m.bgl</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Inner Diameter (Top)</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="diaTop" name="diaTop" value="9.60" />
-                <span class="input-unit">m</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Inner Diameter (Bottom)</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="diaBottom" name="diaBottom" value="7.10" />
-                <span class="input-unit">m</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Effective Diameter</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.01" id="diaEffective" name="diaEffective" value="8.35" oninput="recalculateAll();" />
-                <span class="input-unit">m</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Depth of Dug Well (DW)</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="depthWell" name="depthWell" value="13.50" />
-                <span class="input-unit">m.bgl</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Depth of In-well Borehole</label>
-              <div class="input-wrapper">
-                <input type="text" id="depthInwellBore" name="depthInwellBore" value="-" />
-              </div>
-            </div>
-
-            <div class="field-group full-width">
-              <label>Total Depth of Dug Cum Borewell</label>
-              <div class="input-wrapper">
-                <input type="text" id="totalDepthDCB" name="totalDepthDCB" value="-" />
-              </div>
-            </div>
-
+            <div class="field-group"><label>Height of Parapet</label><div class="input-wrapper"><input type="number" step="0.01" id="parapetHeight" name="parapetHeight" placeholder="0.00" /><span class="input-unit">m.bgl</span></div></div>
+            <div class="field-group"><label>Inner Diameter (Top)</label><div class="input-wrapper"><input type="number" step="0.1" id="diaTop" name="diaTop" placeholder="0.0" /><span class="input-unit">m</span></div></div>
+            <div class="field-group"><label>Inner Diameter (Bottom)</label><div class="input-wrapper"><input type="number" step="0.1" id="diaBottom" name="diaBottom" placeholder="0.0" /><span class="input-unit">m</span></div></div>
+            <div class="field-group"><label>Effective Diameter</label><div class="input-wrapper"><input type="number" step="0.01" id="diaEffective" name="diaEffective" placeholder="0.00" oninput="recalculateAll();" /><span class="input-unit">m</span></div></div>
+            <div class="field-group"><label>Depth of Dug Well (DW)</label><div class="input-wrapper"><input type="number" step="0.1" id="depthWell" name="depthWell" placeholder="0.0" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div></div>
+            <div class="field-group"><label>Depth of In-well Borehole</label><div class="input-wrapper"><input type="text" id="depthInwellBore" name="depthInwellBore" placeholder="-" /></div></div>
+            <div class="field-group full-width"><label>Total Depth of Dug Cum Borewell</label><div class="input-wrapper"><input type="text" id="totalDepthDCB" name="totalDepthDCB" placeholder="-" /></div></div>
             <div class="field-group">
               <label>Lining / Curbing Material</label>
               <select id="liningMaterial" name="liningMaterial">
@@ -415,33 +273,15 @@
                 <option value="Unlined">Unlined</option>
               </select>
             </div>
-
-            <div class="field-group">
-              <label>Depth of Lining</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="depthLining" name="depthLining" value="7.00" />
-                <span class="input-unit">m.bgl</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Condition of Well and Lining</label>
-              <input type="text" id="wellCondition" name="wellCondition" value="Good" />
-            </div>
-
-            <div class="field-group">
-              <label>Year of Construction</label>
-              <input type="number" id="yearConstruction" name="yearConstruction" value="1985" />
-            </div>
+            <div class="field-group"><label>Depth of Lining</label><div class="input-wrapper"><input type="number" step="0.1" id="depthLining" name="depthLining" placeholder="0.0" /><span class="input-unit">m.bgl</span></div></div>
+            <div class="field-group"><label>Condition of Well and Lining</label><input type="text" id="wellCondition" name="wellCondition" placeholder="e.g. Good" /></div>
+            <div class="field-group"><label>Year of Construction</label><input type="number" id="yearConstruction" name="yearConstruction" placeholder="YYYY" /></div>
           </div>
         </div>
 
-        <!-- SECTION C: GROUNDWATER LEVELS, PUMPING & RECUPERATION -->
+        <!-- SECTION C -->
         <div class="form-section">
-          <div class="section-header">
-            <span class="section-title">C. Groundwater Levels, Pumping & Recuperation Details</span>
-            <span class="section-code">SEC-C</span>
-          </div>
+          <div class="section-header"><span class="section-title">C. Groundwater Levels, Pumping & Recuperation Details</span><span class="section-code">SEC-C</span></div>
           <div class="section-body">
             <div class="field-group">
               <label>Pump Type</label>
@@ -451,7 +291,6 @@
                 <option value="Open well submersible">Open well submersible</option>
               </select>
             </div>
-
             <div class="field-group">
               <label>Mode of Power</label>
               <select id="powerMode" name="powerMode">
@@ -460,101 +299,30 @@
                 <option value="Diesel">Diesel</option>
               </select>
             </div>
-
-            <div class="field-group">
-              <label>HP of Pump <span class="req">*</span></label>
-              <div class="input-wrapper">
-                <input type="number" step="0.5" id="pumpHP" name="pumpHP" value="5.0" oninput="recalculateAll();" required />
-                <span class="input-unit">HP</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Pump Discharge</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="pumpDischarge" name="pumpDischarge" value="22.5" oninput="recalculateAll();" />
-                <span class="input-unit">m³/hour</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Method Used For Discharge Measurement</label>
-              <input type="text" id="dischargeMethod" name="dischargeMethod" value="Adhoc" />
-            </div>
-
-            <div class="field-group">
-              <label>Depth to Pumped Groundwater Level (DWL)</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="dwl" name="dwl" value="9" />
-                <span class="input-unit">m.bgl</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Suction Pipe Diameter</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="suctionPipeDia" name="suctionPipeDia" value="50.5" />
-                <span class="input-unit">mm</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Delivery Pipe Diameter</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.1" id="deliveryPipeDia" name="deliveryPipeDia" value="63.50" />
-                <span class="input-unit">mm</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Delivery Pipe Material</label>
-              <input type="text" id="deliveryPipeMat" name="deliveryPipeMat" value="HDPE" />
-            </div>
+            <div class="field-group"><label>HP of Pump <span class="req">*</span></label><div class="input-wrapper"><input type="number" step="0.5" id="pumpHP" name="pumpHP" placeholder="0.0" oninput="recalculateAll();" required /><span class="input-unit">HP</span></div></div>
+            <div class="field-group"><label>Pump Discharge</label><div class="input-wrapper"><input type="number" step="0.1" id="pumpDischarge" name="pumpDischarge" readonly /><span class="input-unit">m³/hour</span></div></div>
+            <div class="field-group"><label>Method Used For Discharge Measurement</label><input type="text" id="dischargeMethod" name="dischargeMethod" value="Adhoc" /></div>
+            <div class="field-group"><label>Depth to Pumped Groundwater Level (DWL)</label><div class="input-wrapper"><input type="number" step="0.1" id="dwl" name="dwl" placeholder="0.0" /><span class="input-unit">m.bgl</span></div></div>
+            
+            <div class="field-group"><label>Suction Pipe Diameter</label><div class="input-wrapper"><input type="number" step="0.1" id="suctionPipeDia" name="suctionPipeDia" value="50.5" readonly /><span class="input-unit">mm</span></div></div>
+            <div class="field-group"><label>Delivery Pipe Diameter</label><div class="input-wrapper"><input type="number" step="0.1" id="deliveryPipeDia" name="deliveryPipeDia" value="63.5" readonly /><span class="input-unit">mm</span></div></div>
+            
+            <div class="field-group"><label>Delivery Pipe Material</label><input type="text" id="deliveryPipeMat" name="deliveryPipeMat" placeholder="e.g. HDPE" /></div>
 
             <!-- WINTER BLOCK -->
             <div class="full-width season-card">
               <div class="season-card-title">❄️ Winter Season Parameters</div>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                <div class="field-group">
-                  <label>Pump Setting (Winter)</label>
-                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpSettingWinter" name="pumpSettingWinter" value="13.50" /><span class="input-unit">m.bgl</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Depth of Pump Inlet (Winter)</label>
-                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpInletWinter" name="pumpInletWinter" value="13.50" /><span class="input-unit">m.bgl</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Static Water Level (SWL Winter)</label>
-                  <div class="input-wrapper"><input type="number" step="0.1" id="swlWinter" name="swlWinter" value="3.50" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Duration of Pumping (Winter)</label>
-                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpDurationWinter" name="pumpDurationWinter" value="5.00" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Quantity of Water Pumped ($M^3$)</label>
-                  <div class="input-wrapper"><input type="text" id="qtyPumpedWinter" name="qtyPumpedWinter" readonly /><span class="input-unit">M³</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Drawdown (D/D = PWL - SWL)</label>
-                  <div class="input-wrapper"><input type="text" id="ddWinter" name="ddWinter" readonly /><span class="input-unit">m</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Volume from Storage ($M^3$)</label>
-                  <div class="input-wrapper"><input type="text" id="volStorageWinter" name="volStorageWinter" readonly /><span class="input-unit">M³</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Pumped Water Level (PWL Winter)</label>
-                  <div class="input-wrapper"><input type="text" id="pwlWinter" name="pwlWinter" readonly /><span class="input-unit">m.bgl</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Avg. Inflow Rate ($M^3/Hr$)</label>
-                  <div class="input-wrapper"><input type="text" id="inflowRateWinter" name="inflowRateWinter" readonly /><span class="input-unit">M³/Hr</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Time for Complete Recuperation</label>
-                  <div class="input-wrapper"><input type="number" step="0.5" id="recupWinter" name="recupWinter" value="18" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div>
-                </div>
+                <div class="field-group"><label>Pump Setting (Winter)</label><div class="input-wrapper"><input type="number" step="0.1" id="pumpSettingWinter" name="pumpSettingWinter" readonly /><span class="input-unit">m.bgl</span></div></div>
+                <div class="field-group"><label>Depth of Pump Inlet (Winter)</label><div class="input-wrapper"><input type="number" step="0.1" id="pumpInletWinter" name="pumpInletWinter" readonly /><span class="input-unit">m.bgl</span></div></div>
+                <div class="field-group"><label>Static Water Level (SWL Winter)</label><div class="input-wrapper"><input type="number" step="0.1" id="swlWinter" name="swlWinter" placeholder="0.0" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div></div>
+                <div class="field-group"><label>Duration of Pumping (Winter)</label><div class="input-wrapper"><input type="number" step="0.1" id="pumpDurationWinter" name="pumpDurationWinter" placeholder="0.0" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div></div>
+                <div class="field-group"><label>Quantity of Water Pumped ($M^3$)</label><div class="input-wrapper"><input type="text" id="qtyPumpedWinter" name="qtyPumpedWinter" readonly /><span class="input-unit">M³</span></div></div>
+                <div class="field-group"><label>Pumped Water Level (PWL Winter)</label><div class="input-wrapper"><input type="text" id="pwlWinter" name="pwlWinter" readonly placeholder="Auto" /><span class="input-unit">m.bgl</span></div></div>
+                <div class="field-group"><label>Drawdown (D/D = PWL - SWL)</label><div class="input-wrapper"><input type="text" id="ddWinter" name="ddWinter" readonly /><span class="input-unit">m</span></div></div>
+                <div class="field-group"><label>Volume from Storage ($M^3$)</label><div class="input-wrapper"><input type="text" id="volStorageWinter" name="volStorageWinter" readonly /><span class="input-unit">M³</span></div></div>
+                <div class="field-group"><label>Avg. Inflow Rate ($M^3/Hr$)</label><div class="input-wrapper"><input type="text" id="inflowRateWinter" name="inflowRateWinter" readonly /><span class="input-unit">M³/Hr</span></div></div>
+                <div class="field-group"><label>Time for Complete Recuperation</label><div class="input-wrapper"><input type="number" step="0.5" id="recupWinter" name="recupWinter" placeholder="0" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div></div>
               </div>
             </div>
 
@@ -562,54 +330,20 @@
             <div class="full-width season-card">
               <div class="season-card-title">☀️ Summer Season Parameters</div>
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
-                <div class="field-group">
-                  <label>Pump Setting (Summer)</label>
-                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpSettingSummer" name="pumpSettingSummer" value="13.50" /><span class="input-unit">m.bgl</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Depth of Pump Inlet (Summer)</label>
-                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpInletSummer" name="pumpInletSummer" value="13.50" /><span class="input-unit">m.bgl</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Static Water Level (SWL Summer)</label>
-                  <div class="input-wrapper"><input type="number" step="0.1" id="swlSummer" name="swlSummer" value="12.50" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Duration of Pumping (Summer)</label>
-                  <div class="input-wrapper"><input type="number" step="0.1" id="pumpDurationSummer" name="pumpDurationSummer" value="2.00" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Quantity of Water Pumped ($M^3$)</label>
-                  <div class="input-wrapper"><input type="text" id="qtyPumpedSummer" name="qtyPumpedSummer" readonly /><span class="input-unit">M³</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Drawdown (D/D = PWL - SWL)</label>
-                  <div class="input-wrapper"><input type="text" id="ddSummer" name="ddSummer" readonly /><span class="input-unit">m</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Volume from Storage ($M^3$)</label>
-                  <div class="input-wrapper"><input type="text" id="volStorageSummer" name="volStorageSummer" readonly /><span class="input-unit">M³</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Pumped Water Level (PWL Summer)</label>
-                  <div class="input-wrapper"><input type="text" id="pwlSummer" name="pwlSummer" readonly /><span class="input-unit">m.bgl</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Avg. Inflow Rate ($M^3/Hr$)</label>
-                  <div class="input-wrapper"><input type="text" id="inflowRateSummer" name="inflowRateSummer" readonly /><span class="input-unit">M³/Hr</span></div>
-                </div>
-                <div class="field-group">
-                  <label>Time for Complete Recuperation</label>
-                  <div class="input-wrapper"><input type="number" step="0.5" id="recupSummer" name="recupSummer" value="24" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div>
-                </div>
+                <div class="field-group"><label>Pump Setting (Summer)</label><div class="input-wrapper"><input type="number" step="0.1" id="pumpSettingSummer" name="pumpSettingSummer" readonly /><span class="input-unit">m.bgl</span></div></div>
+                <div class="field-group"><label>Depth of Pump Inlet (Summer)</label><div class="input-wrapper"><input type="number" step="0.1" id="pumpInletSummer" name="pumpInletSummer" readonly /><span class="input-unit">m.bgl</span></div></div>
+                <div class="field-group"><label>Static Water Level (SWL Summer)</label><div class="input-wrapper"><input type="number" step="0.1" id="swlSummer" name="swlSummer" placeholder="0.0" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div></div>
+                <div class="field-group"><label>Duration of Pumping (Summer)</label><div class="input-wrapper"><input type="number" step="0.1" id="pumpDurationSummer" name="pumpDurationSummer" placeholder="0.0" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div></div>
+                <div class="field-group"><label>Quantity of Water Pumped ($M^3$)</label><div class="input-wrapper"><input type="text" id="qtyPumpedSummer" name="qtyPumpedSummer" readonly /><span class="input-unit">M³</span></div></div>
+                <div class="field-group"><label>Pumped Water Level (PWL Summer)</label><div class="input-wrapper"><input type="text" id="pwlSummer" name="pwlSummer" readonly placeholder="Auto" /><span class="input-unit">m.bgl</span></div></div>
+                <div class="field-group"><label>Drawdown (D/D = PWL - SWL)</label><div class="input-wrapper"><input type="text" id="ddSummer" name="ddSummer" readonly /><span class="input-unit">m</span></div></div>
+                <div class="field-group"><label>Volume from Storage ($M^3$)</label><div class="input-wrapper"><input type="text" id="volStorageSummer" name="volStorageSummer" readonly /><span class="input-unit">M³</span></div></div>
+                <div class="field-group"><label>Avg. Inflow Rate ($M^3/Hr$)</label><div class="input-wrapper"><input type="text" id="inflowRateSummer" name="inflowRateSummer" readonly /><span class="input-unit">M³/Hr</span></div></div>
+                <div class="field-group"><label>Time for Complete Recuperation</label><div class="input-wrapper"><input type="number" step="0.5" id="recupSummer" name="recupSummer" placeholder="0" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div></div>
               </div>
             </div>
 
-            <div class="field-group">
-              <label>Annual Water Level Fluctuation (m)</label>
-              <div class="input-wrapper"><input type="number" step="0.1" id="annualFluctuation" name="annualFluctuation" value="9.00" /><span class="input-unit">m</span></div>
-            </div>
-
+            <div class="field-group"><label>Annual Water Level Fluctuation (m)</label><div class="input-wrapper"><input type="text" id="annualFluctuation" name="annualFluctuation" readonly /><span class="input-unit">m</span></div></div>
             <div class="field-group">
               <label>Well Status</label>
               <select id="wellStatus" name="wellStatus">
@@ -620,80 +354,29 @@
           </div>
         </div>
 
-        <!-- SECTION D & E: CROPPING & PERENNIAL CROPS -->
+        <!-- SECTION D & E -->
         <div class="form-section">
-          <div class="section-header">
-            <span class="section-title">D & E. Cropping, Irrigation & Groundwater Application</span>
-            <span class="section-code">CROPS</span>
-          </div>
+          <div class="section-header"><span class="section-title">D & E. Cropping, Irrigation & Groundwater Application</span><span class="section-code">CROPS</span></div>
           <div class="section-body">
+            <div class="field-group"><label>Total Land Holding at Well Site <span class="req">*</span></label><div class="input-wrapper"><input type="number" step="0.01" id="totalLandHolding" name="totalLandHolding" placeholder="0.00" required oninput="recalculateAll();" /><span class="input-unit">Ha</span></div></div>
+            <div class="field-group"><label>Cultivable Land Holding</label><div class="input-wrapper"><input type="number" step="0.01" id="cultivableLand" name="cultivableLand" placeholder="0.00" /><span class="input-unit">Ha</span></div></div>
             
-            <div class="field-group">
-              <label>Total Land Holding at Well Site <span class="req">*</span></label>
-              <div class="input-wrapper">
-                <input type="number" step="0.01" id="totalLandHolding" name="totalLandHolding" value="1.50" required oninput="recalculateAll();" />
-                <span class="input-unit">Ha</span>
-              </div>
-            </div>
-
-            <div class="field-group">
-              <label>Cultivable Land Holding</label>
-              <div class="input-wrapper">
-                <input type="number" step="0.01" id="cultivableLand" name="cultivableLand" value="1.50" />
-                <span class="input-unit">Ha</span>
-              </div>
-            </div>
-
-            <!-- Perennial Crops -->
-            <div class="full-width" style="margin-top: 6px;">
-              <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700;">1. PERENNIAL CROPS</label>
-            </div>
-
-            <div class="field-group">
-              <label>Perennial Crop 1</label>
-              <select id="perennialCrop1" name="perennialCrop1" onchange="recalculateAll();"></select>
-            </div>
-            <div class="field-group">
-              <label>Perennial Crop 2</label>
-              <select id="perennialCrop2" name="perennialCrop2" onchange="recalculateAll();"></select>
-            </div>
-
-            <div class="full-width" style="margin-top: 6px;">
-              <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700;">2. SEASONAL CROPS SELECTION</label>
-            </div>
-
-            <div class="field-group">
-              <label>Kharif Crop 1</label>
-              <select id="kharifCrop1" name="kharifCrop1" onchange="recalculateAll();"></select>
-            </div>
-            <div class="field-group">
-              <label>Kharif Crop 2</label>
-              <select id="kharifCrop2" name="kharifCrop2" onchange="recalculateAll();"></select>
-            </div>
-
-            <div class="field-group">
-              <label>Rabi Crop 1</label>
-              <select id="rabiCrop1" name="rabiCrop1" onchange="recalculateAll();"></select>
-            </div>
-            <div class="field-group">
-              <label>Rabi Crop 2</label>
-              <select id="rabiCrop2" name="rabiCrop2" onchange="recalculateAll();"></select>
-            </div>
-
-            <div class="field-group">
-              <label>Summer Crop 1</label>
-              <select id="summerCrop1" name="summerCrop1" onchange="recalculateAll();"></select>
-            </div>
-            <div class="field-group">
-              <label>Summer Crop 2</label>
-              <select id="summerCrop2" name="summerCrop2" onchange="recalculateAll();"></select>
-            </div>
+            <div class="full-width" style="margin-top: 6px;"><label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700;">1. PERENNIAL CROPS</label></div>
+            <div class="field-group"><label>Perennial Crop 1</label><select id="perennialCrop1" name="perennialCrop1" onchange="recalculateAll();"></select></div>
+            <div class="field-group"><label>Perennial Crop 2 (Custom)</label><input type="text" id="perennialCrop2" name="perennialCrop2" oninput="recalculateAll();" placeholder="Enter crop..." /></div>
+            
+            <div class="full-width" style="margin-top: 6px;"><label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700;">2. SEASONAL CROPS SELECTION</label></div>
+            <div class="field-group"><label>Kharif Crop 1</label><select id="kharifCrop1" name="kharifCrop1" onchange="recalculateAll();"></select></div>
+            <div class="field-group"><label>Kharif Crop 2</label><select id="kharifCrop2" name="kharifCrop2" onchange="recalculateAll();"></select></div>
+            <div class="field-group"><label>Kharif Crop 3 (Custom)</label><input type="text" id="kharifCrop3" name="kharifCrop3" oninput="recalculateAll();" placeholder="Enter crop..." /></div>
+            <div class="field-group"><label>Rabi Crop 1</label><select id="rabiCrop1" name="rabiCrop1" onchange="recalculateAll();"></select></div>
+            <div class="field-group"><label>Rabi Crop 2</label><select id="rabiCrop2" name="rabiCrop2" onchange="recalculateAll();"></select></div>
+            <div class="field-group"><label>Rabi Crop 3 (Custom)</label><input type="text" id="rabiCrop3" name="rabiCrop3" oninput="recalculateAll();" placeholder="Enter crop..." /></div>
+            <div class="field-group"><label>Summer Crop 1</label><select id="summerCrop1" name="summerCrop1" onchange="recalculateAll();"></select></div>
+            <div class="field-group"><label>Summer Crop 2 (Custom)</label><input type="text" id="summerCrop2" name="summerCrop2" oninput="recalculateAll();" placeholder="Enter crop..." /></div>
 
             <div class="full-width" style="margin-top: 14px;">
-              <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700; margin-bottom: 6px; display: block;">
-                3. LAND HOLDING BY IRRIGATION METHOD (HA)
-              </label>
-
+              <label style="font-size: 0.8rem; color: var(--teal-glow); font-weight: 700; margin-bottom: 6px; display: block;">3. LAND HOLDING BY IRRIGATION METHOD (HA)</label>
               <div class="method-tabs-nav">
                 <button type="button" class="method-tab-btn active" onclick="switchMethodTab('floodTab', this)">🌊 Flood</button>
                 <button type="button" class="method-tab-btn" onclick="switchMethodTab('dripTab', this)">💧 Drip</button>
@@ -702,197 +385,54 @@
 
               <!-- FLOOD METHOD -->
               <div id="floodTab" class="method-subpanel active">
-                <div class="season-card">
-                  <div class="season-card-title">Perennial Crops (Flood Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label id="lbl_perennialFloodHa1">Perennial 1 (Ha)</label><input type="number" step="0.01" id="perennialFloodHa1" name="perennialFloodHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label id="lbl_perennialFloodHa2">Perennial 2 (Ha)</label><input type="number" step="0.01" id="perennialFloodHa2" name="perennialFloodHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
-                <div class="season-card">
-                  <div class="season-card-title">Kharif Crops (Flood Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label id="lbl_kharifFloodHa1">Kharif 1</label><input type="number" step="0.01" id="kharifFloodHa1" name="kharifFloodHa1" value="0.50" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label id="lbl_kharifFloodHa2">Kharif 2</label><input type="number" step="0.01" id="kharifFloodHa2" name="kharifFloodHa2" value="0.30" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
-                <div class="season-card">
-                  <div class="season-card-title">Rabi Crops (Flood Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label id="lbl_rabiFloodHa1">Rabi 1</label><input type="number" step="0.01" id="rabiFloodHa1" name="rabiFloodHa1" value="0.60" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label id="lbl_rabiFloodHa2">Rabi 2</label><input type="number" step="0.01" id="rabiFloodHa2" name="rabiFloodHa2" value="0.60" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
-                <div class="season-card">
-                  <div class="season-card-title">Summer Crops (Flood Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label id="lbl_summerFloodHa1">Summer 1</label><input type="number" step="0.01" id="summerFloodHa1" name="summerFloodHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label id="lbl_summerFloodHa2">Summer 2</label><input type="number" step="0.01" id="summerFloodHa2" name="summerFloodHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
+                <div class="season-card"><div class="season-card-title">Perennial Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_perennialFloodHa1">Perennial 1 (Ha)</label><input type="number" step="0.01" id="perennialFloodHa1" name="perennialFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_perennialFloodHa2">Perennial 2 (Ha)</label><input type="number" step="0.01" id="perennialFloodHa2" name="perennialFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Kharif Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_kharifFloodHa1">Kharif 1</label><input type="number" step="0.01" id="kharifFloodHa1" name="kharifFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifFloodHa2">Kharif 2</label><input type="number" step="0.01" id="kharifFloodHa2" name="kharifFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifFloodHa3">Kharif 3</label><input type="number" step="0.01" id="kharifFloodHa3" name="kharifFloodHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Rabi Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_rabiFloodHa1">Rabi 1</label><input type="number" step="0.01" id="rabiFloodHa1" name="rabiFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiFloodHa2">Rabi 2</label><input type="number" step="0.01" id="rabiFloodHa2" name="rabiFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiFloodHa3">Rabi 3</label><input type="number" step="0.01" id="rabiFloodHa3" name="rabiFloodHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Summer Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_summerFloodHa1">Summer 1</label><input type="number" step="0.01" id="summerFloodHa1" name="summerFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_summerFloodHa2">Summer 2</label><input type="number" step="0.01" id="summerFloodHa2" name="summerFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
               </div>
 
               <!-- DRIP METHOD -->
               <div id="dripTab" class="method-subpanel">
-                <div class="season-card">
-                  <div class="season-card-title">Perennial Crops (Drip Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label>Perennial 1 (Ha)</label><input type="number" step="0.01" id="perennialDripHa1" name="perennialDripHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label>Perennial 2 (Ha)</label><input type="number" step="0.01" id="perennialDripHa2" name="perennialDripHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
-                <div class="season-card">
-                  <div class="season-card-title">Kharif Crops (Drip Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label>Kharif 1</label><input type="number" step="0.01" id="kharifDripHa1" name="kharifDripHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label>Kharif 2</label><input type="number" step="0.01" id="kharifDripHa2" name="kharifDripHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
-                <div class="season-card">
-                  <div class="season-card-title">Rabi Crops (Drip Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label>Rabi 1</label><input type="number" step="0.01" id="rabiDripHa1" name="rabiDripHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label>Rabi 2</label><input type="number" step="0.01" id="rabiDripHa2" name="rabiDripHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
-                <div class="season-card">
-                  <div class="season-card-title">Summer Crops (Drip Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label>Summer 1</label><input type="number" step="0.01" id="summerDripHa1" name="summerDripHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label>Summer 2</label><input type="number" step="0.01" id="summerDripHa2" name="summerDripHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
+                <div class="season-card"><div class="season-card-title">Perennial Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Perennial 1 (Ha)</label><input type="number" step="0.01" id="perennialDripHa1" name="perennialDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Perennial 2 (Ha)</label><input type="number" step="0.01" id="perennialDripHa2" name="perennialDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Kharif Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label>Kharif 1</label><input type="number" step="0.01" id="kharifDripHa1" name="kharifDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Kharif 2</label><input type="number" step="0.01" id="kharifDripHa2" name="kharifDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Kharif 3</label><input type="number" step="0.01" id="kharifDripHa3" name="kharifDripHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Rabi Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label>Rabi 1</label><input type="number" step="0.01" id="rabiDripHa1" name="rabiDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Rabi 2</label><input type="number" step="0.01" id="rabiDripHa2" name="rabiDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Rabi 3</label><input type="number" step="0.01" id="rabiDripHa3" name="rabiDripHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Summer Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Summer 1</label><input type="number" step="0.01" id="summerDripHa1" name="summerDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Summer 2</label><input type="number" step="0.01" id="summerDripHa2" name="summerDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
               </div>
 
               <!-- SPRINKLER METHOD -->
               <div id="sprinklerTab" class="method-subpanel">
-                <div class="season-card">
-                  <div class="season-card-title">Perennial Crops (Sprinkler Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label>Perennial 1 (Ha)</label><input type="number" step="0.01" id="perennialSprinklerHa1" name="perennialSprinklerHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label>Perennial 2 (Ha)</label><input type="number" step="0.01" id="perennialSprinklerHa2" name="perennialSprinklerHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
-                <div class="season-card">
-                  <div class="season-card-title">Kharif Crops (Sprinkler Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label>Kharif 1</label><input type="number" step="0.01" id="kharifSprinklerHa1" name="kharifSprinklerHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label>Kharif 2</label><input type="number" step="0.01" id="kharifSprinklerHa2" name="kharifSprinklerHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
-                <div class="season-card">
-                  <div class="season-card-title">Rabi Crops (Sprinkler Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label>Rabi 1</label><input type="number" step="0.01" id="rabiSprinklerHa1" name="rabiSprinklerHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label>Rabi 2</label><input type="number" step="0.01" id="rabiSprinklerHa2" name="rabiSprinklerHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
-                <div class="season-card">
-                  <div class="season-card-title">Summer Crops (Sprinkler Ha)</div>
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                    <div class="field-group"><label>Summer 1</label><input type="number" step="0.01" id="summerSprinklerHa1" name="summerSprinklerHa1" value="0.00" oninput="recalculateAll();" /></div>
-                    <div class="field-group"><label>Summer 2</label><input type="number" step="0.01" id="summerSprinklerHa2" name="summerSprinklerHa2" value="0.00" oninput="recalculateAll();" /></div>
-                  </div>
-                </div>
+                <div class="season-card"><div class="season-card-title">Perennial Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Perennial 1 (Ha)</label><input type="number" step="0.01" id="perennialSprinklerHa1" name="perennialSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Perennial 2 (Ha)</label><input type="number" step="0.01" id="perennialSprinklerHa2" name="perennialSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Kharif Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label>Kharif 1</label><input type="number" step="0.01" id="kharifSprinklerHa1" name="kharifSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Kharif 2</label><input type="number" step="0.01" id="kharifSprinklerHa2" name="kharifSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Kharif 3</label><input type="number" step="0.01" id="kharifSprinklerHa3" name="kharifSprinklerHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Rabi Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label>Rabi 1</label><input type="number" step="0.01" id="rabiSprinklerHa1" name="rabiSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Rabi 2</label><input type="number" step="0.01" id="rabiSprinklerHa2" name="rabiSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Rabi 3</label><input type="number" step="0.01" id="rabiSprinklerHa3" name="rabiSprinklerHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Summer Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Summer 1</label><input type="number" step="0.01" id="summerSprinklerHa1" name="summerSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Summer 2</label><input type="number" step="0.01" id="summerSprinklerHa2" name="summerSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
               </div>
             </div>
 
             <!-- COMPUTED SUMMARY TABLE -->
             <div class="full-width" style="margin-top: 14px;">
-              <label style="font-size: 0.82rem; color: var(--teal-glow); font-weight: 700;">
-                📊 CROPPING IRRIGATION & GROUNDWATER APPLIED (HAM)
-              </label>
-              
+              <label style="font-size: 0.82rem; color: var(--teal-glow); font-weight: 700;">📊 CROPPING IRRIGATION & GROUNDWATER APPLIED (HAM)</label>
               <div style="overflow-x: auto;">
                 <table class="calc-table" id="cropWaterTable">
-                  <thead>
-                    <tr>
-                      <th class="text-left">Season / Crop</th>
-                      <th>Area (Ha)</th>
-                      <th>No. of Waterings</th>
-                      <th>Depth (m)</th>
-                      <th>GW Applied (Ham)</th>
-                      <th>Days Req. (1 Water)</th>
-                      <th>Total Days Req.</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th class="text-left">Season / Crop</th><th>Area (Ha)</th><th>No. of Waterings</th><th>Depth (m)</th><th>GW Applied (Ham)</th><th>Days Req. (1 Water)</th><th>Total Days Req.</th></tr></thead>
                   <tbody id="cropWaterTableBody"></tbody>
-                  <tfoot>
-                    <tr style="background: var(--navy-800); font-weight: bold;">
-                      <td class="text-left">TOTAL GW APPLIED</td>
-                      <td id="tableTotalArea">0.00</td>
-                      <td>-</td>
-                      <td>-</td>
-                      <td id="tableTotalHam" class="highlight">0.0000</td>
-                      <td>-</td>
-                      <td id="tableTotalDays" class="highlight">0</td>
-                    </tr>
-                  </tfoot>
+                  <tfoot><tr style="background: var(--navy-800); font-weight: bold;"><td class="text-left">TOTAL GW APPLIED</td><td id="tableTotalArea">0.00</td><td>-</td><td>-</td><td id="tableTotalHam" class="highlight">0.0000</td><td>-</td><td id="tableTotalDays" class="highlight">0</td></tr></tfoot>
                 </table>
               </div>
             </div>
 
             <!-- WELL PERFORMANCE & SEASON-WISE DRAFT TABLE -->
             <div class="full-width" style="margin-top: 16px;">
-              <label style="font-size: 0.82rem; color: var(--teal-glow); font-weight: 700;">
-                ⚡ WELL PERFORMANCE & SEASON-WISE DRAFT (UNIFIED WITH SECTION E)
-              </label>
+              <label style="font-size: 0.82rem; color: var(--teal-glow); font-weight: 700;">⚡ WELL PERFORMANCE & SEASON-WISE DRAFT (UNIFIED WITH SECTION E)</label>
               <div style="overflow-x: auto;">
                 <table class="calc-table">
-                  <thead>
-                    <tr>
-                      <th class="text-left">Season</th>
-                      <th>Pump Disch. (m³/hr)</th>
-                      <th>Pump Hrs/Day</th>
-                      <th>Operating Days</th>
-                      <th>GW Applied (m³)</th>
-                      <th>GW Applied (Ham)</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th class="text-left">Season</th><th>Pump Disch. (m³/hr)</th><th>Pump Hrs/Day</th><th>Operating Days</th><th>GW Applied (m³)</th><th>GW Applied (Ham)</th></tr></thead>
                   <tbody>
-                    <tr>
-                      <td class="text-left">1. Kharif Season (Mid June - Sept)</td>
-                      <td class="dischCol">22.5</td>
-                      <td id="perfKharifHrs">3.0</td>
-                      <td id="perfKharifDays">15</td>
-                      <td id="perfKharifM3">1012.50</td>
-                      <td id="perfKharifHam" class="highlight">0.1013</td>
-                    </tr>
-                    <tr>
-                      <td class="text-left">2. Rabi (Oct - Dec)</td>
-                      <td class="dischCol">22.5</td>
-                      <td id="perfRabi1Hrs">5.0</td>
-                      <td id="perfRabi1Days">25</td>
-                      <td id="perfRabi1M3">2812.50</td>
-                      <td id="perfRabi1Ham" class="highlight">0.2813</td>
-                    </tr>
-                    <tr>
-                      <td class="text-left">3. Rabi (Jan - March)</td>
-                      <td class="dischCol">22.5</td>
-                      <td id="perfRabi2Hrs">5.0</td>
-                      <td id="perfRabi2Days">22</td>
-                      <td id="perfRabi2M3">2475.00</td>
-                      <td id="perfRabi2Ham" class="highlight">0.2475</td>
-                    </tr>
-                    <tr>
-                      <td class="text-left">4. Summer (April - Mid June)</td>
-                      <td class="dischCol">22.5</td>
-                      <td id="perfSummerHrs">2.0</td>
-                      <td id="perfSummerDays">0</td>
-                      <td id="perfSummerM3">0.00</td>
-                      <td id="perfSummerHam" class="highlight">0.0000</td>
-                    </tr>
+                    <tr><td class="text-left">1. Kharif Season (Mid June - Sept)</td><td class="dischCol">0.0</td><td id="perfKharifHrs">0.0</td><td id="perfKharifDays">0</td><td id="perfKharifM3">0.00</td><td id="perfKharifHam" class="highlight">0.0000</td></tr>
+                    <tr><td class="text-left">2. Rabi (Oct - Dec)</td><td class="dischCol">0.0</td><td id="perfRabi1Hrs">0.0</td><td id="perfRabi1Days">0</td><td id="perfRabi1M3">0.00</td><td id="perfRabi1Ham" class="highlight">0.0000</td></tr>
+                    <tr><td class="text-left">3. Rabi (Jan - March)</td><td class="dischCol">0.0</td><td id="perfRabi2Hrs">0.0</td><td id="perfRabi2Days">0</td><td id="perfRabi2M3">0.00</td><td id="perfRabi2Ham" class="highlight">0.0000</td></tr>
+                    <tr><td class="text-left">4. Summer (April - Mid June)</td><td class="dischCol">0.0</td><td id="perfSummerHrs">0.0</td><td id="perfSummerDays">0</td><td id="perfSummerM3">0.00</td><td id="perfSummerHam" class="highlight">0.0000</td></tr>
                   </tbody>
-                  <tfoot>
-                    <tr style="background: var(--navy-800); font-weight: bold;">
-                      <td class="text-left">TOTAL WELL DRAFT</td>
-                      <td>-</td>
-                      <td>-</td>
-                      <td id="perfTotalDays" class="highlight">62</td>
-                      <td id="perfTotalM3" class="highlight">6300.00</td>
-                      <td id="perfTotalHam" class="highlight">0.6300</td>
-                    </tr>
-                  </tfoot>
+                  <tfoot><tr style="background: var(--navy-800); font-weight: bold;"><td class="text-left">TOTAL WELL DRAFT</td><td>-</td><td>-</td><td id="perfTotalDays" class="highlight">0</td><td id="perfTotalM3" class="highlight">0.00</td><td id="perfTotalHam" class="highlight">0.0000</td></tr></tfoot>
                 </table>
               </div>
             </div>
@@ -902,104 +442,40 @@
             <input type="hidden" id="totalSummerHa" name="totalSummerHa" value="0.00" />
             <input type="hidden" id="totalGWAppliedHam" name="totalGWAppliedHam" value="0.0000" />
             <input type="hidden" id="totalOperatingDays" name="totalOperatingDays" value="0" />
-
           </div>
         </div>
 
-        <!-- SECTION F: GEOLOGY -->
         <div class="form-section">
-          <div class="section-header">
-            <span class="section-title">F. Geological Formation & Lithology</span>
-            <span class="section-code">SEC-F</span>
-          </div>
+          <div class="section-header"><span class="section-title">F. Geological Formation & Lithology</span><span class="section-code">SEC-F</span></div>
           <div class="section-body">
-            <div class="field-group full-width">
-              <label>Formation Name</label>
-              <input type="text" id="geologyFormation" name="geologyFormation" value="Deccan Trap Basalt" />
-            </div>
-            
+            <div class="field-group full-width"><label>Formation Name</label><input type="text" id="geologyFormation" name="geologyFormation" value="Deccan Trap Basalt" /></div>
             <div class="full-width">
               <label style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">LITHOLOGICAL SECTION OBSERVED</label>
               <table class="litho-grid">
-                <thead>
-                  <tr>
-                    <th style="width: 120px;">Depth (m.bgl)</th>
-                    <th>Lithology Description</th>
-                  </tr>
-                </thead>
+                <thead><tr><th style="width: 120px;">Depth (m.bgl)</th><th>Lithology Description</th></tr></thead>
                 <tbody>
-                  <tr>
-                    <td>0.0 - <input type="number" step="0.1" id="lithoDepth1" style="width: 50px; padding: 2px 4px; display:inline;" value="1.0" /></td>
-                    <td>
-                      <select id="lithoType1">
-                        <option value="Black Cotton Soil">Black Cotton Soil (BC Soil)</option>
-                        <option value="Sandy Loam Soil">Sandy Loam Soil</option>
-                        <option value="Red Soil">Red Soil</option>
-                      </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>To <input type="number" step="0.1" id="lithoDepth2" style="width: 50px; padding: 2px 4px; display:inline;" value="5.0" /></td>
-                    <td>
-                      <select id="lithoType2">
-                        <option value="Highly Weathered Basalt">Highly Weathered Basalt</option>
-                        <option value="Moderately Weathered Basalt">Moderately Weathered Basalt</option>
-                        <option value="Soft Murrum">Soft Murrum</option>
-                      </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>To <input type="number" step="0.1" id="lithoDepth3" style="width: 50px; padding: 2px 4px; display:inline;" value="7.0" /></td>
-                    <td>
-                      <select id="lithoType3">
-                        <option value="Fractured/ Jointed Vesicular Basalt">Fractured/ Jointed Vesicular Basalt</option>
-                        <option value="Jointed Compact Basalt">Jointed Compact Basalt</option>
-                        <option value="Amygdaloidal Basalt">Amygdaloidal Basalt</option>
-                      </select>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>To Bottom</td>
-                    <td>
-                      <select id="lithoType4">
-                        <option value="Massive Basalt">Massive Basalt (Hard & Compact)</option>
-                        <option value="Dense Basalt">Dense Basalt</option>
-                        <option value="Zeolitic Basalt">Zeolitic Basalt</option>
-                      </select>
-                    </td>
-                  </tr>
+                  <tr><td>0.0 - <input type="number" step="0.1" id="lithoDepth1" style="width: 50px; padding: 2px 4px; display:inline;" value="1.0" /></td><td><select id="lithoType1"><option value="Black Cotton Soil">Black Cotton Soil (BC Soil)</option><option value="Sandy Loam Soil">Sandy Loam Soil</option><option value="Red Soil">Red Soil</option></select></td></tr>
+                  <tr><td>To <input type="number" step="0.1" id="lithoDepth2" style="width: 50px; padding: 2px 4px; display:inline;" value="5.0" /></td><td><select id="lithoType2"><option value="Highly Weathered Basalt">Highly Weathered Basalt</option><option value="Moderately Weathered Basalt">Moderately Weathered Basalt</option><option value="Soft Murrum">Soft Murrum</option></select></td></tr>
+                  <tr><td>To <input type="number" step="0.1" id="lithoDepth3" style="width: 50px; padding: 2px 4px; display:inline;" value="7.0" /></td><td><select id="lithoType3"><option value="Fractured/ Jointed Vesicular Basalt">Fractured/ Jointed Vesicular Basalt</option><option value="Jointed Compact Basalt">Jointed Compact Basalt</option><option value="Amygdaloidal Basalt">Amygdaloidal Basalt</option></select></td></tr>
+                  <tr><td>To Bottom</td><td><select id="lithoType4"><option value="Massive Basalt">Massive Basalt (Hard & Compact)</option><option value="Dense Basalt">Dense Basalt</option><option value="Zeolitic Basalt">Zeolitic Basalt</option></select></td></tr>
                 </tbody>
               </table>
             </div>
-
-            <div class="field-group full-width">
-              <label>Field Observations & Remarks</label>
-              <textarea id="remarks" name="remarks" rows="2" placeholder="e.g. Near percolation tank, seasonal well, feeding farm pond."></textarea>
-            </div>
+            <div class="field-group full-width"><label>Field Observations & Remarks</label><textarea id="remarks" name="remarks" rows="2" placeholder="e.g. Near percolation tank, seasonal well, feeding farm pond."></textarea></div>
           </div>
         </div>
 
-        <!-- PHOTO SECTION -->
         <div class="form-section">
-          <div class="section-header">
-            <span class="section-title">Well Site Photograph with Watermark Stamp</span>
-            <span class="section-code">PHOTO</span>
-          </div>
+          <div class="section-header"><span class="section-title">Well Site Photograph with Watermark Stamp</span><span class="section-code">PHOTO</span></div>
           <div class="section-body">
             <div class="full-width photo-box">
               <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="processWatermarkedPhoto(event)" />
               <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-                <button type="button" class="btn-sm btn-export" style="padding: 10px 18px; font-size: 0.9rem;" onclick="document.getElementById('cameraInput').click()">
-                  📷 Take / Upload Stamped Photo
-                </button>
-                <button type="button" id="removePhotoBtn" class="btn-sm" style="display: none; background: rgba(244, 63, 94, 0.2); border-color: var(--danger); color: #fca5a5;" onclick="clearCurrentPhoto()">
-                  ❌ Remove Photo
-                </button>
+                <button type="button" class="btn-sm btn-export" style="padding: 10px 18px; font-size: 0.9rem;" onclick="document.getElementById('cameraInput').click()">📷 Take / Upload Stamped Photo</button>
+                <button type="button" id="removePhotoBtn" class="btn-sm" style="display: none; background: rgba(244, 63, 94, 0.2); border-color: var(--danger); color: #fca5a5;" onclick="clearCurrentPhoto()">❌ Remove Photo</button>
               </div>
               <img id="photoPreview" class="photo-preview" alt="Watermarked Well Site Photo" onclick="previewCurrentPhotoModal()" title="Click to view full size" style="cursor: zoom-in;" />
-              <p id="noPhotoText" style="font-size: 0.76rem; color: var(--text-muted);">
-                Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name. Photos save in <strong>well data/images</strong> folder.
-              </p>
+              <p id="noPhotoText" style="font-size: 0.76rem; color: var(--text-muted);">Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name. Photos save in <strong>well data/images</strong> folder.</p>
             </div>
           </div>
         </div>
@@ -1008,7 +484,6 @@
           <button type="submit" class="btn btn-primary">💾 Save Well Record</button>
           <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset Form</button>
         </div>
-
       </form>
     </div>
 
@@ -1016,27 +491,15 @@
     <div id="recordsList" class="tab-panel">
       <div class="filter-panel">
         <input type="text" id="searchBar" placeholder="🔍 Search owner, village, census no, gat no..." oninput="applyFilters()" />
-        
-        <select id="filterTaluka" onchange="applyFilters()">
-          <option value="">All Talukas</option>
-        </select>
-
-        <select id="filterWellType" onchange="applyFilters()">
-          <option value="">All Well Types</option>
-          <option value="Dug Well">Dug Well</option>
-          <option value="Dug Cum Borewell">Dug Cum Borewell</option>
-          <option value="Borewell">Borewell</option>
-        </select>
-
+        <select id="filterTaluka" onchange="applyFilters()"><option value="">All Talukas</option></select>
+        <select id="filterWellType" onchange="applyFilters()"><option value="">All Well Types</option><option value="Dug Well">Dug Well</option><option value="Dug Cum Borewell">Dug Cum Borewell</option><option value="Borewell">Borewell</option></select>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <button class="btn-sm btn-folder" onclick="selectRootFolder()">📂 Set 'well data' Folder</button>
           <button class="btn-sm btn-export" onclick="exportToExcel()">📊 Export Excel (.xlsx)</button>
         </div>
       </div>
-
       <div id="recordsContainer"></div>
     </div>
-
   </main>
 
   <!-- LIGHTBOX MODAL -->
@@ -1061,89 +524,27 @@
   <div id="toast">Notice message</div>
 
   <script>
-    const CROP_WATER_DATABASE = {
-      "Kharif": {
-        "Tur": { waterings: 2, depth: 0.0635 },
-        "Udid": { waterings: 2, depth: 0.0635 },
-        "Cotton": { waterings: 2, depth: 0.0635 },
-        "Soybean": { waterings: 2, depth: 0.0635 },
-        "Jwar": { waterings: 2, depth: 0.0635 },
-        "Mug": { waterings: 2, depth: 0.0635 },
-        "Maze": { waterings: 3, depth: 0.0635 },
-        "Vegetables": { waterings: 3, depth: 0.0635 },
-        "Drumstick": { waterings: 3, depth: 0.0635 },
-        "Lemon": { waterings: 3, depth: 0.0635 },
-        "Other": { waterings: 2, depth: 0.0635 },
-        "None": { waterings: 0, depth: 0 }
-      },
-      "Rabi": {
-        "Wheat": { waterings: 9, depth: 0.0762 },
-        "Jwar": { waterings: 3, depth: 0.0635 },
-        "Gram": { waterings: 3, depth: 0.0635 },
-        "Tur": { waterings: 3, depth: 0.0635 },
-        "Fodder": { waterings: 7, depth: 0.0635 },
-        "Vegetables": { waterings: 5, depth: 0.0635 },
-        "Maze": { waterings: 5, depth: 0.0635 },
-        "Drumstick": { waterings: 5, depth: 0.0635 },
-        "Lemon": { waterings: 5, depth: 0.0635 },
-        "Mug": { waterings: 2, depth: 0.0635 },
-        "Udid": { waterings: 2, depth: 0.0635 },
-        "None": { waterings: 0, depth: 0 }
-      },
-      "Summer": {
-        "Groundnut": { waterings: 5, depth: 0.0635 },
-        "Fodder": { waterings: 3, depth: 0.0635 },
-        "Vegetables": { waterings: 5, depth: 0.0635 },
-        "Maze": { waterings: 5, depth: 0.0635 },
-        "Drumstick": { waterings: 5, depth: 0.0635 },
-        "Lemon": { waterings: 5, depth: 0.0635 },
-        "None": { waterings: 0, depth: 0 }
-      },
-      "Perennial": {
-        "Sugarcane": {
-          Kharif: { waterings: 3, depth: 0.0762 },
-          Rabi: { waterings: 14, depth: 0.0762 },
-          Summer: { waterings: 6, depth: 0.0762 }
-        },
-        "Orange": {
-          Kharif: { waterings: 3, depth: 0.0762 },
-          Rabi: { waterings: 8, depth: 0.0762 },
-          Summer: { waterings: 5, depth: 0.0762 }
-        },
-        "Pomegranate": {
-          Kharif: { waterings: 3, depth: 0.0762 },
-          Rabi: { waterings: 8, depth: 0.0762 },
-          Summer: { waterings: 5, depth: 0.0762 }
-        },
-        "Greps": {
-          Kharif: { waterings: 3, depth: 0.0762 },
-          Rabi: { waterings: 8, depth: 0.0762 },
-          Summer: { waterings: 5, depth: 0.0762 }
-        },
-        "Banana": {
-          Kharif: { waterings: 3, depth: 0.0762 },
-          Rabi: { waterings: 14, depth: 0.0762 },
-          Summer: { waterings: 6, depth: 0.0762 }
-        },
-        "Lemon": {
-          Kharif: { waterings: 3, depth: 0.0635 },
-          Rabi: { waterings: 5, depth: 0.0635 },
-          Summer: { waterings: 5, depth: 0.0635 }
-        },
-        "None": {
-          Kharif: { waterings: 0, depth: 0 },
-          Rabi: { waterings: 0, depth: 0 },
-          Summer: { waterings: 0, depth: 0 }
-        }
-      }
+    // CACHED CROP DROPDOWN LISTS (Will load from Sheet 1 or fallback to default)
+    let CROP_LISTS = JSON.parse(localStorage.getItem('HYDROGEO_CROP_LISTS')) || {
+      Kharif: ["Cotton", "Soybean", "Tur", "Mug", "Jwar"],
+      Rabi: ["Wheat", "Gram", "Jwar", "Tur"],
+      Summer: ["Groundnut", "Fodder", "Vegetables"],
+      Perennial: ["Sugarcane", "Orange", "Pomegranate", "Greps", "Banana", "Drumstick", "Lemon"]
     };
 
-    // CACHED SHEET 2 DATABASE (WILL LOAD FROM EXCEL FILE)
+    // CACHED CROP DATABASE for calculations (Loads from Sheet 3 or fallback to default)
+    let CROP_WATER_DATABASE = JSON.parse(localStorage.getItem('HYDROGEO_CROP_DB')) || {
+      "Kharif": { "Cotton": { waterings: 2, depth: 0.0635 }, "Soybean": { waterings: 2, depth: 0.0635 }, "Tur": { waterings: 2, depth: 0.0635 }, "Mug": { waterings: 2, depth: 0.0635 }, "Jwar": { waterings: 2, depth: 0.0635 }, "None": { waterings: 0, depth: 0 } },
+      "Rabi": { "Wheat": { waterings: 9, depth: 0.0762 }, "Gram": { waterings: 3, depth: 0.0635 }, "Jwar": { waterings: 3, depth: 0.0635 }, "Tur": { waterings: 3, depth: 0.0635 }, "None": { waterings: 0, depth: 0 } },
+      "Summer": { "Groundnut": { waterings: 5, depth: 0.0635 }, "Fodder": { waterings: 3, depth: 0.0635 }, "Vegetables": { waterings: 5, depth: 0.0635 }, "None": { waterings: 0, depth: 0 } },
+      "Perennial": { "Sugarcane": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 14, depth: 0.0762 }, Summer: { waterings: 6, depth: 0.0762 } }, "Orange": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 8, depth: 0.0762 }, Summer: { waterings: 5, depth: 0.0762 } }, "Pomegranate": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 8, depth: 0.0762 }, Summer: { waterings: 5, depth: 0.0762 } }, "Greps": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 8, depth: 0.0762 }, Summer: { waterings: 5, depth: 0.0762 } }, "Banana": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 14, depth: 0.0762 }, Summer: { waterings: 6, depth: 0.0762 } }, "Lemon": { Kharif: { waterings: 3, depth: 0.0635 }, Rabi: { waterings: 5, depth: 0.0635 }, Summer: { waterings: 5, depth: 0.0635 } }, "None": { Kharif: { waterings: 0, depth: 0 }, Rabi: { waterings: 0, depth: 0 }, Summer: { waterings: 0, depth: 0 } } }
+    };
+
     let SHEET2_FULL_DATABASE = JSON.parse(localStorage.getItem('HYDROGEO_VILLAGE_DB')) || {
-      "Akkalkot": [["Akkalkot Rural", "Akkalkot GP", "562839", "BM-133", "56 C/2"]] // Fallback preview data
+      "Akkalkot": [["Akkalkot Rural", "Akkalkot GP", "562839", "BM-133", "56 C/2", "", "", ""]]
     };
 
-    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V21';
+    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V22';
     let currentPhotoBase64 = null;
     let activeModalPhoto = null;
     let rootDirHandle = null;
@@ -1155,66 +556,139 @@
       recalculateAll();
       renderRecords();
       if (!localStorage.getItem('HYDROGEO_VILLAGE_DB')) {
-        showToast("⚠️ Missing Village DB! Click 'Load Full Village DB' and select 'well_data.xlsx' to initialize all 1,167 villages.");
+        showToast("⚠️ Databases not loaded! Click 'Load DBs' and select 'well_data.xlsx' to extract all villages & crops.");
       }
     });
 
-    // ─── 1-CLICK VILLAGE DATABASE IMPORTER ───────────────────────────────────────────────
-    function loadVillageDatabase(event) {
+    function loadDatabases(event) {
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       
-      showToast("⏳ Reading and Mapping 1,167 Villages...");
+      showToast("⏳ Reading Databases (Villages & Crops)...");
       reader.onload = function(e) {
         try {
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, {type: 'array'});
+          let dbUpdated = false;
+
+          // 1. Village Data from Sheet2
           const sheet2 = workbook.Sheets["Sheet2"];
-          
-          if (!sheet2) {
-            showToast("❌ Error: 'Sheet2' not found in uploaded file!");
-            return;
+          if (sheet2) {
+            const jsonData = XLSX.utils.sheet_to_json(sheet2, {defval: ""});
+            const db = {};
+            jsonData.forEach(row => {
+              const taluka = String(row["Taluka"]).trim();
+              const village = String(row["Village Name"]).trim();
+              const gp = String(row["Name of GP"]).trim();
+              const censusRaw = String(row["Census Number (As per 2011)"]).trim();
+              const census = censusRaw.endsWith(".0") ? censusRaw.replace(".0", "") : censusRaw;
+              const watershed = String(row["Name of Elementary Watershed"]).trim();
+              const topo = String(row["Topo. No."]).trim();
+              const lat = String(row["Latitude"] || "").trim();
+              const lon = String(row["Longitude"] || "").trim();
+              const pop = String(row["Population"] || "").trim(); // Grabbing population if exists
+              
+              if(taluka && village) {
+                  if(!db[taluka]) db[taluka] = [];
+                  db[taluka].push([village, gp, census, watershed, topo, lat, lon, pop]);
+              }
+            });
+            if (Object.keys(db).length > 0) {
+              localStorage.setItem("HYDROGEO_VILLAGE_DB", JSON.stringify(db));
+              SHEET2_FULL_DATABASE = db;
+              initTalukaDropdowns();
+              dbUpdated = true;
+            }
           }
-          
-          const jsonData = XLSX.utils.sheet_to_json(sheet2, {defval: ""});
-          const db = {};
-          
-          jsonData.forEach(row => {
-            const taluka = String(row["Taluka"]).trim();
-            const village = String(row["Village Name"]).trim();
-            const gp = String(row["Name of GP"]).trim();
+
+          // 2. Crop Dropdown Lists from Sheet1
+          const sheet1 = workbook.Sheets["Sheet1"];
+          if (sheet1) {
+            const s1Data = XLSX.utils.sheet_to_json(sheet1, {defval: ""});
+            const newCropLists = { Kharif: [], Rabi: [], Summer: [], Perennial: [] };
             
-            // Format Census No correctly
-            const censusRaw = String(row["Census Number (As per 2011)"]).trim();
-            const census = censusRaw.endsWith(".0") ? censusRaw.replace(".0", "") : censusRaw;
+            s1Data.forEach(row => {
+              const crop = String(row["Crops"] || "").trim();
+              const season = String(row["Season"] || "").trim().toLowerCase();
+              if (!crop || !season) return;
+              
+              if (season.includes("kharif")) newCropLists.Kharif.push(crop);
+              else if (season.includes("rabi")) newCropLists.Rabi.push(crop);
+              else if (season.includes("summer")) newCropLists.Summer.push(crop);
+              else if (season.includes("perennial")) newCropLists.Perennial.push(crop);
+            });
             
-            const watershed = String(row["Name of Elementary Watershed"]).trim();
-            const topo = String(row["Topo. No."]).trim();
-            const lat = String(row["Latitude"]).trim();
-            const lon = String(row["Longitude"]).trim();
+            localStorage.setItem("HYDROGEO_CROP_LISTS", JSON.stringify(newCropLists));
+            CROP_LISTS = newCropLists;
+            dbUpdated = true;
+          }
+
+          // 3. Crop Calculations from Sheet3
+          const sheet3 = workbook.Sheets["Sheet3"];
+          if (sheet3) {
+            const cropData = XLSX.utils.sheet_to_json(sheet3, {defval: ""});
+            const newCropDB = { Kharif: {}, Rabi: {}, Summer: {}, Perennial: {} };
+            const perennialNames = ["Sugarcane", "Orange", "Pomegranate", "Greps", "Grapes", "Banana", "Drumstick", "Lemon"];
             
-            if(!db[taluka]) db[taluka] = [];
-            db[taluka].push([village, gp, census, watershed, topo, lat, lon]);
-          });
-          
-          localStorage.setItem("HYDROGEO_VILLAGE_DB", JSON.stringify(db));
-          SHEET2_FULL_DATABASE = db;
-          showToast(`✅ Success! Complete Village DB Loaded and Cached.`);
-          initTalukaDropdowns();
+            newCropDB.Kharif["None"] = { waterings: 0, depth: 0 };
+            newCropDB.Rabi["None"] = { waterings: 0, depth: 0 };
+            newCropDB.Summer["None"] = { waterings: 0, depth: 0 };
+            newCropDB.Perennial["None"] = { Kharif: { waterings: 0, depth: 0 }, Rabi: { waterings: 0, depth: 0 }, Summer: { waterings: 0, depth: 0 } };
+
+            cropData.forEach(row => {
+              const crop = String(row["Crops"] || "").trim();
+              const seasonStr = String(row["Season"] || "").trim();
+              const waterings = parseFloat(row["No. of waterings"]);
+              const depth = parseFloat(row["Depth of watering in m"]);
+              
+              if (!crop || !seasonStr || isNaN(waterings) || isNaN(depth)) return;
+
+              let standardSeason = "Summer";
+              if (seasonStr.toLowerCase().includes("kharif")) standardSeason = "Kharif";
+              else if (seasonStr.toLowerCase().includes("rabi")) standardSeason = "Rabi";
+
+              if (perennialNames.some(p => crop.toLowerCase().includes(p.toLowerCase()))) {
+                if (!newCropDB.Perennial[crop]) {
+                  newCropDB.Perennial[crop] = { Kharif: { waterings: 0, depth: 0 }, Rabi: { waterings: 0, depth: 0 }, Summer: { waterings: 0, depth: 0 } };
+                }
+                newCropDB.Perennial[crop][standardSeason] = { waterings, depth };
+              } else {
+                newCropDB[standardSeason][crop] = { waterings, depth };
+              }
+            });
+
+            if (Object.keys(newCropDB.Kharif).length > 1) {
+              localStorage.setItem("HYDROGEO_CROP_DB", JSON.stringify(newCropDB));
+              CROP_WATER_DATABASE = newCropDB;
+              dbUpdated = true;
+            }
+          }
+
+          if (dbUpdated) {
+            initCropDropdowns();
+            showToast(`✅ Databases Loaded Successfully!`);
+            recalculateAll();
+          } else {
+            showToast(`⚠️ No valid data found in Sheet1, Sheet2, or Sheet3.`);
+          }
         } catch (error) {
           showToast(`❌ Parse Error: ${error.message}`);
         }
       };
       reader.readAsArrayBuffer(file);
     }
-    // ───────────────────────────────────────────────────────────────────────────────────
 
     function initCropDropdowns() {
       const populate = (id, list, defaultVal) => {
         const el = document.getElementById(id);
+        if(!el) return;
         el.innerHTML = '';
-        Object.keys(list).forEach(crop => {
+        
+        // Ensure "None" is always at the end of the lists for safety
+        const uniqueItems = Array.from(new Set([...list, 'None']));
+        
+        uniqueItems.forEach(crop => {
           const opt = document.createElement('option');
           opt.value = crop;
           opt.textContent = crop;
@@ -1223,102 +697,128 @@
         });
       };
 
-      populate('perennialCrop1', CROP_WATER_DATABASE.Perennial, 'None');
-      populate('perennialCrop2', CROP_WATER_DATABASE.Perennial, 'None');
-      populate('kharifCrop1', CROP_WATER_DATABASE.Kharif, 'Tur');
-      populate('kharifCrop2', CROP_WATER_DATABASE.Kharif, 'Udid');
-      populate('rabiCrop1', CROP_WATER_DATABASE.Rabi, 'Wheat');
-      populate('rabiCrop2', CROP_WATER_DATABASE.Rabi, 'Jwar');
-      populate('summerCrop1', CROP_WATER_DATABASE.Summer, 'None');
-      populate('summerCrop2', CROP_WATER_DATABASE.Summer, 'None');
+      populate('perennialCrop1', CROP_LISTS.Perennial, 'None');
+      populate('kharifCrop1', CROP_LISTS.Kharif, 'Cotton');
+      populate('kharifCrop2', CROP_LISTS.Kharif, 'Soybean');
+      populate('rabiCrop1', CROP_LISTS.Rabi, 'Wheat');
+      populate('rabiCrop2', CROP_LISTS.Rabi, 'Gram');
+      populate('summerCrop1', CROP_LISTS.Summer, 'None');
     }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
-      
       const tabIndices = { 'newEntry': 0, 'recordsList': 1 };
       const idx = tabIndices[tabId] || 0;
       document.querySelectorAll('.tab-btn')[idx].classList.add('active');
       document.getElementById(tabId).classList.add('active');
-
-      if (tabId === 'recordsList') {
-        applyFilters();
-      }
+      if (tabId === 'recordsList') applyFilters();
     }
 
     function switchMethodTab(methodTabId, btnElement) {
       document.querySelectorAll('.method-tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.method-subpanel').forEach(p => p.classList.remove('active'));
-      
       btnElement.classList.add('active');
       document.getElementById(methodTabId).classList.add('active');
     }
 
     function recalculateAll() {
-      const discharge = parseFloat(document.getElementById('pumpDischarge').value) || 22.5;
-      const effDia = parseFloat(document.getElementById('diaEffective').value) || 8.35;
+      const hp = parseFloat(document.getElementById('pumpHP').value) || 0;
+      let discharge = 0;
+      if (hp > 0) {
+        if (hp <= 3) discharge = 18.0;
+        else if (hp <= 6) discharge = 22.5;
+        else if (hp <= 8) discharge = 24.75;
+        else if (hp <= 10) discharge = 27.0;
+        else discharge = 50.0;
+      }
+      document.getElementById('pumpDischarge').value = discharge ? discharge.toFixed(2) : '';
       document.querySelectorAll('.dischCol').forEach(el => el.innerText = discharge.toFixed(1));
 
-      // WINTER SEASON EXACT FORMULAS
-      const swlW = parseFloat(document.getElementById('swlWinter').value) || 0;
-      const durW = parseFloat(document.getElementById('pumpDurationWinter').value) || 0;
-      const qtyW = discharge * durW;
-      document.getElementById('qtyPumpedWinter').value = qtyW.toFixed(2);
+      const depthWell = parseFloat(document.getElementById('depthWell').value) || 0;
+      document.getElementById('pumpSettingWinter').value = depthWell ? depthWell.toFixed(2) : '';
+      document.getElementById('pumpInletWinter').value = depthWell ? depthWell.toFixed(2) : '';
+      document.getElementById('pumpSettingSummer').value = depthWell ? depthWell.toFixed(2) : '';
+      document.getElementById('pumpInletSummer').value = depthWell ? depthWell.toFixed(2) : '';
 
-      const timeRecupW = parseFloat(document.getElementById('recupWinter').value) || 18;
-      const denominatorW = (durW + timeRecupW) * 0.786 * effDia * effDia;
-      const pwlW = denominatorW > 0 ? ((timeRecupW * qtyW) / denominatorW) + swlW : swlW + 1.61;
-      document.getElementById('pwlWinter').value = pwlW.toFixed(2);
+      const swlS = parseFloat(document.getElementById('swlSummer').value) || 0;
+      const swlW = parseFloat(document.getElementById('swlWinter').value) || 0;
+      const fluctuation = Math.max(0, swlS - swlW);
+      document.getElementById('annualFluctuation').value = fluctuation ? fluctuation.toFixed(2) : '';
+
+      const effDia = parseFloat(document.getElementById('diaEffective').value) || 0;
+
+      // WINTER SEASON FORMULAS
+      const durW = parseFloat(document.getElementById('pumpDurationWinter').value) || 0;
+      const recupW = parseFloat(document.getElementById('recupWinter').value) || 0;
+      
+      const qtyW = discharge * durW;
+      document.getElementById('qtyPumpedWinter').value = qtyW ? qtyW.toFixed(2) : '';
+
+      let pwlW = 0;
+      if (durW > 0 && recupW > 0 && effDia > 0) {
+        const denomW = (durW + recupW) * 0.786 * effDia * effDia;
+        pwlW = ((recupW * qtyW) / denomW) + swlW;
+        document.getElementById('pwlWinter').value = pwlW.toFixed(2);
+      } else {
+        document.getElementById('pwlWinter').value = '';
+      }
 
       const ddW = Math.max(0, pwlW - swlW);
-      document.getElementById('ddWinter').value = ddW.toFixed(2);
+      document.getElementById('ddWinter').value = ddW ? ddW.toFixed(2) : '';
 
       const storageW = 0.786 * effDia * effDia * ddW;
-      document.getElementById('volStorageWinter').value = storageW.toFixed(2);
+      document.getElementById('volStorageWinter').value = storageW ? storageW.toFixed(2) : '';
 
       const inflowW = durW > 0 ? Math.max(0, (qtyW - storageW) / durW) : 0;
-      document.getElementById('inflowRateWinter').value = inflowW.toFixed(2);
+      document.getElementById('inflowRateWinter').value = inflowW ? inflowW.toFixed(2) : '';
 
-      // SUMMER SEASON EXACT FORMULAS
-      const swlS = parseFloat(document.getElementById('swlSummer').value) || 0;
+      // SUMMER SEASON FORMULAS
       const durS = parseFloat(document.getElementById('pumpDurationSummer').value) || 0;
-      const timeRecupS = parseFloat(document.getElementById('recupSummer').value) || 24;
+      const recupS = parseFloat(document.getElementById('recupSummer').value) || 0;
 
       const qtyS = discharge * durS;
-      document.getElementById('qtyPumpedSummer').value = qtyS.toFixed(2);
+      document.getElementById('qtyPumpedSummer').value = qtyS ? qtyS.toFixed(2) : '';
 
-      const denominatorS = (durS + timeRecupS) * 0.786 * effDia * effDia;
-      const pwlS = denominatorS > 0 ? ((timeRecupS * qtyS) / denominatorS) + swlS : swlS + 0.76;
-      document.getElementById('pwlSummer').value = pwlS.toFixed(2);
+      let pwlS = 0;
+      if (durS > 0 && recupS > 0 && effDia > 0) {
+        const denomS = (durS + recupS) * 0.786 * effDia * effDia;
+        pwlS = ((recupS * qtyS) / denomS) + swlS;
+        document.getElementById('pwlSummer').value = pwlS.toFixed(2);
+      } else {
+        document.getElementById('pwlSummer').value = '';
+      }
 
       const ddS = Math.max(0, pwlS - swlS);
-      document.getElementById('ddSummer').value = ddS.toFixed(2);
+      document.getElementById('ddSummer').value = ddS ? ddS.toFixed(2) : '';
 
       const storageS = 0.786 * effDia * effDia * ddS;
-      document.getElementById('volStorageSummer').value = storageS.toFixed(2);
+      document.getElementById('volStorageSummer').value = storageS ? storageS.toFixed(2) : '';
 
       const inflowS = durS > 0 ? Math.max(0, (qtyS - storageS) / durS) : 0;
-      document.getElementById('inflowRateSummer').value = inflowS.toFixed(2);
+      document.getElementById('inflowRateSummer').value = inflowS ? inflowS.toFixed(2) : '';
 
-      // Cropping & Irrigation table calculation
       const p1Name = document.getElementById('perennialCrop1').value;
       const p2Name = document.getElementById('perennialCrop2').value;
       const k1Name = document.getElementById('kharifCrop1').value;
       const k2Name = document.getElementById('kharifCrop2').value;
+      const k3Name = document.getElementById('kharifCrop3').value;
       const r1Name = document.getElementById('rabiCrop1').value;
       const r2Name = document.getElementById('rabiCrop2').value;
+      const r3Name = document.getElementById('rabiCrop3').value;
       const s1Name = document.getElementById('summerCrop1').value;
       const s2Name = document.getElementById('summerCrop2').value;
 
       document.getElementById('lbl_perennialFloodHa1').innerText = `${p1Name} (Ha)`;
-      document.getElementById('lbl_perennialFloodHa2').innerText = `${p2Name} (Ha)`;
+      document.getElementById('lbl_perennialFloodHa2').innerText = `${p2Name || 'Perennial 2'} (Ha)`;
       document.getElementById('lbl_kharifFloodHa1').innerText = `${k1Name} (Ha)`;
       document.getElementById('lbl_kharifFloodHa2').innerText = `${k2Name} (Ha)`;
+      document.getElementById('lbl_kharifFloodHa3').innerText = `${k3Name || 'Kharif 3'} (Ha)`;
       document.getElementById('lbl_rabiFloodHa1').innerText = `${r1Name} (Ha)`;
       document.getElementById('lbl_rabiFloodHa2').innerText = `${r2Name} (Ha)`;
+      document.getElementById('lbl_rabiFloodHa3').innerText = `${r3Name || 'Rabi 3'} (Ha)`;
       document.getElementById('lbl_summerFloodHa1').innerText = `${s1Name} (Ha)`;
-      document.getElementById('lbl_summerFloodHa2').innerText = `${s2Name} (Ha)`;
+      document.getElementById('lbl_summerFloodHa2').innerText = `${s2Name || 'Summer 2'} (Ha)`;
 
       const num = (id) => parseFloat(document.getElementById(id).value) || 0;
 
@@ -1330,12 +830,12 @@
         { season: '2a Kharif', tag: 'P', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Kharif' },
         { season: '2a Kharif', tag: '1', name: k1Name, flood: num('kharifFloodHa1'), drip: num('kharifDripHa1'), sp: num('kharifSprinklerHa1'), isPerennial: false },
         { season: '2a Kharif', tag: '2', name: k2Name, flood: num('kharifFloodHa2'), drip: num('kharifDripHa2'), sp: num('kharifSprinklerHa2'), isPerennial: false },
-
+        { season: '2a Kharif', tag: '3', name: k3Name, flood: num('kharifFloodHa3'), drip: num('kharifDripHa3'), sp: num('kharifSprinklerHa3'), isPerennial: false },
         { season: '2b Rabi', tag: 'P', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Rabi' },
         { season: '2b Rabi', tag: 'P', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Rabi' },
         { season: '2b Rabi', tag: '1', name: r1Name, flood: num('rabiFloodHa1'), drip: num('rabiDripHa1'), sp: num('rabiSprinklerHa1'), isPerennial: false },
         { season: '2b Rabi', tag: '2', name: r2Name, flood: num('rabiFloodHa2'), drip: num('rabiDripHa2'), sp: num('rabiSprinklerHa2'), isPerennial: false },
-
+        { season: '2b Rabi', tag: '3', name: r3Name, flood: num('rabiFloodHa3'), drip: num('rabiDripHa3'), sp: num('rabiSprinklerHa3'), isPerennial: false },
         { season: '2c Summer', tag: 'P', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Summer' },
         { season: '2c Summer', tag: 'P', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Summer' },
         { season: '2c Summer', tag: '1', name: s1Name, flood: num('summerFloodHa1'), drip: num('summerDripHa1'), sp: num('summerSprinklerHa1'), isPerennial: false },
@@ -1349,18 +849,34 @@
       let kharifHam = 0, kharifDays = 0, kharifArea = 0;
       let rabiHam = 0, rabiDays = 0, rabiArea = 0;
       let summerHam = 0, summerDays = 0, summerArea = 0;
-
       const pumpKharifHrs = durW > 0 ? durW : 3.0;
+
+      // Smart Lookup for calculated parameters from Sheet 3
+      const getCropConfig = (seasonObj, cName) => {
+        if (!cName || cName.trim() === '' || cName.trim().toLowerCase() === 'none') return { waterings: 0, depth: 0 };
+        const keys = Object.keys(seasonObj);
+        const match = keys.find(k => k.toLowerCase() === cName.trim().toLowerCase());
+        if (match) return seasonObj[match];
+        return { waterings: 3, depth: 0.0635 }; // Reasonable default if crop is custom/missing
+      };
+
+      const getPerennialConfig = (cName, perSeason) => {
+        if (!cName || cName.trim() === '' || cName.trim().toLowerCase() === 'none') return { waterings: 0, depth: 0 };
+        const keys = Object.keys(CROP_WATER_DATABASE.Perennial);
+        const match = keys.find(k => k.toLowerCase() === cName.trim().toLowerCase());
+        if (match) return CROP_WATER_DATABASE.Perennial[match][perSeason];
+        return { waterings: 5, depth: 0.0762 }; // Default custom perennial
+      };
 
       cropList.forEach(item => {
         const area = item.flood + item.drip + item.sp;
         let info = { waterings: 0, depth: 0 };
 
-        if (item.isPerennial && item.name !== 'None') {
-          info = (CROP_WATER_DATABASE.Perennial[item.name] && CROP_WATER_DATABASE.Perennial[item.name][item.perSeason]) ? CROP_WATER_DATABASE.Perennial[item.name][item.perSeason] : { waterings: 0, depth: 0 };
-        } else if (!item.isPerennial && item.name !== 'None') {
+        if (item.isPerennial) {
+          info = getPerennialConfig(item.name, item.perSeason);
+        } else {
           const sKey = item.season.includes('Kharif') ? 'Kharif' : item.season.includes('Rabi') ? 'Rabi' : 'Summer';
-          info = (CROP_WATER_DATABASE[sKey] && CROP_WATER_DATABASE[sKey][item.name]) ? CROP_WATER_DATABASE[sKey][item.name] : { waterings: 0, depth: 0 };
+          info = getCropConfig(CROP_WATER_DATABASE[sKey], item.name);
         }
 
         const waterings = info.waterings;
@@ -1378,7 +894,7 @@
         if (item.season.includes('Rabi')) { rabiArea += area; rabiHam += gwHam; rabiDays += totalDays; }
         if (item.season.includes('Summer')) { summerArea += area; summerHam += gwHam; summerDays += totalDays; }
 
-        if (item.name !== 'None' && area > 0) {
+        if (item.name && item.name.trim() !== 'None' && item.name.trim() !== '' && area > 0) {
           totalAreaSum += area;
           totalHamSum += gwHam;
           totalDaysSum += totalDays;
@@ -1407,7 +923,6 @@
       document.getElementById('totalGWAppliedHam').value = totalHamSum.toFixed(4);
       document.getElementById('totalOperatingDays').value = totalDaysSum;
 
-      // Update Unified Performance Table
       const rabi1Days = Math.round(rabiDays * (25 / 47)) || (rabiDays > 0 ? Math.ceil(rabiDays / 2) : 0);
       const rabi2Days = rabiDays - rabi1Days;
 
@@ -1533,6 +1048,10 @@
       const now = new Date();
       document.getElementById('surveyDate').value = now.toISOString().split('T')[0];
       document.getElementById('surveyTime').value = now.toTimeString().split(' ')[0].substring(0, 5);
+      
+      // Ensure specific fields clear correctly
+      document.getElementById('mapSheetNo').value = '';
+      document.getElementById('population').value = '';
     }
 
     function onTalukaChange() {
@@ -1556,12 +1075,12 @@
       const data = SHEET2_FULL_DATABASE[taluka]?.[villageIdx];
 
       if (data) {
-        const [vName, gp, census, watershed, topo, lat, lon] = data;
+        const [vName, gp, census, watershed, topo, lat, lon, pop] = data;
         document.getElementById('gpName').value = gp || vName;
         document.getElementById('censusNo').value = census || '';
         document.getElementById('watershedNo').value = watershed || '';
         document.getElementById('sheet10k').value = topo || '47 O/13';
-        document.getElementById('mapSheetNo').value = topo || '47 O/13';
+        document.getElementById('population').value = pop || ''; // Auto-fill population if available
         
         if (lat && lon && typeof lat === 'number') {
           document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
@@ -1772,44 +1291,51 @@
       document.getElementById('canalName').value = r.canalName || '';
       document.getElementById('canalDistDir').value = r.canalDistDir || '';
       document.getElementById('mpLocation').value = r.mpLocation || 'Due North';
-      document.getElementById('parapetHeight').value = r.parapetHeight || '1.20';
-      document.getElementById('diaTop').value = r.diaTop || '9.60';
-      document.getElementById('diaBottom').value = r.diaBottom || '7.10';
-      document.getElementById('diaEffective').value = r.diaEffective || '8.35';
-      document.getElementById('depthWell').value = r.depthWell || '13.50';
-      document.getElementById('depthInwellBore').value = r.depthInwellBore || '-';
-      document.getElementById('totalDepthDCB').value = r.totalDepthDCB || '-';
+      document.getElementById('parapetHeight').value = r.parapetHeight || '';
+      document.getElementById('diaTop').value = r.diaTop || '';
+      document.getElementById('diaBottom').value = r.diaBottom || '';
+      document.getElementById('diaEffective').value = r.diaEffective || '';
+      document.getElementById('depthWell').value = r.depthWell || '';
+      document.getElementById('depthInwellBore').value = r.depthInwellBore || '';
+      document.getElementById('totalDepthDCB').value = r.totalDepthDCB || '';
       document.getElementById('liningMaterial').value = r.liningMaterial || 'Stone';
-      document.getElementById('depthLining').value = r.depthLining || '7.00';
-      document.getElementById('wellCondition').value = r.wellCondition || 'Good';
-      document.getElementById('yearConstruction').value = r.yearConstruction || '1985';
+      document.getElementById('depthLining').value = r.depthLining || '';
+      document.getElementById('wellCondition').value = r.wellCondition || '';
+      document.getElementById('yearConstruction').value = r.yearConstruction || '';
       
       document.getElementById('pumpType').value = r.pumpType || 'Submersible';
       document.getElementById('powerMode').value = r.powerMode || 'Electric';
-      document.getElementById('pumpHP').value = r.pumpHP || '5.0';
-      document.getElementById('pumpDischarge').value = r.pumpDischarge || '22.5';
+      document.getElementById('pumpHP').value = r.pumpHP || '';
+      document.getElementById('pumpDischarge').value = r.pumpDischarge || '';
       document.getElementById('dischargeMethod').value = r.dischargeMethod || 'Adhoc';
-      document.getElementById('dwl').value = r.dwl || '9';
+      document.getElementById('dwl').value = r.dwl || '';
       document.getElementById('suctionPipeDia').value = r.suctionPipeDia || '50.5';
-      document.getElementById('deliveryPipeDia').value = r.deliveryPipeDia || '63.50';
-      document.getElementById('deliveryPipeMat').value = r.deliveryPipeMat || 'HDPE';
+      document.getElementById('deliveryPipeDia').value = r.deliveryPipeDia || '63.5';
+      document.getElementById('deliveryPipeMat').value = r.deliveryPipeMat || '';
 
-      document.getElementById('pumpSettingWinter').value = r.pumpSettingWinter || '13.50';
-      document.getElementById('pumpInletWinter').value = r.pumpInletWinter || '13.50';
-      document.getElementById('swlWinter').value = r.swlWinter || '3.50';
-      document.getElementById('pumpDurationWinter').value = r.pumpDurationWinter || '5.00';
-      document.getElementById('recupWinter').value = r.recupWinter || '18';
+      document.getElementById('pumpSettingWinter').value = r.pumpSettingWinter || '';
+      document.getElementById('pumpInletWinter').value = r.pumpInletWinter || '';
+      document.getElementById('swlWinter').value = r.swlWinter || '';
+      document.getElementById('pwlWinter').value = r.pwlWinter || '';
+      document.getElementById('pumpDurationWinter').value = r.pumpDurationWinter || '';
+      document.getElementById('volStorageWinter').value = r.volStorageWinter || '';
+      document.getElementById('recupWinter').value = r.recupWinter || '';
 
-      document.getElementById('pumpSettingSummer').value = r.pumpSettingSummer || '13.50';
-      document.getElementById('pumpInletSummer').value = r.pumpInletSummer || '13.50';
-      document.getElementById('swlSummer').value = r.swlSummer || '12.50';
-      document.getElementById('pumpDurationSummer').value = r.pumpDurationSummer || '2.00';
-      document.getElementById('recupSummer').value = r.recupSummer || '24';
+      document.getElementById('pumpSettingSummer').value = r.pumpSettingSummer || '';
+      document.getElementById('pumpInletSummer').value = r.pumpInletSummer || '';
+      document.getElementById('swlSummer').value = r.swlSummer || '';
+      document.getElementById('pwlSummer').value = r.pwlSummer || '';
+      document.getElementById('pumpDurationSummer').value = r.pumpDurationSummer || '';
+      document.getElementById('volStorageSummer').value = r.volStorageSummer || '';
+      document.getElementById('recupSummer').value = r.recupSummer || '';
 
-      document.getElementById('annualFluctuation').value = r.annualFluctuation || '9.00';
+      document.getElementById('annualFluctuation').value = r.annualFluctuation || '';
       document.getElementById('wellStatus').value = r.wellStatus || 'Seasonal well';
-      document.getElementById('totalLandHolding').value = r.totalLandHolding || '1.50';
-      document.getElementById('cultivableLand').value = r.cultivableLand || '1.50';
+      document.getElementById('totalLandHolding').value = r.totalLandHolding || '';
+      document.getElementById('cultivableLand').value = r.cultivableLand || '';
+      
+      document.getElementById('mapSheetNo').value = r.mapSheetNo || '';
+      document.getElementById('population').value = r.population || '';
 
       if (r.taluka) {
         document.getElementById('taluka').value = r.taluka;
@@ -1822,13 +1348,13 @@
         }
       }
 
-      ['perennialCrop1','perennialCrop2','kharifCrop1','kharifCrop2','rabiCrop1','rabiCrop2','summerCrop1','summerCrop2'].forEach(id => {
+      ['perennialCrop1','perennialCrop2','kharifCrop1','kharifCrop2','kharifCrop3','rabiCrop1','rabiCrop2','rabiCrop3','summerCrop1','summerCrop2'].forEach(id => {
         if (r[id]) document.getElementById(id).value = r[id];
       });
 
-      ['perennialFloodHa1','perennialFloodHa2','kharifFloodHa1','kharifFloodHa2','rabiFloodHa1','rabiFloodHa2','summerFloodHa1','summerFloodHa2',
-       'perennialDripHa1','perennialDripHa2','kharifDripHa1','kharifDripHa2','rabiDripHa1','rabiDripHa2','summerDripHa1','summerDripHa2',
-       'perennialSprinklerHa1','perennialSprinklerHa2','kharifSprinklerHa1','kharifSprinklerHa2','rabiSprinklerHa1','rabiSprinklerHa2','summerSprinklerHa1','summerSprinklerHa2'].forEach(id => {
+      ['perennialFloodHa1','perennialFloodHa2','kharifFloodHa1','kharifFloodHa2','kharifFloodHa3','rabiFloodHa1','rabiFloodHa2','rabiFloodHa3','summerFloodHa1','summerFloodHa2',
+       'perennialDripHa1','perennialDripHa2','kharifDripHa1','kharifDripHa2','kharifDripHa3','rabiDripHa1','rabiDripHa2','rabiDripHa3','summerDripHa1','summerDripHa2',
+       'perennialSprinklerHa1','perennialSprinklerHa2','kharifSprinklerHa1','kharifSprinklerHa2','kharifSprinklerHa3','rabiSprinklerHa1','rabiSprinklerHa2','rabiSprinklerHa3','summerSprinklerHa1','summerSprinklerHa2'].forEach(id => {
         if (r[id] !== undefined) document.getElementById(id).value = r[id];
       });
 
@@ -1993,7 +1519,7 @@
         "Cencess no": r.censusNo || '',
         "Toposheet no": r.sheet10k || '',
         "mini watershed": r.watershedNo || '',
-        "Population": "0",
+        "Population": r.population || '',
         "LatLong": r.gpsCoords || '',
         "Altitude": r.altitudeGL || '',
         "Gat no": r.gatNo || '',
@@ -2047,12 +1573,16 @@
         "Cultivable land (Ha)": r.cultivableLand || '',
         "Kharif Crop 1": r.kharifCrop1 || '',
         "Kharif Crop 2": r.kharifCrop2 || '',
+        "Kharif Crop 3": r.kharifCrop3 || '',
         "Kharif crop land (Ha)1": r.kharifFloodHa1 || '',
         "Kharif crop land (Ha)2": r.kharifFloodHa2 || '',
+        "Kharif crop land (Ha)3": r.kharifFloodHa3 || '',
         "Rabbi Crop 1": r.rabiCrop1 || '',
         "Rabbi Crop 2": r.rabiCrop2 || '',
+        "Rabbi Crop 3": r.rabiCrop3 || '',
         "Rabbi Crop land Flood 1 (Ha)1": r.rabiFloodHa1 || '',
         "Rabbi Crop land Flood 2 (Ha)2": r.rabiFloodHa2 || '',
+        "Rabbi Crop land Flood 3 (Ha)3": r.rabiFloodHa3 || '',
         "Perennial Crop 1": r.perennialCrop1 || '',
         "Perennial Crop 2": r.perennialCrop2 || '',
         "Perennial Crop 1 Flood land (Ha)": r.perennialFloodHa1 || '',
