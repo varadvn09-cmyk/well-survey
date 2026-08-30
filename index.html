@@ -133,9 +133,6 @@
     .photo-modal-img { max-width: 100%; max-height: 65vh; object-fit: contain; border-radius: 6px; border: 1px solid var(--navy-700); box-shadow: 0 4px 14px rgba(0,0,0,0.6); }
     .photo-modal-info { width: 100%; background: var(--navy-900); border: 1px solid var(--navy-700); border-radius: 6px; padding: 8px 12px; font-size: 0.78rem; color: var(--text-muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
     .photo-modal-actions { padding: 10px 16px; background: var(--navy-950); border-top: 1px solid var(--navy-700); display: flex; justify-content: flex-end; gap: 10px; }
-
-    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--navy-800); border: 1px solid var(--teal-accent); color: var(--teal-glow); padding: 10px 22px; border-radius: 30px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,0.5); z-index: 10000; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
-    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
@@ -149,9 +146,8 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn-db" onclick="document.getElementById('dbInput').click()">📂 Load DBs (Village & Crop)</button>
-      <input type="file" id="dbInput" accept=".xlsx, .xls" style="display: none;" onchange="loadDatabases(event)" />
-      
+      <button class="btn-db" onclick="loadAndRetainFile()">📂 Load DBs (Village & Crop)</button>
+      <input type="file" id="dbInput" accept=".xlsx, .xls, .xlsm" style="display: none;" onchange="loadDatabases(event)" />
       <div class="header-gps-status" onclick="autoFetchGPS()">
         <div class="status-dot"></div>
         <span id="gpsStatusText">GPS Auto-Fetch</span>
@@ -165,9 +161,9 @@
   </nav>
 
   <main>
+    <!-- TAB 1: NEW ENTRY -->
     <div id="newEntry" class="tab-panel active">
       <form id="surveyForm" onsubmit="handleFormSubmit(event)">
-        
         <!-- META -->
         <div class="form-section">
           <div class="section-header"><span class="section-title">Survey Officer & Metadata</span><span class="section-code">META</span></div>
@@ -190,12 +186,9 @@
             <div class="field-group"><label>Village Name</label><select id="village" name="village" onchange="onVillageChange()"></select></div>
             <div class="field-group"><label>G.P. Name (Auto-filled)</label><input type="text" id="gpName" name="gpName" readonly /></div>
             <div class="field-group"><label>Census No. 2011 (Auto-filled)</label><input type="text" id="censusNo" name="censusNo" readonly /></div>
-            
             <div class="field-group"><label>Population (Auto-filled / Editable)</label><input type="text" id="population" name="population" placeholder="e.g. 1500" /></div>
-            
             <div class="field-group"><label>Gat / Survey No. <span class="req">*</span></label><input type="text" id="gatNo" name="gatNo" placeholder="e.g. 176" required /></div>
             <div class="field-group"><label>Mini Watershed No. (Auto-filled)</label><input type="text" id="watershedNo" name="watershedNo" readonly /></div>
-            
             <div class="field-group"><label>Toposheet / 10K Sheet No. (Auto-filled)</label><input type="text" id="sheet10k" name="sheet10k" readonly /></div>
             <div class="field-group"><label>Mapsheet No. (Editable)</label><input type="text" id="mapSheetNo" name="mapSheetNo" placeholder="e.g. 56/C/2, 47 N/3" /></div>
             <div class="field-group"><label>Quadrant No. (10K Sheet)</label><input type="text" id="quadrantNo" name="quadrantNo" placeholder="e.g. A2, D4" /></div>
@@ -469,6 +462,7 @@
           <div class="section-header"><span class="section-title">Well Site Photograph with Watermark Stamp</span><span class="section-code">PHOTO</span></div>
           <div class="section-body">
             <div class="full-width photo-box">
+              <canvas id="stampCanvas" style="display:none;"></canvas>
               <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="processWatermarkedPhoto(event)" />
               <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                 <button type="button" class="btn-sm btn-export" style="padding: 10px 18px; font-size: 0.9rem;" onclick="document.getElementById('cameraInput').click()">📷 Take / Upload Stamped Photo</button>
@@ -502,26 +496,25 @@
     </div>
   </main>
 
-  <!-- LIGHTBOX MODAL -->
-  <div id="photoModalBackdrop" class="photo-modal-backdrop" onclick="closePhotoModal(event)">
-    <div class="photo-modal-card" onclick="event.stopPropagation()">
+  <!-- PHOTO MODAL -->
+  <div class="photo-modal-backdrop" id="photoModalBackdrop" onclick="closePhotoModal(event)">
+    <div class="photo-modal-card">
       <div class="photo-modal-header">
-        <div class="photo-modal-title" id="photoModalTitle">📷 Well Site Watermarked Photograph</div>
-        <button class="photo-modal-close" onclick="closePhotoModal()">&times;</button>
+        <div class="photo-modal-title" id="photoModalTitle">Survey Photo</div>
+        <button class="photo-modal-close" onclick="closePhotoModal()">×</button>
       </div>
       <div class="photo-modal-body">
-        <img id="photoModalImg" class="photo-modal-img" src="" alt="Well Site Watermarked Photo" />
-        <div class="photo-modal-info" id="photoModalInfo"></div>
+        <img id="photoModalImg" class="photo-modal-img" src="" alt="Full Size Photo" />
+        <div id="photoModalInfo" class="photo-modal-info"></div>
       </div>
       <div class="photo-modal-actions">
-        <button type="button" class="btn-sm btn-export" onclick="downloadModalPhoto()">💾 Download Photo</button>
-        <button type="button" class="btn-sm" onclick="closePhotoModal()">Close</button>
+        <button class="btn-sm btn-secondary" onclick="closePhotoModal()">Close</button>
+        <button class="btn-sm btn-export" onclick="downloadModalPhoto()">⬇️ Download Photo</button>
       </div>
     </div>
   </div>
 
-  <canvas id="stampCanvas" style="display: none;"></canvas>
-  <div id="toast">Notice message</div>
+  <div id="toast"></div>
 
   <script>
     // CACHED CROP DROPDOWN LISTS (Will load from Sheet 1 or fallback to default)
@@ -548,6 +541,9 @@
     let currentPhotoBase64 = null;
     let activeModalPhoto = null;
     let rootDirHandle = null;
+    let globalWorkbook = null;
+    let globalFileName = null;
+    let globalFileHandle = null;
 
     document.addEventListener('DOMContentLoaded', () => {
       initTalukaDropdowns();
@@ -560,6 +556,27 @@
       }
     });
 
+    async function loadAndRetainFile() {
+      if (!('showOpenFilePicker' in window)) {
+        document.getElementById('dbInput').click();
+        return;
+      }
+      try {
+        const [fileHandle] = await window.showOpenFilePicker({
+          types: [{ 
+            description: 'Excel Files', 
+            accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx', '.xlsm', '.xls'] } 
+          }]
+        });
+        globalFileHandle = fileHandle;
+        const file = await fileHandle.getFile();
+        const event = { target: { files: [file] } };
+        loadDatabases(event);
+      } catch (err) {
+        if (err.name !== 'AbortError') showToast("❌ File selection failed: " + err.message);
+      }
+    }
+
     function loadDatabases(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -569,7 +586,9 @@
       reader.onload = function(e) {
         try {
           const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, {type: 'array'});
+          const workbook = XLSX.read(data, {type: 'array', bookVBA: true});
+          globalWorkbook = workbook;
+          globalFileName = file.name;
           let dbUpdated = false;
 
           // 1. Village Data from Sheet2
@@ -587,7 +606,7 @@
               const topo = String(row["Topo. No."]).trim();
               const lat = String(row["Latitude"] || "").trim();
               const lon = String(row["Longitude"] || "").trim();
-              const pop = String(row["Population"] || "").trim(); // Grabbing population if exists
+              const pop = String(row["Population"] || "").trim(); 
               
               if(taluka && village) {
                   if(!db[taluka]) db[taluka] = [];
@@ -851,13 +870,12 @@
       let summerHam = 0, summerDays = 0, summerArea = 0;
       const pumpKharifHrs = durW > 0 ? durW : 3.0;
 
-      // Smart Lookup for calculated parameters from Sheet 3
       const getCropConfig = (seasonObj, cName) => {
         if (!cName || cName.trim() === '' || cName.trim().toLowerCase() === 'none') return { waterings: 0, depth: 0 };
         const keys = Object.keys(seasonObj);
         const match = keys.find(k => k.toLowerCase() === cName.trim().toLowerCase());
         if (match) return seasonObj[match];
-        return { waterings: 3, depth: 0.0635 }; // Reasonable default if crop is custom/missing
+        return { waterings: 3, depth: 0.0635 };
       };
 
       const getPerennialConfig = (cName, perSeason) => {
@@ -865,7 +883,7 @@
         const keys = Object.keys(CROP_WATER_DATABASE.Perennial);
         const match = keys.find(k => k.toLowerCase() === cName.trim().toLowerCase());
         if (match) return CROP_WATER_DATABASE.Perennial[match][perSeason];
-        return { waterings: 5, depth: 0.0762 }; // Default custom perennial
+        return { waterings: 5, depth: 0.0762 };
       };
 
       cropList.forEach(item => {
@@ -886,18 +904,18 @@
         let pHrs = item.season.includes('Kharif') ? pumpKharifHrs : item.season.includes('Rabi') ? durW : durS;
         if (pHrs <= 0) pHrs = 3.0;
         const dailyPumpCapM3 = discharge * pHrs;
-        const volM3 = area * depth * 10000;
-        const daysPerWatering = dailyPumpCapM3 > 0 && area > 0 ? Math.round(volM3 / dailyPumpCapM3) : 0;
-        const totalDays = Math.round(daysPerWatering * waterings);
+        
+        const totalDaysExact = dailyPumpCapM3 > 0 ? (gwHam * 10000) / dailyPumpCapM3 : 0;
+        const daysPerWateringExact = waterings > 0 ? totalDaysExact / waterings : 0;
 
-        if (item.season.includes('Kharif')) { kharifArea += area; kharifHam += gwHam; kharifDays += totalDays; }
-        if (item.season.includes('Rabi')) { rabiArea += area; rabiHam += gwHam; rabiDays += totalDays; }
-        if (item.season.includes('Summer')) { summerArea += area; summerHam += gwHam; summerDays += totalDays; }
+        if (item.season.includes('Kharif')) { kharifArea += area; kharifHam += gwHam; kharifDays += totalDaysExact; }
+        if (item.season.includes('Rabi')) { rabiArea += area; rabiHam += gwHam; rabiDays += totalDaysExact; }
+        if (item.season.includes('Summer')) { summerArea += area; summerHam += gwHam; summerDays += totalDaysExact; }
 
         if (item.name && item.name.trim() !== 'None' && item.name.trim() !== '' && area > 0) {
           totalAreaSum += area;
           totalHamSum += gwHam;
-          totalDaysSum += totalDays;
+          totalDaysSum += totalDaysExact;
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
@@ -906,8 +924,8 @@
             <td>${waterings}</td>
             <td>${depth > 0 ? depth.toFixed(4) : '0.00'}</td>
             <td class="highlight">${gwHam.toFixed(4)}</td>
-            <td>${daysPerWatering}</td>
-            <td>${totalDays}</td>
+            <td>${Math.round(daysPerWateringExact)}</td>
+            <td>${Math.round(totalDaysExact)}</td>
           `;
           tbody.appendChild(tr);
         }
@@ -915,47 +933,47 @@
 
       document.getElementById('tableTotalArea').innerText = totalAreaSum.toFixed(2);
       document.getElementById('tableTotalHam').innerText = totalHamSum.toFixed(4);
-      document.getElementById('tableTotalDays').innerText = totalDaysSum;
+      document.getElementById('tableTotalDays').innerText = Math.round(totalDaysSum);
 
       document.getElementById('totalKharifHa').value = (kharifArea).toFixed(2);
       document.getElementById('totalRabiHa').value = (rabiArea).toFixed(2);
       document.getElementById('totalSummerHa').value = (summerArea).toFixed(2);
       document.getElementById('totalGWAppliedHam').value = totalHamSum.toFixed(4);
-      document.getElementById('totalOperatingDays').value = totalDaysSum;
+      document.getElementById('totalOperatingDays').value = Math.round(totalDaysSum);
 
-      const rabi1Days = Math.round(rabiDays * (25 / 47)) || (rabiDays > 0 ? Math.ceil(rabiDays / 2) : 0);
-      const rabi2Days = rabiDays - rabi1Days;
+      const rabi1DaysExact = rabiDays / 2;
+      const rabi2DaysExact = rabiDays / 2;
 
-      const kharifM3 = kharifHam * 10000;
-      const rabi1M3 = (rabiHam / 2) * 10000;
-      const rabi2M3 = (rabiHam / 2) * 10000;
-      const summerM3 = summerHam * 10000;
+      const kharifM3 = discharge * pumpKharifHrs * kharifDays;
+      const rabi1M3 = discharge * durW * rabi1DaysExact;
+      const rabi2M3 = discharge * durW * rabi2DaysExact;
+      const summerM3 = discharge * durS * summerDays;
 
-      const totalPerfDays = kharifDays + rabi1Days + rabi2Days + summerDays;
+      const totalPerfDaysExact = kharifDays + rabi1DaysExact + rabi2DaysExact + summerDays;
       const totalPerfM3 = kharifM3 + rabi1M3 + rabi2M3 + summerM3;
       const totalPerfHam = totalHamSum;
 
       document.getElementById('perfKharifHrs').innerText = pumpKharifHrs.toFixed(1);
-      document.getElementById('perfKharifDays').innerText = kharifDays;
+      document.getElementById('perfKharifDays').innerText = Math.round(kharifDays);
       document.getElementById('perfKharifM3').innerText = kharifM3.toFixed(2);
       document.getElementById('perfKharifHam').innerText = kharifHam.toFixed(4);
 
       document.getElementById('perfRabi1Hrs').innerText = durW.toFixed(1);
-      document.getElementById('perfRabi1Days').innerText = rabi1Days;
+      document.getElementById('perfRabi1Days').innerText = Math.round(rabi1DaysExact);
       document.getElementById('perfRabi1M3').innerText = rabi1M3.toFixed(2);
       document.getElementById('perfRabi1Ham').innerText = (rabiHam / 2).toFixed(4);
 
       document.getElementById('perfRabi2Hrs').innerText = durW.toFixed(1);
-      document.getElementById('perfRabi2Days').innerText = rabi2Days;
+      document.getElementById('perfRabi2Days').innerText = Math.round(rabi2DaysExact);
       document.getElementById('perfRabi2M3').innerText = rabi2M3.toFixed(2);
       document.getElementById('perfRabi2Ham').innerText = (rabiHam / 2).toFixed(4);
 
       document.getElementById('perfSummerHrs').innerText = durS.toFixed(1);
-      document.getElementById('perfSummerDays').innerText = summerDays;
+      document.getElementById('perfSummerDays').innerText = Math.round(summerDays);
       document.getElementById('perfSummerM3').innerText = summerM3.toFixed(2);
       document.getElementById('perfSummerHam').innerText = summerHam.toFixed(4);
 
-      document.getElementById('perfTotalDays').innerText = totalPerfDays;
+      document.getElementById('perfTotalDays').innerText = Math.round(totalPerfDaysExact);
       document.getElementById('perfTotalM3').innerText = totalPerfM3.toFixed(2);
       document.getElementById('perfTotalHam').innerText = totalPerfHam.toFixed(4);
     }
@@ -1049,7 +1067,6 @@
       document.getElementById('surveyDate').value = now.toISOString().split('T')[0];
       document.getElementById('surveyTime').value = now.toTimeString().split(' ')[0].substring(0, 5);
       
-      // Ensure specific fields clear correctly
       document.getElementById('mapSheetNo').value = '';
       document.getElementById('population').value = '';
     }
@@ -1080,7 +1097,7 @@
         document.getElementById('censusNo').value = census || '';
         document.getElementById('watershedNo').value = watershed || '';
         document.getElementById('sheet10k').value = topo || '47 O/13';
-        document.getElementById('population').value = pop || ''; // Auto-fill population if available
+        document.getElementById('population').value = pop || ''; 
         
         if (lat && lon && typeof lat === 'number') {
           document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
@@ -1497,118 +1514,218 @@
     }
 
     async function exportToExcel() {
-      const records = getStoredRecords();
-      if (records.length === 0) {
+      const rawRecords = getStoredRecords();
+      if (rawRecords.length === 0) {
         showToast('No records available to export.');
         return;
       }
 
-      // Format matching EXACT headers from provided image
-      const formattedRows = [...records].map(r => ({
-        "Sr.No.": Number(r.srNo) || '',
-        "Date": r.surveyDate || '',
-        "Time": r.surveyTime || '',
-        "Geologist Name": r.geologistName || '',
-        "Mapsheetno": r.mapSheetNo || '',
-        "well no": r.wellSeqNo || '',
-        "Type of well": r.wellType || '',
-        "Well Owner": r.ownerName || '',
-        "District Name": r.district || '',
-        "Taluka Name": r.taluka || '',
-        "Gp Name": r.gpName || '',
-        "Village Name": r.village || '',
-        "Cencess no": r.censusNo || '',
-        "Toposheet no": r.sheet10k || '',
-        "mini watershed": r.watershedNo || '',
-        "Population": r.population || '',
-        "LatLong": r.gpsCoords || '',
-        "Altitude": r.altitudeGL || '',
-        "Gat no": r.gatNo || '',
-        "Qurdant": r.quadrantNo || '',
-        "Measuring Point": r.mpLocation || '',
-        "Parapet (m)": r.parapetHeight || '',
-        "Diameter (m)": r.diaTop || '',
-        "effec. Dia": r.diaEffective || '',
-        "Depth": r.depthWell || '',
-        "Curbing (m)": r.depthLining || '',
-        "Type of curbing": r.liningMaterial || '',
-        "Year of Construction": r.yearConstruction || '',
-        "DwL": r.dwl || '',
-        "Winter (SWL)": r.swlWinter || '',
-        "Summer (SWL)": r.swlSummer || '',
-        "Type of Pump": r.pumpType || '',
-        "Mode of Power": r.powerMode || '',
-        "HP": r.pumpHP || '',
-        "Winter pumping hrs": r.pumpDurationWinter || '',
-        "Summer pumping hrs": r.pumpDurationSummer || '',
-        "winter T req recuperation": r.recupWinter || '',
-        "Summer T req recuperation": r.recupSummer || '',
-        "Project Irri(PT/MInor)": r.reservoirType || '',
-        "Distance": r.reservoirDistDir || '',
-        "Canal": r.canalName || '',
-        "Distance c": r.canalDistDir || '',
-        "Cultivable land (Ha)": r.cultivableLand || '',
-        "Kharif Crop1": r.kharifCrop1 || '',
-        "Kharif Crop2": r.kharifCrop2 || '',
-        "Kharif Crop3": r.kharifCrop3 || '',
-        "Kharif Crop land Flood (Ha)1": r.kharifFloodHa1 || '',
-        "Kharif Crop land Flood (Ha)2": r.kharifFloodHa2 || '',
-        "Kharif Crop land Flood (Ha)3": r.kharifFloodHa3 || '',
-        "Kharif Crop land Sprinkler (Ha)1": r.kharifSprinklerHa1 || '',
-        "Kharif Crop land Sprinkler (Ha)2": r.kharifSprinklerHa2 || '',
-        "Kharif Crop land Sprinkler (Ha)3": r.kharifSprinklerHa3 || '',
-        "Kharif Crop land Drip (Ha)1": r.kharifDripHa1 || '',
-        "Kharif Crop land Drip (Ha)2": r.kharifDripHa2 || '',
-        "Kharif Crop land Drip (Ha)3": r.kharifDripHa3 || '',
-        "Rabbi Crop1": r.rabiCrop1 || '',
-        "RabbiCrop2": r.rabiCrop2 || '',
-        "Rabbi Crop3": r.rabiCrop3 || '',
-        "Rabbi Crop land Flood (Ha)1": r.rabiFloodHa1 || '',
-        "Rabbi Crop land Flood (Ha)2": r.rabiFloodHa2 || '',
-        "Rabbi Crop land Flood (Ha)3": r.rabiFloodHa3 || '',
-        "Rabbi Crop land Sprinkler (Ha)1": r.rabiSprinklerHa1 || '',
-        "Rabbi Crop land Sprinkler (Ha)2": r.rabiSprinklerHa2 || '',
-        "Rabbi Crop land Sprinkler (Ha)3": r.rabiSprinklerHa3 || '',
-        "Rabbi Crop land Drip (Ha)1": r.rabiDripHa1 || '',
-        "Rabbi Crop land Drip (Ha)2": r.rabiDripHa2 || '',
-        "Rabbi Crop land Drip (Ha)3": r.rabiDripHa3 || '',
-        "Perennial Crop 1": r.perennialCrop1 || '',
-        "Perennial Crop 2": r.perennialCrop2 || '',
-        "Perennial Crop 1 Flood land (Ha)": r.perennialFloodHa1 || '',
-        "Perennial Crop 2 Flood land (Ha)": r.perennialFloodHa2 || '',
-        "Perennial Crop 1 Sprinkler land (Ha)": r.perennialSprinklerHa1 || '',
-        "Perennial Crop 2 Sprinkler land (Ha)": r.perennialSprinklerHa2 || '',
-        "Perennial Crop 1 Drip land (Ha)": r.perennialDripHa1 || '',
-        "Perennial Crop 2 Drip land (Ha)": r.perennialDripHa2 || '',
-        "Summer Crops 1": r.summerCrop1 || '',
-        "Summer Crops 2": r.summerCrop2 || '',
-        "Summer Crop Flood 1 land (Ha)": r.summerFloodHa1 || '',
-        "Summer Crop Flood 2 land (Ha)": r.summerFloodHa2 || '',
-        "Summer Crop Sprinkler 1 land (Ha)": r.summerSprinklerHa1 || '',
-        "Summer Crop Sprinkler 2 land (Ha)": r.summerSprinklerHa2 || '',
-        "Summer Crop Drip 1 land (Ha)": r.summerDripHa1 || '',
-        "Summer Crop Drip 2 land (Ha)": r.summerDripHa2 || '',
-        "Photo": r.photoData ? "Attached" : "",
-        "Litho 1": document.getElementById('lithoType1')?.value || '',
-        "Depth Litho 1": document.getElementById('lithoDepth1')?.value || '',
-        "Litho 2": document.getElementById('lithoType2')?.value || '',
-        "Depth Litho 2": document.getElementById('lithoDepth2')?.value || '',
-        "Litho 3": document.getElementById('lithoType3')?.value || '',
-        "Depth Litho 3": document.getElementById('lithoDepth3')?.value || '',
-        "Litho4": document.getElementById('lithoType4')?.value || '',
-        "Depth Litho4": "Bottom",
-        "nearest well": "No",
-        "Remarks": r.remarks || ''
+      // SORTING FIX: Ensure Sr No. exports in ascending order (1, 2, 3...)
+      const records = [...rawRecords].sort((a, b) => (Number(a.srNo) || 0) - (Number(b.srNo) || 0));
+
+      // 1. ORIGINAL SHEET (calc)
+      const formattedRows = records.map(r => ({
+        "Sr.No.": Number(r.srNo) || '', "Date": r.surveyDate || '', "Time": r.surveyTime || '', "Geologist Name": r.geologistName || '',
+        "Mapsheetno": r.mapSheetNo || '', "well no": r.wellSeqNo || '', "Type of well": r.wellType || '', "Well Owner": r.ownerName || '',
+        "District Name": r.district || '', "Taluka Name": r.taluka || '', "Gp Name": r.gpName || '', "Village Name": r.village || '',
+        "Cencess no": r.censusNo || '', "Toposheet no": r.sheet10k || '', "mini watershed": r.watershedNo || '', "Population": r.population || '',
+        "LatLong": r.gpsCoords || '', "Altitude": r.altitudeGL || '', "Gat no": r.gatNo || '', "Qurdant": r.quadrantNo || '',
+        "Measuring Point": r.mpLocation || '', "Parapet (m)": r.parapetHeight || '', "Diameter (m)": r.diaTop || '', "effec. Dia": r.diaEffective || '',
+        "Depth": r.depthWell || '', "Curbing (m)": r.depthLining || '', "Type of curbing": r.liningMaterial || '', "Year of Construction": r.yearConstruction || '',
+        "DwL": r.dwl || '', "Winter (SWL)": r.swlWinter || '', "Summer (SWL)": r.swlSummer || '', "Type of Pump": r.pumpType || '',
+        "Mode of Power": r.powerMode || '', "HP": r.pumpHP || '', "Winter pumping hrs": r.pumpDurationWinter || '', "Summer pumping hrs": r.pumpDurationSummer || '',
+        "winter T req recuperation": r.recupWinter || '', "Summer T req recuperation": r.recupSummer || '', "Project Irri(PT/MInor)": r.reservoirType || '',
+        "Distance": r.reservoirDistDir || '', "Canal": r.canalName || '', "Distance c": r.canalDistDir || '', "Cultivable land (Ha)": r.cultivableLand || '',
+        "Kharif Crop1": r.kharifCrop1 || '', "Kharif Crop2": r.kharifCrop2 || '', "Kharif Crop3": r.kharifCrop3 || '',
+        "Kharif Crop land Flood (Ha)1": r.kharifFloodHa1 || '', "Kharif Crop land Flood (Ha)2": r.kharifFloodHa2 || '', "Kharif Crop land Flood (Ha)3": r.kharifFloodHa3 || '',
+        "Kharif Crop land Sprinkler (Ha)1": r.kharifSprinklerHa1 || '', "Kharif Crop land Sprinkler (Ha)2": r.kharifSprinklerHa2 || '', "Kharif Crop land Sprinkler (Ha)3": r.kharifSprinklerHa3 || '',
+        "Kharif Crop land Drip (Ha)1": r.kharifDripHa1 || '', "Kharif Crop land Drip (Ha)2": r.kharifDripHa2 || '', "Kharif Crop land Drip (Ha)3": r.kharifDripHa3 || '',
+        "Rabbi Crop1": r.rabiCrop1 || '', "RabbiCrop2": r.rabiCrop2 || '', "Rabbi Crop3": r.rabiCrop3 || '',
+        "Rabbi Crop land Flood (Ha)1": r.rabiFloodHa1 || '', "Rabbi Crop land Flood (Ha)2": r.rabiFloodHa2 || '', "Rabbi Crop land Flood (Ha)3": r.rabiFloodHa3 || '',
+        "Rabbi Crop land Sprinkler (Ha)1": r.rabiSprinklerHa1 || '', "Rabbi Crop land Sprinkler (Ha)2": r.rabiSprinklerHa2 || '', "Rabbi Crop land Sprinkler (Ha)3": r.rabiSprinklerHa3 || '',
+        "Rabbi Crop land Drip (Ha)1": r.rabiDripHa1 || '', "Rabbi Crop land Drip (Ha)2": r.rabiDripHa2 || '', "Rabbi Crop land Drip (Ha)3": r.rabiDripHa3 || '',
+        "Perennial Crop 1": r.perennialCrop1 || '', "Perennial Crop 2": r.perennialCrop2 || '',
+        "Perennial Crop 1 Flood land (Ha)": r.perennialFloodHa1 || '', "Perennial Crop 2 Flood land (Ha)": r.perennialFloodHa2 || '',
+        "Perennial Crop 1 Sprinkler land (Ha)": r.perennialSprinklerHa1 || '', "Perennial Crop 2 Sprinkler land (Ha)": r.perennialSprinklerHa2 || '',
+        "Perennial Crop 1 Drip land (Ha)": r.perennialDripHa1 || '', "Perennial Crop 2 Drip land (Ha)": r.perennialDripHa2 || '',
+        "Summer Crops 1": r.summerCrop1 || '', "Summer Crops 2": r.summerCrop2 || '',
+        "Summer Crop Flood 1 land (Ha)": r.summerFloodHa1 || '', "Summer Crop Flood 2 land (Ha)": r.summerFloodHa2 || '',
+        "Summer Crop Sprinkler 1 land (Ha)": r.summerSprinklerHa1 || '', "Summer Crop Sprinkler 2 land (Ha)": r.summerSprinklerHa2 || '',
+        "Summer Crop Drip 1 land (Ha)": r.summerDripHa1 || '', "Summer Crop Drip 2 land (Ha)": r.summerDripHa2 || '',
+        "Photo": r.photoData ? "Attached" : "", "Litho 1": document.getElementById('lithoType1')?.value || '', "Depth Litho 1": document.getElementById('lithoDepth1')?.value || '',
+        "Litho 2": document.getElementById('lithoType2')?.value || '', "Depth Litho 2": document.getElementById('lithoDepth2')?.value || '',
+        "Litho 3": document.getElementById('lithoType3')?.value || '', "Depth Litho 3": document.getElementById('lithoDepth3')?.value || '',
+        "Litho4": document.getElementById('lithoType4')?.value || '', "Depth Litho4": "Bottom", "nearest well": "No", "Remarks": r.remarks || ''
       }));
 
-      const workbook = XLSX.utils.book_new();
-      const wsCalc = XLSX.utils.json_to_sheet(formattedRows);
-      XLSX.utils.book_append_sheet(workbook, wsCalc, "calc");
+      // Initialize workbook safely
+      let workbook = globalWorkbook ? globalWorkbook : XLSX.utils.book_new();
 
-      const fileName = `Well_Data_Export_${Date.now()}.xlsx`;
-      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([wbout], { type: "application/octet-stream" });
+      const wsCalc = XLSX.utils.json_to_sheet(formattedRows);
       
+      // SAFELY OVERWRITE SHEETS (Do not delete them from SheetNames array)
+      if (workbook.SheetNames.includes("calc")) {
+          workbook.Sheets["calc"] = wsCalc;
+      } else {
+          XLSX.utils.book_append_sheet(workbook, wsCalc, "calc");
+      }
+
+      // 2. NEW SHEET (MRSAC Format)
+      const calculateRecordYield = (r) => {
+        const num = (val) => parseFloat(val) || 0;
+        const p1Name = r.perennialCrop1;
+        const p2Name = r.perennialCrop2;
+        const p1Area = { flood: num(r.perennialFloodHa1), drip: num(r.perennialDripHa1), sp: num(r.perennialSprinklerHa1) };
+        const p2Area = { flood: num(r.perennialFloodHa2), drip: num(r.perennialDripHa2), sp: num(r.perennialSprinklerHa2) };
+
+        const cropList = [
+            { season: 'Kharif', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Kharif' },
+            { season: 'Kharif', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Kharif' },
+            { season: 'Kharif', name: r.kharifCrop1, flood: num(r.kharifFloodHa1), drip: num(r.kharifDripHa1), sp: num(r.kharifSprinklerHa1), isPerennial: false },
+            { season: 'Kharif', name: r.kharifCrop2, flood: num(r.kharifFloodHa2), drip: num(r.kharifDripHa2), sp: num(r.kharifSprinklerHa2), isPerennial: false },
+            { season: 'Kharif', name: r.kharifCrop3, flood: num(r.kharifFloodHa3), drip: num(r.kharifDripHa3), sp: num(r.kharifSprinklerHa3), isPerennial: false },
+            { season: 'Rabi', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Rabi' },
+            { season: 'Rabi', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Rabi' },
+            { season: 'Rabi', name: r.rabiCrop1, flood: num(r.rabiFloodHa1), drip: num(r.rabiDripHa1), sp: num(r.rabiSprinklerHa1), isPerennial: false },
+            { season: 'Rabi', name: r.rabiCrop2, flood: num(r.rabiFloodHa2), drip: num(r.rabiDripHa2), sp: num(r.rabiSprinklerHa2), isPerennial: false },
+            { season: 'Rabi', name: r.rabiCrop3, flood: num(r.rabiFloodHa3), drip: num(r.rabiDripHa3), sp: num(r.rabiSprinklerHa3), isPerennial: false },
+            { season: 'Summer', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Summer' },
+            { season: 'Summer', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Summer' },
+            { season: 'Summer', name: r.summerCrop1, flood: num(r.summerFloodHa1), drip: num(r.summerDripHa1), sp: num(r.summerSprinklerHa1), isPerennial: false },
+            { season: 'Summer', name: r.summerCrop2, flood: num(r.summerFloodHa2), drip: num(r.summerDripHa2), sp: num(r.summerSprinklerHa2), isPerennial: false }
+        ];
+
+        let kharifHam = 0, rabiHam = 0, summerHam = 0;
+
+        const getCropConfig = (seasonObj, cName) => {
+            if (!cName || cName.trim() === '' || cName.trim().toLowerCase() === 'none') return { waterings: 0, depth: 0 };
+            const keys = Object.keys(seasonObj);
+            const match = keys.find(k => k.toLowerCase() === cName.trim().toLowerCase());
+            if (match) return seasonObj[match];
+            return { waterings: 3, depth: 0.0635 };
+        };
+        const getPerennialConfig = (cName, perSeason) => {
+            if (!cName || cName.trim() === '' || cName.trim().toLowerCase() === 'none') return { waterings: 0, depth: 0 };
+            const keys = Object.keys(CROP_WATER_DATABASE.Perennial);
+            const match = keys.find(k => k.toLowerCase() === cName.trim().toLowerCase());
+            if (match) return CROP_WATER_DATABASE.Perennial[match][perSeason];
+            return { waterings: 5, depth: 0.0762 };
+        };
+
+        cropList.forEach(item => {
+            let info = { waterings: 0, depth: 0 };
+            if (item.isPerennial) {
+                info = getPerennialConfig(item.name, item.perSeason);
+            } else {
+                info = getCropConfig(CROP_WATER_DATABASE[item.season], item.name);
+            }
+            const gwHam = (item.flood * info.depth * info.waterings) + (item.sp * info.depth * info.waterings * 0.75) + (item.drip * info.depth * info.waterings * 0.65);
+            if (item.season === 'Kharif') kharifHam += gwHam;
+            if (item.season === 'Rabi') rabiHam += gwHam;
+            if (item.season === 'Summer') summerHam += gwHam;
+        });
+
+        return { kharif: kharifHam, rabi: rabiHam, summer: summerHam, total: kharifHam + rabiHam + summerHam };
+      };
+
+      const mrsacData = [];
+      mrsacData.push([
+        "Sr. No.", "Taluka", "Village", "Owner Name", "Date of Survey", "Type of well\n(DW/DCB/BW/TW)",
+        "Gat No.", "10K Sheet Quadrant", "Lat (Degree Decimal)", "Long (Degree Decimal)", "Depth bgl (M.)", "Dia (mm.)",
+        "Curving (M.)", "Depth of Inwell BW (M.)", "Static Water Level (M.)", "", "", "Well Yield Ham.", "", "", "", "Well status Perennial/Seasonal", "Surveyed by", "Remark", "10k sheet No"
+      ]);
+      mrsacData.push([
+        "", "", "", "", "", "",
+        "", "", "", "", "", "", "",
+        "", "Oct.", "May", "At the time of visit", "Khariff", "Rabbi", "Summer", "Total", "", "", "", ""
+      ]);
+
+      records.forEach(r => {
+        let lat = "", lon = "";
+        if (r.gpsCoords && r.gpsCoords.includes(',')) {
+            const parts = r.gpsCoords.split(',');
+            lat = parts[0].trim();
+            lon = parts[1].trim();
+        } else {
+            lat = r.gpsCoords || "";
+        }
+        const y = calculateRecordYield(r);
+        mrsacData.push([
+            Number(r.srNo) || '',
+            r.taluka || '',
+            r.village || '',
+            r.ownerName || '',
+            r.surveyDate || '',
+            r.wellType || '',
+            r.gatNo || '',
+            r.quadrantNo || '',
+            lat,
+            lon,
+            r.depthWell || '',
+            r.diaEffective || '',
+            r.depthLining || '',
+            r.depthInwellBore || '',
+            r.swlWinter || '',
+            r.swlSummer || '',
+            r.dwl || '',
+            y.kharif > 0 ? y.kharif.toFixed(4) : '0.0000',
+            y.rabi > 0 ? y.rabi.toFixed(4) : '0.0000',
+            y.summer > 0 ? y.summer.toFixed(4) : '0.0000',
+            y.total > 0 ? y.total.toFixed(4) : '0.0000',
+            r.wellStatus || '',
+            r.geologistName || '',
+            r.remarks || '',
+            r.sheet10k || ''
+        ]);
+      });
+
+      const wsMrsac = XLSX.utils.aoa_to_sheet(mrsacData);
+      wsMrsac['!merges'] = [
+        { s: { r: 0, c: 14 }, e: { r: 0, c: 16 } },
+        { s: { r: 0, c: 17 }, e: { r: 0, c: 20 } }
+      ];
+      [0,1,2,3,4,5,6,7,8,9,10,11,12,13,21,22,23,24].forEach(col => {
+        wsMrsac['!merges'].push({ s: { r: 0, c: col }, e: { r: 1, c: col } });
+      });
+
+      // SAFELY OVERWRITE SHEETS
+      if (workbook.SheetNames.includes("MRSAC Format")) {
+          workbook.Sheets["MRSAC Format"] = wsMrsac;
+      } else {
+          XLSX.utils.book_append_sheet(workbook, wsMrsac, "MRSAC Format");
+      }
+
+      const ext = globalFileName ? globalFileName.split('.').pop() : 'xlsx';
+      const fileName = globalFileName || `Well_Data_Export_${Date.now()}.xlsx`;
+      const bType = ext === 'xlsm' ? 'xlsm' : 'xlsx';
+
+      // Convert via binary method to prevent formatting corruption
+      const wbout = XLSX.write(workbook, { bookType: bType, type: 'binary', bookVBA: true });
+      
+      function s2ab(s) {
+          const buf = new ArrayBuffer(s.length);
+          const view = new Uint8Array(buf);
+          for (let i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
+          return buf;
+      }
+
+      const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
+      
+      // 1. FIRST PRIORITY: Overwrite the originally uploaded file directly
+      if (globalFileHandle) {
+        try {
+          const writable = await globalFileHandle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          showToast(`📊 Successfully Overwritten: ${globalFileHandle.name}`);
+          return;
+        } catch (e) {
+          console.error("Overwrite failed:", e);
+          showToast("⚠️ Overwrite permission denied. Attempting alternative save...");
+        }
+      }
+
+      // 2. SECOND PRIORITY: Save to the linked 'well data' folder
       const dirHandle = await getWellDataFolder();
       if (dirHandle) {
         try {
@@ -1616,15 +1733,16 @@
           const writable = await fileHandle.createWritable();
           await writable.write(blob);
           await writable.close();
-          showToast(`📊 Excel exported to folder: ${fileName}`);
+          showToast(`📊 Excel saved in linked folder: ${fileName}`);
           return;
         } catch (e) {
           console.error(e);
         }
       }
 
+      // 3. FALLBACK: Standard browser download
       XLSX.writeFile(workbook, fileName);
-      showToast('📊 Excel file exported successfully!');
+      showToast('📊 Excel file exported as a new download!');
     }
 
     function showToast(msg) {
