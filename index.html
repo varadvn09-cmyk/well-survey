@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>HydroGeo Field Survey Pro - Final Edition</title>
+  <title>HydroGeo Field Survey Pro - Final</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
@@ -25,785 +25,117 @@
       --warning: #f59e0b;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    header {
-      background: linear-gradient(135deg, var(--navy-950) 0%, var(--navy-900) 100%);
-      border-bottom: 2px solid var(--teal-accent);
-      padding: 12px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      z-index: 20;
-    }
-
-    .brand-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-icon {
-      background: var(--teal-accent);
-      color: #fff;
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 16px;
-      box-shadow: 0 0 12px rgba(20, 184, 166, 0.4);
-    }
-
-    .brand-text h1 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .brand-text p {
-      font-size: 0.72rem;
-      color: var(--teal-light);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-    }
-
-    .header-gps-status {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--teal-subtle);
-      border: 1px solid var(--teal-light);
-      color: var(--teal-glow);
-      font-size: 0.72rem;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--teal-glow);
-      border-radius: 50%;
-      box-shadow: 0 0 8px var(--teal-glow);
-    }
-
-    nav.tab-bar {
-      display: flex;
-      background-color: var(--navy-950);
-      border-bottom: 1px solid var(--navy-700);
-      z-index: 10;
-      overflow-x: auto;
-    }
-
-    .tab-btn {
-      flex: 1;
-      min-width: 140px;
-      padding: 12px 14px;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.86rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      border-bottom: 3px solid transparent;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-
-    .tab-btn.active {
-      color: var(--teal-glow);
-      border-bottom-color: var(--teal-accent);
-      background: var(--teal-subtle);
-    }
-
-    .tab-btn span.badge {
-      background: var(--navy-700);
-      color: var(--text-main);
-      font-size: 0.7rem;
-      padding: 2px 7px;
-      border-radius: 10px;
-    }
-
-    .tab-btn.active span.badge {
-      background: var(--teal-accent);
-      color: #fff;
-    }
-
-    main {
-      flex: 1;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .tab-panel {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      overflow-y: auto;
-      padding: 16px;
-      display: none;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .tab-panel.active {
-      display: block;
-    }
-
-    .form-section {
-      background: var(--navy-900);
-      border: 1px solid var(--navy-700);
-      border-radius: 10px;
-      margin-bottom: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    }
-
-    .section-header {
-      background: linear-gradient(90deg, var(--navy-800) 0%, rgba(26, 43, 76, 0.5) 100%);
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--navy-700);
-      border-left: 4px solid var(--teal-accent);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .section-title {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--text-main);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .section-code {
-      font-size: 0.72rem;
-      color: var(--teal-light);
-      font-family: monospace;
-      font-weight: bold;
-    }
-
-    .section-body {
-      padding: 14px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 12px 14px;
-    }
-
-    .full-width {
-      grid-column: 1 / -1;
-    }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .field-group label {
-      font-size: 0.76rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    .field-group label span.req {
-      color: var(--teal-glow);
-    }
-
-    .input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      background: var(--navy-800);
-      border: 1px solid var(--navy-700);
-      color: var(--text-main);
-      padding: 9px 11px;
-      border-radius: 6px;
-      font-size: 0.86rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--teal-light);
-      box-shadow: 0 0 0 2px var(--teal-subtle);
-    }
-
-    input[readonly] {
-      background: rgba(11, 19, 38, 0.7);
-      color: var(--teal-glow);
-      cursor: not-allowed;
-      font-weight: 600;
-    }
-
-    .input-unit {
-      position: absolute;
-      right: 10px;
-      color: var(--text-muted);
-      font-size: 0.75rem;
-      pointer-events: none;
-      font-weight: 600;
-    }
-
-    .geo-btn {
-      background: var(--teal-accent);
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s;
-      white-space: nowrap;
-    }
-
-    .geo-btn:hover {
-      background: var(--teal-light);
-    }
-
-    .method-tabs-nav {
-      display: flex;
-      background: var(--navy-950);
-      border-radius: 6px;
-      padding: 3px;
-      gap: 4px;
-      margin-bottom: 12px;
-      border: 1px solid var(--navy-700);
-    }
-
-    .method-tab-btn {
-      flex: 1;
-      padding: 8px 10px;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.78rem;
-      font-weight: 700;
-      border-radius: 4px;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      transition: all 0.2s ease;
-    }
-
-    .method-tab-btn.active {
-      background: var(--teal-accent);
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(13, 148, 136, 0.4);
-    }
-
-    .method-subpanel {
-      display: none;
-      background: var(--navy-950);
-      border: 1px solid var(--navy-700);
-      border-radius: 8px;
-      padding: 12px;
-    }
-
-    .method-subpanel.active {
-      display: block;
-    }
-
-    .season-card {
-      background: var(--navy-800);
-      border: 1px solid var(--navy-700);
-      border-radius: 6px;
-      padding: 10px 12px;
-      margin-bottom: 10px;
-    }
-
-    .season-card-title {
-      font-size: 0.8rem;
-      font-weight: 700;
-      color: var(--teal-light);
-      margin-bottom: 8px;
-      text-transform: uppercase;
-    }
-
-    .photo-box {
-      border: 2px dashed var(--navy-700);
-      border-radius: 8px;
-      padding: 12px;
-      text-align: center;
-      background: var(--navy-950);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .photo-preview {
-      max-width: 100%;
-      max-height: 240px;
-      border-radius: 6px;
-      display: none;
-      border: 1px solid var(--teal-light);
-    }
-
-    .litho-grid {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-      margin-top: 6px;
-    }
-
-    .litho-grid th, .litho-grid td {
-      border: 1px solid var(--navy-700);
-      padding: 8px;
-      text-align: left;
-    }
-
-    .litho-grid th {
-      background: var(--navy-800);
-      color: var(--teal-light);
-      font-weight: 600;
-    }
-
-    .calc-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.78rem;
-      margin-top: 8px;
-    }
-
-    .calc-table th, .calc-table td {
-      border: 1px solid var(--navy-700);
-      padding: 6px 8px;
-      text-align: center;
-    }
-
-    .calc-table th {
-      background: var(--navy-800);
-      color: var(--teal-light);
-      font-weight: 700;
-    }
-
-    .calc-table tr:nth-child(even) {
-      background: rgba(16, 28, 56, 0.5);
-    }
-
-    .calc-table td.text-left {
-      text-align: left;
-    }
-
-    .calc-table td.highlight {
-      color: var(--teal-glow);
-      font-weight: 700;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 12px;
-      margin-top: 10px;
-      margin-bottom: 40px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      flex: 1;
-      min-width: 160px;
-      padding: 13px 18px;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--teal-accent) 0%, #0f766e 100%);
-      color: #ffffff;
-      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35);
-    }
-
-    .btn-secondary {
-      background: var(--navy-800);
-      color: var(--text-muted);
-      border: 1px solid var(--navy-700);
-    }
-
-    .filter-panel {
-      background: var(--navy-900);
-      border: 1px solid var(--navy-700);
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 14px;
-      display: grid;
-      grid-template-columns: 2fr 1fr 1fr auto;
-      gap: 10px;
-      align-items: center;
-    }
-
-    @media (max-width: 768px) {
-      .filter-panel {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .btn-sm {
-      padding: 9px 13px;
-      font-size: 0.82rem;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      border: 1px solid var(--navy-700);
-      background: var(--navy-800);
-      color: var(--text-main);
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      white-space: nowrap;
-    }
-
-    .btn-export {
-      background: var(--teal-accent);
-      border-color: var(--teal-light);
-      color: #fff;
-    }
-
-    .btn-folder {
-      background: #0284c7;
-      border-color: #38bdf8;
-      color: #fff;
-    }
-
-    .btn-folder:hover {
-      background: #0369a1;
-    }
-
-    .record-card {
-      background: var(--navy-900);
-      border: 1px solid var(--navy-700);
-      border-left: 4px solid var(--teal-accent);
-      border-radius: 8px;
-      padding: 14px;
-      margin-bottom: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .record-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .record-title {
-      font-size: 0.96rem;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .record-meta {
-      font-size: 0.74rem;
-      color: var(--teal-light);
-      margin-top: 2px;
-    }
-
-    .record-badge {
-      background: var(--teal-subtle);
-      border: 1px solid var(--teal-light);
-      color: var(--teal-glow);
-      font-size: 0.7rem;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-weight: 600;
-    }
-
-    .record-content-row {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-    }
-
-    .record-thumbnail-wrapper {
-      flex-shrink: 0;
-      cursor: pointer;
-      position: relative;
-    }
-
-    .record-thumbnail {
-      width: 90px;
-      height: 70px;
-      object-fit: cover;
-      border-radius: 6px;
-      border: 2px solid var(--teal-accent);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-      transition: transform 0.2s ease;
-    }
-
-    .record-thumbnail:hover {
-      transform: scale(1.05);
-      border-color: var(--teal-glow);
-    }
-
-    .thumbnail-tag {
-      position: absolute;
-      bottom: 2px;
-      right: 2px;
-      background: rgba(11, 19, 38, 0.85);
-      color: var(--teal-glow);
-      font-size: 0.62rem;
-      padding: 1px 4px;
-      border-radius: 3px;
-      font-weight: bold;
-    }
-
-    .record-grid-info {
-      flex: 1;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 6px 12px;
-      background: var(--navy-800);
-      padding: 8px 10px;
-      border-radius: 6px;
-      font-size: 0.76rem;
-    }
-
-    .record-grid-info div {
-      color: var(--text-muted);
-    }
-
-    .record-grid-info strong {
-      color: var(--text-main);
-      font-weight: 600;
-    }
-
-    .record-btn-group {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 4px;
-      flex-wrap: wrap;
-    }
-
-    .btn-icon {
-      background: var(--navy-800);
-      border: 1px solid var(--navy-700);
-      color: var(--text-main);
-      padding: 6px 12px;
-      font-size: 0.75rem;
-      border-radius: 4px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-
-    .btn-icon:hover {
-      background: var(--navy-700);
-    }
-
-    .btn-icon.btn-photo {
-      background: var(--teal-subtle);
-      border-color: var(--teal-light);
-      color: var(--teal-glow);
-    }
-
-    .btn-icon.btn-photo:hover {
-      background: var(--teal-accent);
-      color: #fff;
-    }
-
-    .btn-icon.btn-edit {
-      background: rgba(2, 132, 199, 0.18);
-      border-color: #0284c7;
-      color: #38bdf8;
-    }
-
-    .btn-icon.btn-edit:hover {
-      background: #0284c7;
-      color: #fff;
-    }
-
-    .btn-icon.delete {
-      color: var(--danger);
-      border-color: rgba(244, 63, 94, 0.3);
-    }
-
-    .btn-icon.delete:hover {
-      background: rgba(244, 63, 94, 0.15);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-muted);
-    }
-
-    .photo-modal-backdrop {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(7, 13, 24, 0.88);
-      backdrop-filter: blur(5px);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-      padding: 16px;
-    }
-
-    .photo-modal-backdrop.active {
-      display: flex;
-    }
-
-    .photo-modal-card {
-      background: var(--navy-900);
-      border: 2px solid var(--teal-accent);
-      border-radius: 12px;
-      max-width: 900px;
-      width: 100%;
-      max-height: 92vh;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-      animation: modalFadeIn 0.25s ease-out;
-    }
-
-    @keyframes modalFadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .photo-modal-header {
-      padding: 12px 16px;
-      background: var(--navy-950);
-      border-bottom: 1px solid var(--navy-700);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .photo-modal-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--teal-glow);
-    }
-
-    .photo-modal-close {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-size: 1.4rem;
-      line-height: 1;
-      cursor: pointer;
-      padding: 2px 8px;
-      border-radius: 4px;
-    }
-
-    .photo-modal-close:hover {
-      color: #fff;
-      background: var(--navy-800);
-    }
-
-    .photo-modal-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      background: #030712;
-    }
-
-    .photo-modal-img {
-      max-width: 100%;
-      max-height: 65vh;
-      object-fit: contain;
-      border-radius: 6px;
-      border: 1px solid var(--navy-700);
-      box-shadow: 0 4px 14px rgba(0,0,0,0.6);
-    }
-
-    .photo-modal-info {
-      width: 100%;
-      background: var(--navy-900);
-      border: 1px solid var(--navy-700);
-      border-radius: 6px;
-      padding: 8px 12px;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .photo-modal-actions {
-      padding: 10px 16px;
-      background: var(--navy-950);
-      border-top: 1px solid var(--navy-700);
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-
-    #toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: var(--navy-800);
-      border: 1px solid var(--teal-accent);
-      color: var(--teal-glow);
-      padding: 10px 22px;
-      border-radius: 30px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
-      z-index: 10000;
-      opacity: 0;
-      transition: all 0.3s ease;
-      pointer-events: none;
-    }
-
-    #toast.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg-dark); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    
+    header { background: linear-gradient(135deg, var(--navy-950) 0%, var(--navy-900) 100%); border-bottom: 2px solid var(--teal-accent); padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+    .brand-title { display: flex; align-items: center; gap: 10px; }
+    .brand-icon { background: var(--teal-accent); color: #fff; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; box-shadow: 0 0 12px rgba(20, 184, 166, 0.4); }
+    .brand-text h1 { font-size: 1.05rem; font-weight: 700; color: var(--text-main); }
+    .brand-text p { font-size: 0.72rem; color: var(--teal-light); text-transform: uppercase; letter-spacing: 0.8px; }
+    
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .header-gps-status { display: flex; align-items: center; gap: 6px; background: var(--teal-subtle); border: 1px solid var(--teal-light); color: var(--teal-glow); font-size: 0.72rem; padding: 5px 12px; border-radius: 20px; font-weight: 600; cursor: pointer; }
+    .status-dot { width: 8px; height: 8px; background: var(--teal-glow); border-radius: 50%; box-shadow: 0 0 8px var(--teal-glow); }
+
+    nav.tab-bar { display: flex; background-color: var(--navy-950); border-bottom: 1px solid var(--navy-700); z-index: 10; overflow-x: auto; }
+    .tab-btn { flex: 1; min-width: 140px; padding: 12px 14px; background: none; border: none; color: var(--text-muted); font-size: 0.86rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; border-bottom: 3px solid transparent; transition: all 0.2s ease; white-space: nowrap; }
+    .tab-btn.active { color: var(--teal-glow); border-bottom-color: var(--teal-accent); background: var(--teal-subtle); }
+    .tab-btn span.badge { background: var(--navy-700); color: var(--text-main); font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; }
+    .tab-btn.active span.badge { background: var(--teal-accent); color: #fff; }
+
+    main { flex: 1; overflow: hidden; position: relative; }
+    .tab-panel { position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 16px; display: none; -webkit-overflow-scrolling: touch; }
+    .tab-panel.active { display: block; }
+
+    .form-section { background: var(--navy-900); border: 1px solid var(--navy-700); border-radius: 10px; margin-bottom: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+    .section-header { background: linear-gradient(90deg, var(--navy-800) 0%, rgba(26, 43, 76, 0.5) 100%); padding: 10px 14px; border-bottom: 1px solid var(--navy-700); border-left: 4px solid var(--teal-accent); display: flex; justify-content: space-between; align-items: center; }
+    .section-title { font-size: 0.88rem; font-weight: 700; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.5px; }
+    .section-code { font-size: 0.72rem; color: var(--teal-light); font-family: monospace; font-weight: bold; }
+    .section-body { padding: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 14px; }
+    .full-width { grid-column: 1 / -1; }
+
+    .field-group { display: flex; flex-direction: column; gap: 5px; }
+    .field-group label { font-size: 0.76rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .field-group label span.req { color: var(--teal-glow); }
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    input, select, textarea { width: 100%; background: var(--navy-800); border: 1px solid var(--navy-700); color: var(--text-main); padding: 9px 11px; border-radius: 6px; font-size: 0.86rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--teal-light); box-shadow: 0 0 0 2px var(--teal-subtle); }
+    input[readonly] { background: rgba(11, 19, 38, 0.7); color: var(--teal-glow); cursor: not-allowed; font-weight: 600; }
+    .input-unit { position: absolute; right: 10px; color: var(--text-muted); font-size: 0.75rem; pointer-events: none; font-weight: 600; }
+
+    .geo-btn, .btn-db { background: var(--teal-accent); color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; white-space: nowrap; }
+    .geo-btn:hover, .btn-db:hover { background: var(--teal-light); }
+    .btn-db { background: #0284c7; border: 1px solid #38bdf8; padding: 5px 12px; font-size: 0.72rem; border-radius: 20px; }
+    
+    .method-tabs-nav { display: flex; background: var(--navy-950); border-radius: 6px; padding: 3px; gap: 4px; margin-bottom: 12px; border: 1px solid var(--navy-700); }
+    .method-tab-btn { flex: 1; padding: 8px 10px; background: none; border: none; color: var(--text-muted); font-size: 0.78rem; font-weight: 700; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: all 0.2s ease; }
+    .method-tab-btn.active { background: var(--teal-accent); color: #fff; box-shadow: 0 2px 8px rgba(13, 148, 136, 0.4); }
+    .method-subpanel { display: none; background: var(--navy-950); border: 1px solid var(--navy-700); border-radius: 8px; padding: 12px; }
+    .method-subpanel.active { display: block; }
+    .season-card { background: var(--navy-800); border: 1px solid var(--navy-700); border-radius: 6px; padding: 10px 12px; margin-bottom: 10px; }
+    .season-card-title { font-size: 0.8rem; font-weight: 700; color: var(--teal-light); margin-bottom: 8px; text-transform: uppercase; }
+
+    .photo-box { border: 2px dashed var(--navy-700); border-radius: 8px; padding: 12px; text-align: center; background: var(--navy-950); display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    .photo-preview { max-width: 100%; max-height: 240px; border-radius: 6px; display: none; border: 1px solid var(--teal-light); cursor: zoom-in; }
+
+    .litho-grid, .calc-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 8px; }
+    .litho-grid th, .litho-grid td, .calc-table th, .calc-table td { border: 1px solid var(--navy-700); padding: 6px 8px; text-align: center; }
+    .litho-grid th, .calc-table th { background: var(--navy-800); color: var(--teal-light); font-weight: 700; }
+    .calc-table tr:nth-child(even) { background: rgba(16, 28, 56, 0.5); }
+    .calc-table td.text-left { text-align: left; }
+    .calc-table td.highlight { color: var(--teal-glow); font-weight: 700; }
+
+    .form-actions { display: flex; gap: 12px; margin-top: 10px; margin-bottom: 40px; flex-wrap: wrap; }
+    .btn { flex: 1; min-width: 160px; padding: 13px 18px; border-radius: 8px; font-size: 0.95rem; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, var(--teal-accent) 0%, #0f766e 100%); color: #ffffff; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.35); }
+    .btn-secondary { background: var(--navy-800); color: var(--text-muted); border: 1px solid var(--navy-700); }
+
+    .filter-panel { background: var(--navy-900); border: 1px solid var(--navy-700); border-radius: 8px; padding: 12px; margin-bottom: 14px; display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; align-items: center; }
+    @media (max-width: 768px) { .filter-panel { grid-template-columns: 1fr; } }
+    .btn-sm { padding: 9px 13px; font-size: 0.82rem; border-radius: 6px; font-weight: 600; cursor: pointer; border: 1px solid var(--navy-700); background: var(--navy-800); color: var(--text-main); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .btn-export { background: var(--teal-accent); border-color: var(--teal-light); color: #fff; }
+    .btn-folder { background: #0284c7; border-color: #38bdf8; color: #fff; }
+
+    .record-card { background: var(--navy-900); border: 1px solid var(--navy-700); border-left: 4px solid var(--teal-accent); border-radius: 8px; padding: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .record-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .record-title { font-size: 0.96rem; font-weight: 700; color: var(--text-main); }
+    .record-meta { font-size: 0.74rem; color: var(--teal-light); margin-top: 2px; }
+    .record-badge { background: var(--teal-subtle); border: 1px solid var(--teal-light); color: var(--teal-glow); font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+    .record-content-row { display: flex; gap: 14px; align-items: center; }
+    .record-thumbnail-wrapper { flex-shrink: 0; cursor: pointer; position: relative; }
+    .record-thumbnail { width: 90px; height: 70px; object-fit: cover; border-radius: 6px; border: 2px solid var(--teal-accent); box-shadow: 0 2px 6px rgba(0,0,0,0.4); transition: transform 0.2s ease; }
+    .record-thumbnail:hover { transform: scale(1.05); border-color: var(--teal-glow); }
+    .thumbnail-tag { position: absolute; bottom: 2px; right: 2px; background: rgba(11, 19, 38, 0.85); color: var(--teal-glow); font-size: 0.62rem; padding: 1px 4px; border-radius: 3px; font-weight: bold; }
+    .record-grid-info { flex: 1; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px 12px; background: var(--navy-800); padding: 8px 10px; border-radius: 6px; font-size: 0.76rem; }
+    .record-grid-info div { color: var(--text-muted); }
+    .record-grid-info strong { color: var(--text-main); font-weight: 600; }
+    .record-btn-group { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+    .btn-icon { background: var(--navy-800); border: 1px solid var(--navy-700); color: var(--text-main); padding: 6px 12px; font-size: 0.75rem; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; transition: all 0.2s; }
+    .btn-icon:hover { background: var(--navy-700); }
+    .btn-icon.btn-photo { background: var(--teal-subtle); border-color: var(--teal-light); color: var(--teal-glow); }
+    .btn-icon.btn-photo:hover { background: var(--teal-accent); color: #fff; }
+    .btn-icon.btn-edit { background: rgba(2, 132, 199, 0.18); border-color: #0284c7; color: #38bdf8; }
+    .btn-icon.btn-edit:hover { background: #0284c7; color: #fff; }
+    .btn-icon.delete { color: var(--danger); border-color: rgba(244, 63, 94, 0.3); }
+    .btn-icon.delete:hover { background: rgba(244, 63, 94, 0.15); }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+
+    .photo-modal-backdrop { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(7, 13, 24, 0.88); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; padding: 16px; }
+    .photo-modal-backdrop.active { display: flex; }
+    .photo-modal-card { background: var(--navy-900); border: 2px solid var(--teal-accent); border-radius: 12px; max-width: 900px; width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); animation: modalFadeIn 0.25s ease-out; }
+    @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .photo-modal-header { padding: 12px 16px; background: var(--navy-950); border-bottom: 1px solid var(--navy-700); display: flex; justify-content: space-between; align-items: center; }
+    .photo-modal-title { font-size: 0.95rem; font-weight: 700; color: var(--teal-glow); }
+    .photo-modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; line-height: 1; cursor: pointer; padding: 2px 8px; border-radius: 4px; }
+    .photo-modal-close:hover { color: #fff; background: var(--navy-800); }
+    .photo-modal-body { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 12px; background: #030712; }
+    .photo-modal-img { max-width: 100%; max-height: 65vh; object-fit: contain; border-radius: 6px; border: 1px solid var(--navy-700); box-shadow: 0 4px 14px rgba(0,0,0,0.6); }
+    .photo-modal-info { width: 100%; background: var(--navy-900); border: 1px solid var(--navy-700); border-radius: 6px; padding: 8px 12px; font-size: 0.78rem; color: var(--text-muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+    .photo-modal-actions { padding: 10px 16px; background: var(--navy-950); border-top: 1px solid var(--navy-700); display: flex; justify-content: flex-end; gap: 10px; }
+
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--navy-800); border: 1px solid var(--teal-accent); color: var(--teal-glow); padding: 10px 22px; border-radius: 30px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,0.5); z-index: 10000; opacity: 0; transition: all 0.3s ease; pointer-events: none; }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
   </style>
 </head>
 <body>
@@ -816,9 +148,14 @@
         <p>Groundwater Dug Well Inventory Form (Technical Form No. GSDA/10K/DW/2025)</p>
       </div>
     </div>
-    <div class="header-gps-status" onclick="autoFetchGPS()">
-      <div class="status-dot"></div>
-      <span id="gpsStatusText">GPS Auto-Fetch</span>
+    <div class="header-actions">
+      <button class="btn-db" onclick="document.getElementById('dbInput').click()">📂 Load Full Village DB</button>
+      <input type="file" id="dbInput" accept=".xlsx, .xls" style="display: none;" onchange="loadVillageDatabase(event)" />
+      
+      <div class="header-gps-status" onclick="autoFetchGPS()">
+        <div class="status-dot"></div>
+        <span id="gpsStatusText">GPS Auto-Fetch</span>
+      </div>
     </div>
   </header>
 
@@ -872,7 +209,7 @@
 
         <div class="form-section">
           <div class="section-header">
-            <span class="section-title">A. Well Location & Complete Sheet 2 Lookup (All 1,167 Villages)</span>
+            <span class="section-title">A. Well Location & Complete Sheet 2 Lookup</span>
             <span class="section-code">SEC-A</span>
           </div>
           <div class="section-body">
@@ -882,12 +219,12 @@
             </div>
 
             <div class="field-group">
-              <label>Taluka (Select 1 of 11 Talukas)</label>
+              <label>Taluka</label>
               <select id="taluka" name="taluka" onchange="onTalukaChange()"></select>
             </div>
 
             <div class="field-group">
-              <label>Village Name (Select from Sheet 2 Database)</label>
+              <label>Village Name</label>
               <select id="village" name="village" onchange="onVillageChange()"></select>
             </div>
 
@@ -1801,78 +1138,12 @@
       }
     };
 
-    // COMPLETE SHEET 2 DATABASE (ALL 1,167 VILLAGES ACROSS 11 TALUKAS)
-    const SHEET2_FULL_DATABASE = {
-      "Akkalkot": [
-        ["Kajikanbus", "Kajikanbus", "562855", "BM-129 (1/3)", "56 C/6", "76 57 00", "17 33 30"],
-        ["Kamalapur", "Kamalapur", "562556", "BM-129 (1/3)", "56 C/6", "76 17 50", "17 41 50"],
-        ["Kini", "Kini", "562857", "BM-129 (1/3)", "56 C/6", "76 15 55", "17 41 00"],
-        ["Kurnur", "Kurnur", "562865", "BM-129 (2/3)", "56 C/2", "76 13 10", "17 38 00"],
-        ["Kolekarwadi", "Kolekarwadi", "562836", "BM-129 (3/3)", "56 C/2", "76 13 40", "17 32 45"],
-        ["Sangavi Bk", "Sangavi Bk", "562837", "BM-129 (3/3)", "56 C/2", "76 14 55", "17 33 55"],
-        ["Basvavir", "Basvavir", "562866", "BM-129 (2/3)", "56 C/2", "76 13 35", "17 38 45"],
-        ["Dahitane", "Dahitane", "562843", "BM-133 (5/5)", "56 C/2", "76 21 00", "17 50 15"],
-        ["Jeur", "Jeur", "562844", "BM-133 (5/5)", "56 C/2", "76 22 15", "17 48 30"],
-        ["Bhiradi", "Bhiradi", "562842", "BM-133 (5/5)", "56 C/2", "76 20 45", "17 48 10"],
-        ["Akkalkot Rural", "Akkalkot GP", "562839", "BM-133 (1/5)", "56 C/2", 17.523611, 76.223611],
-        ["Alge", "Alge GP", "562846", "BM-138 (6/10)", "56 C/2", 17.484722, 76.1375],
-        ["Chapalgaon", "Chapalgaon GP", "562810", "BM-138 (1/10)", "56 C/2", 17.5512, 76.1023],
-        ["Konhali", "Konhali GP", "562832", "BM-138 (4/10)", "56 C/2", 17.561643, 76.134107],
-        ["Maindargi", "Maindargi GP", "562874", "BM-133 (4/5)", "56 C/2", 17.466667, 76.3]
-      ],
-      "Barshi": [
-        ["Barshi Rural", "Barshi GP", "561965", "BM-60 (3/4)", "47 N/3", 18.233333, 75.683333],
-        ["Pangri", "Pangri GP", "561948", "BM-60 (2/4)", "47 N/3", 18.25, 75.766667],
-        ["Vairag", "Vairag GP", "561976", "BM-60 (4/4)", "47 N/3", 18.116667, 75.783333],
-        ["Rupanur", "Rupanur GP", "561930", "BM-60 (1/4)", "47 N/3", 18.28, 75.7],
-        ["Pandhari", "Pandhari GP", "561955", "BM-60 (2/4)", "47 N/3", 18.2, 75.72]
-      ],
-      "Karmala": [
-        ["Bhilarwadi", "Bhilarwadi", "561773", "BM-47 (1/2)", "47 J/15", "74 53 50", "18 20 25"],
-        ["Gharatwadi", "Kumbhargaon", "561774", "BM-47 (2/2)", "47 J/15", "74 55 18", "18 21 35"],
-        ["Jinnti", "Jinnti", "561782", "BM-47 (1/2)", "47 J/15", "74 53 00", "18 18 40"],
-        ["Katraj", "Katraj", "561783", "BM-47 (2/2)", "47 J/15", "75 40 45", "18 17 15"],
-        ["Karmala Rural", "Karmala GP", "561805", "BM-50 (1/3)", "47 N/4", 18.416667, 75.2],
-        ["Kem", "Kem GP", "561823", "BM-50 (2/3)", "47 N/4", 18.316667, 75.233333]
-      ],
-      "Madha": [
-        ["Kurduwadi", "Kurduwadi GP", "562115", "BM-55 (2/4)", "47 N/7", 18.083333, 75.433333],
-        ["Madha Rural", "Madha GP", "562120", "BM-55 (2/4)", "47 N/7", 18.033333, 75.516667],
-        ["Tembhurni", "Tembhurni GP", "562100", "BM-52 (2/4)", "47 N/6", 18.066667, 75.25]
-      ],
-      "Malshiras": [
-        ["Akluj", "Akluj GP", "562280", "BM-70 (1/6)", "47 N/4", 17.883333, 75.016667],
-        ["Malshiras Rural", "Malshiras GP", "562300", "BM-70 (3/6)", "47 N/4", 17.783333, 74.966667],
-        ["Natepute", "Natepute GP", "562270", "BM-68 (1/4)", "47 N/3", 17.9, 74.8]
-      ],
-      "Mangalvedha": [
-        ["Mangalvedha Rural", "Mangalvedha GP", "562615", "BM-105 (1/4)", "47 O/2", 17.516667, 75.45],
-        ["Marwade", "Marwade GP", "562640", "BM-108 (1/4)", "47 O/3", 17.433333, 75.483333]
-      ],
-      "Mohol": [
-        ["Mohol Rural", "Mohol GP", "562015", "BM-62 (1/5)", "47 N/7", 17.916667, 75.633333],
-        ["Kurul", "Kurul GP", "562035", "BM-80 (1/4)", "47 O/1", 17.816667, 75.716667]
-      ],
-      "North Solapur": [
-        ["Bale", "Bale GP", "562410", "SA-38 (1/4)", "47 O/13", 17.716667, 75.866667],
-        ["Shelgi", "Shelgi GP", "562412", "SA-38 (2/4)", "47 O/13", 17.7, 75.9]
-      ],
-      "Pandharpur": [
-        ["Pandharpur Rural", "Pandharpur GP", "562535", "BM-92 (1/5)", "47 O/2", 17.666667, 75.316667],
-        ["Bhalwani", "Bhalwani GP", "562510", "BM-90 (1/6)", "47 O/1", 17.716667, 75.3]
-      ],
-      "Sangola": [
-        ["Sangola Rural", "Sangola GP", "562665", "BM-110 (2/4)", "47 K/14", 17.433333, 75.15],
-        ["Mahud", "Mahud GP", "562660", "BM-110 (1/4)", "47 K/13", 17.516667, 75.1]
-      ],
-      "South Solapur": [
-        ["Mandrup", "Mandrup GP", "562701", "BM-130 (2/5)", "47 O/13", 17.4811, 75.8312],
-        ["Hotgi", "Hotgi GP", "562705", "BM-130 (1/5)", "47 O/13", 17.566667, 75.85],
-        ["Valsang", "Valsang GP", "562735", "SA-41 (3/7)", "47 O/14", 17.55, 75.983333]
-      ]
+    // CACHED SHEET 2 DATABASE (WILL LOAD FROM EXCEL FILE)
+    let SHEET2_FULL_DATABASE = JSON.parse(localStorage.getItem('HYDROGEO_VILLAGE_DB')) || {
+      "Akkalkot": [["Akkalkot Rural", "Akkalkot GP", "562839", "BM-133", "56 C/2"]] // Fallback preview data
     };
 
-    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V20';
+    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V21';
     let currentPhotoBase64 = null;
     let activeModalPhoto = null;
     let rootDirHandle = null;
@@ -1883,7 +1154,61 @@
       initFormDefaults();
       recalculateAll();
       renderRecords();
+      if (!localStorage.getItem('HYDROGEO_VILLAGE_DB')) {
+        showToast("⚠️ Missing Village DB! Click 'Load Full Village DB' and select 'well_data.xlsx' to initialize all 1,167 villages.");
+      }
     });
+
+    // ─── 1-CLICK VILLAGE DATABASE IMPORTER ───────────────────────────────────────────────
+    function loadVillageDatabase(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      
+      showToast("⏳ Reading and Mapping 1,167 Villages...");
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const sheet2 = workbook.Sheets["Sheet2"];
+          
+          if (!sheet2) {
+            showToast("❌ Error: 'Sheet2' not found in uploaded file!");
+            return;
+          }
+          
+          const jsonData = XLSX.utils.sheet_to_json(sheet2, {defval: ""});
+          const db = {};
+          
+          jsonData.forEach(row => {
+            const taluka = String(row["Taluka"]).trim();
+            const village = String(row["Village Name"]).trim();
+            const gp = String(row["Name of GP"]).trim();
+            
+            // Format Census No correctly
+            const censusRaw = String(row["Census Number (As per 2011)"]).trim();
+            const census = censusRaw.endsWith(".0") ? censusRaw.replace(".0", "") : censusRaw;
+            
+            const watershed = String(row["Name of Elementary Watershed"]).trim();
+            const topo = String(row["Topo. No."]).trim();
+            const lat = String(row["Latitude"]).trim();
+            const lon = String(row["Longitude"]).trim();
+            
+            if(!db[taluka]) db[taluka] = [];
+            db[taluka].push([village, gp, census, watershed, topo, lat, lon]);
+          });
+          
+          localStorage.setItem("HYDROGEO_VILLAGE_DB", JSON.stringify(db));
+          SHEET2_FULL_DATABASE = db;
+          showToast(`✅ Success! Complete Village DB Loaded and Cached.`);
+          initTalukaDropdowns();
+        } catch (error) {
+          showToast(`❌ Parse Error: ${error.message}`);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+    // ───────────────────────────────────────────────────────────────────────────────────
 
     function initCropDropdowns() {
       const populate = (id, list, defaultVal) => {
