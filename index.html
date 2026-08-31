@@ -142,12 +142,15 @@
       <div class="brand-icon">GW</div>
       <div class="brand-text">
         <h1>HydroGeo Survey Pro</h1>
-        <p>Groundwater Dug Well Inventory Form (Technical Form No. GSDA/10K/DW/2025)</p>
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn-db" onclick="loadAndRetainFile()">📂 Load DBs (Village & Crop)</button>
+      <button class="btn-db" onclick="loadAndRetainFile()">📂 Load DBs</button>
       <input type="file" id="dbInput" accept=".xlsx, .xls, .xlsm" style="display: none;" onchange="loadDatabases(event)" />
+      
+      <!-- OFFLINE GPS INFO BUTTON -->
+      <button class="btn-db" style="background:var(--navy-700); padding:5px 10px;" onclick="openOfflineGuide()" title="Offline GPS Guide">ℹ️</button>
+
       <div class="header-gps-status" onclick="autoFetchGPS()">
         <div class="status-dot"></div>
         <span id="gpsStatusText">GPS Auto-Fetch</span>
@@ -292,8 +295,8 @@
                 <option value="Diesel">Diesel</option>
               </select>
             </div>
-            <div class="field-group"><label>HP of Pump <span class="req">*</span></label><div class="input-wrapper"><input type="number" step="0.5" id="pumpHP" name="pumpHP" placeholder="0.0" oninput="recalculateAll();" required /><span class="input-unit">HP</span></div></div>
-            <div class="field-group"><label>Pump Discharge</label><div class="input-wrapper"><input type="number" step="0.1" id="pumpDischarge" name="pumpDischarge" readonly /><span class="input-unit">m³/hour</span></div></div>
+            <div class="field-group"><label>HP of Pump <span class="req">*</span></label><div class="input-wrapper"><select id="pumpHP" name="pumpHP" onchange="onPumpHPChange();" required></select><span class="input-unit">HP</span></div></div>
+            <div class="field-group"><label>Pump Discharge</label><div class="input-wrapper"><select id="pumpDischarge" name="pumpDischarge" onchange="recalculateAll();"></select><span class="input-unit">m³/hour</span></div></div>
             <div class="field-group"><label>Method Used For Discharge Measurement</label><input type="text" id="dischargeMethod" name="dischargeMethod" value="Adhoc" /></div>
             <div class="field-group"><label>Depth to Pumped Groundwater Level (DWL)</label><div class="input-wrapper"><input type="number" step="0.1" id="dwl" name="dwl" placeholder="0.0" /><span class="input-unit">m.bgl</span></div></div>
             
@@ -420,7 +423,7 @@
                 <table class="calc-table">
                   <thead><tr><th class="text-left">Season</th><th>Pump Disch. (m³/hr)</th><th>Pump Hrs/Day</th><th>Operating Days</th><th>GW Applied (m³)</th><th>GW Applied (Ham)</th></tr></thead>
                   <tbody>
-                    <tr><td class="text-left">1. Kharif Season (Mid June - Sept)</td><td class="dischCol">0.0</td><td id="perfKharifHrs">0.0</td><td id="perfKharifDays">0</td><td id="perfKharifM3">0.00</td><td id="perfKharifHam" class="highlight">0.0000</td></tr>
+                    <tr><td class="text-left">1. Kharif Season (Mid June - Sept)</td><td class="dischCol">0.0</td><td><input type="number" step="0.1" id="pumpKharifHrsInput" name="pumpKharifHrsInput" value="3.0" oninput="recalculateAll();" style="width: 100%; min-width: 60px; background: var(--navy-800); color: var(--text-main); border: 1px solid var(--navy-700); text-align: center; border-radius: 4px; padding: 4px;" /></td><td id="perfKharifDays">0</td><td id="perfKharifM3">0.00</td><td id="perfKharifHam" class="highlight">0.0000</td></tr>
                     <tr><td class="text-left">2. Rabi (Oct - Dec)</td><td class="dischCol">0.0</td><td id="perfRabi1Hrs">0.0</td><td id="perfRabi1Days">0</td><td id="perfRabi1M3">0.00</td><td id="perfRabi1Ham" class="highlight">0.0000</td></tr>
                     <tr><td class="text-left">3. Rabi (Jan - March)</td><td class="dischCol">0.0</td><td id="perfRabi2Hrs">0.0</td><td id="perfRabi2Days">0</td><td id="perfRabi2M3">0.00</td><td id="perfRabi2Ham" class="highlight">0.0000</td></tr>
                     <tr><td class="text-left">4. Summer (April - Mid June)</td><td class="dischCol">0.0</td><td id="perfSummerHrs">0.0</td><td id="perfSummerDays">0</td><td id="perfSummerM3">0.00</td><td id="perfSummerHam" class="highlight">0.0000</td></tr>
@@ -445,12 +448,13 @@
             <div class="full-width">
               <label style="font-size: 0.76rem; color: var(--text-muted); font-weight: 600;">LITHOLOGICAL SECTION OBSERVED</label>
               <table class="litho-grid">
-                <thead><tr><th style="width: 120px;">Depth (m.bgl)</th><th>Lithology Description</th></tr></thead>
+                <thead><tr><th style="width: 40px;">Sr. No.</th><th style="width: 120px;">Depth (m.bgl)</th><th>Lithology Description</th></tr></thead>
                 <tbody>
-                  <tr><td>0.0 - <input type="number" step="0.1" id="lithoDepth1" style="width: 50px; padding: 2px 4px; display:inline;" value="1.0" /></td><td><select id="lithoType1"><option value="Black Cotton Soil">Black Cotton Soil (BC Soil)</option><option value="Sandy Loam Soil">Sandy Loam Soil</option><option value="Red Soil">Red Soil</option></select></td></tr>
-                  <tr><td>To <input type="number" step="0.1" id="lithoDepth2" style="width: 50px; padding: 2px 4px; display:inline;" value="5.0" /></td><td><select id="lithoType2"><option value="Highly Weathered Basalt">Highly Weathered Basalt</option><option value="Moderately Weathered Basalt">Moderately Weathered Basalt</option><option value="Soft Murrum">Soft Murrum</option></select></td></tr>
-                  <tr><td>To <input type="number" step="0.1" id="lithoDepth3" style="width: 50px; padding: 2px 4px; display:inline;" value="7.0" /></td><td><select id="lithoType3"><option value="Fractured/ Jointed Vesicular Basalt">Fractured/ Jointed Vesicular Basalt</option><option value="Jointed Compact Basalt">Jointed Compact Basalt</option><option value="Amygdaloidal Basalt">Amygdaloidal Basalt</option></select></td></tr>
-                  <tr><td>To Bottom</td><td><select id="lithoType4"><option value="Massive Basalt">Massive Basalt (Hard & Compact)</option><option value="Dense Basalt">Dense Basalt</option><option value="Zeolitic Basalt">Zeolitic Basalt</option></select></td></tr>
+                  <tr><td>1</td><td>0.0 - <input type="number" step="0.1" id="lithoDepth1" name="lithoDepth1" style="width: 50px; padding: 2px 4px; display:inline;" value="1.0" /></td><td><select id="lithoType1" name="lithoType1"></select></td></tr>
+                  <tr><td>2</td><td>To <input type="number" step="0.1" id="lithoDepth2" name="lithoDepth2" style="width: 50px; padding: 2px 4px; display:inline;" value="5.0" /></td><td><select id="lithoType2" name="lithoType2"></select></td></tr>
+                  <tr><td>3</td><td>To <input type="number" step="0.1" id="lithoDepth3" name="lithoDepth3" style="width: 50px; padding: 2px 4px; display:inline;" value="7.0" /></td><td><select id="lithoType3" name="lithoType3"></select></td></tr>
+                  <tr><td>4</td><td>To <input type="number" step="0.1" id="lithoDepth4" name="lithoDepth4" style="width: 50px; padding: 2px 4px; display:inline;" value="10.0" /></td><td><select id="lithoType4" name="lithoType4"></select></td></tr>
+                  <tr><td>5</td><td>To Bottom</td><td><select id="lithoType5" name="lithoType5"></select></td></tr>
                 </tbody>
               </table>
             </div>
@@ -469,7 +473,7 @@
                 <button type="button" id="removePhotoBtn" class="btn-sm" style="display: none; background: rgba(244, 63, 94, 0.2); border-color: var(--danger); color: #fca5a5;" onclick="clearCurrentPhoto()">❌ Remove Photo</button>
               </div>
               <img id="photoPreview" class="photo-preview" alt="Watermarked Well Site Photo" onclick="previewCurrentPhotoModal()" title="Click to view full size" style="cursor: zoom-in;" />
-              <p id="noPhotoText" style="font-size: 0.76rem; color: var(--text-muted);">Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name. Photos save in <strong>well data/images</strong> folder.</p>
+              <p id="noPhotoText" style="font-size: 0.76rem; color: var(--text-muted);">Stamp includes: Lat/Long, Altitude, Date, Time, Map Sheet, Well No, and Owner. Photos save in <strong>well data/images</strong> folder.</p>
             </div>
           </div>
         </div>
@@ -514,6 +518,29 @@
     </div>
   </div>
 
+  <!-- OFFLINE GPS GUIDE MODAL -->
+  <div class="photo-modal-backdrop" id="offlineGuideModal" onclick="closeOfflineGuide(event)">
+    <div class="photo-modal-card" style="max-width: 500px;">
+      <div class="photo-modal-header">
+        <div class="photo-modal-title" style="color: var(--teal-glow);">📡 Offline GPS Guide</div>
+        <button class="photo-modal-close" onclick="closeOfflineGuide()">×</button>
+      </div>
+      <div class="photo-modal-body" style="background: var(--navy-900); text-align: left; padding: 20px; font-size: 0.9rem; line-height: 1.5; color: var(--text-main);">
+        <h3 style="margin-bottom: 12px;">How to get Lat/Long Offline:</h3>
+        <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 10px;">
+          <li><strong>Host Locally:</strong> Mobile browsers strictly block GPS access for local files (<code>file://</code>). Download an app like <strong>"Simple HTTP Server"</strong> or <strong>"Termux"</strong> from the Play Store. Host this HTML file inside it, and open the provided <code>http://localhost:XXXX</code> link in your browser.</li>
+          <li><strong>Turn on Location:</strong> Ensure your phone's GPS is physically turned on in settings.</li>
+          <li><strong>Go Outdoors:</strong> Your phone needs a clear, unobstructed line of sight to the sky to connect directly to GPS satellites without internet assistance.</li>
+          <li><strong>Be Patient:</strong> Tap "📍 Lock GPS". Without an internet connection (A-GPS), a "cold start" hardware GPS lock can take <strong>1 to 5 minutes</strong> of standing still outside.</li>
+          <li><strong>Altitude Fallback:</strong> If entirely offline, the online altitude API will fail. The app will automatically default the altitude to <strong>485 m</strong>. You can manually adjust this if needed.</li>
+        </ol>
+      </div>
+      <div class="photo-modal-actions">
+        <button class="btn-sm btn-export" style="width: 100%; justify-content: center;" onclick="closeOfflineGuide()">I Understand</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast"></div>
 
   <script>
@@ -533,8 +560,24 @@
       "Perennial": { "Sugarcane": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 14, depth: 0.0762 }, Summer: { waterings: 6, depth: 0.0762 } }, "Orange": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 8, depth: 0.0762 }, Summer: { waterings: 5, depth: 0.0762 } }, "Pomegranate": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 8, depth: 0.0762 }, Summer: { waterings: 5, depth: 0.0762 } }, "Greps": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 8, depth: 0.0762 }, Summer: { waterings: 5, depth: 0.0762 } }, "Banana": { Kharif: { waterings: 3, depth: 0.0762 }, Rabi: { waterings: 14, depth: 0.0762 }, Summer: { waterings: 6, depth: 0.0762 } }, "Lemon": { Kharif: { waterings: 3, depth: 0.0635 }, Rabi: { waterings: 5, depth: 0.0635 }, Summer: { waterings: 5, depth: 0.0635 } }, "None": { Kharif: { waterings: 0, depth: 0 }, Rabi: { waterings: 0, depth: 0 }, Summer: { waterings: 0, depth: 0 } } }
     };
 
+    let LITHOLOGY_LISTS = JSON.parse(localStorage.getItem('HYDROGEO_LITHOLOGY_LISTS')) || [
+      ["Black Cotton Soil", "Soil", "Sandy Loam Soil", "Red Soil", "Silt / Clay"],
+      ["Highly Weathered Basalt", "Highly Weathered Vesicular Basalt", "Soft Murrum"],
+      ["Moderately Weathered Basalt", "Moderately Weathered Vesicular Basalt"],
+      ["Fractured/ Jointed  Basalt", "Fractured/ Jointed Vesicular Basalt", "Jointed Compact Basalt", "Amygdaloidal Basalt"],
+      ["Massive Basalt", "Dense Basalt", "Zeolitic Basalt"]
+    ];
+
+    let PUMP_DATABASE = JSON.parse(localStorage.getItem('HYDROGEO_PUMP_DB')) || {
+      "3": ["18.0"],
+      "5": ["20.0", "22.5"],
+      "7.5": ["24.75"],
+      "10": ["27.0"],
+      "15": ["50.0"]
+    };
+
     let SHEET2_FULL_DATABASE = JSON.parse(localStorage.getItem('HYDROGEO_VILLAGE_DB')) || {
-      "Akkalkot": [["Akkalkot Rural", "Akkalkot GP", "562839", "BM-133", "56 C/2", "", "", ""]]
+      "Akkalkot": [["Akkalkot Rural", "Akkalkot GP", "562839", "BM-133", "56 C/2", "", "", "", "Solapur"]]
     };
 
     const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_V22';
@@ -548,6 +591,8 @@
     document.addEventListener('DOMContentLoaded', () => {
       initTalukaDropdowns();
       initCropDropdowns();
+      initLithoDropdowns();
+      initPumpDropdowns();
       initFormDefaults();
       recalculateAll();
       renderRecords();
@@ -555,6 +600,15 @@
         showToast("⚠️ Databases not loaded! Click 'Load DBs' and select 'well_data.xlsx' to extract all villages & crops.");
       }
     });
+
+    function openOfflineGuide() {
+      document.getElementById('offlineGuideModal').classList.add('active');
+    }
+
+    function closeOfflineGuide(event) {
+      if (event && event.target && !event.target.classList.contains('photo-modal-backdrop') && !event.target.classList.contains('btn-export') && !event.target.classList.contains('photo-modal-close')) return;
+      document.getElementById('offlineGuideModal').classList.remove('active');
+    }
 
     async function loadAndRetainFile() {
       if (!('showOpenFilePicker' in window)) {
@@ -582,7 +636,7 @@
       if (!file) return;
       const reader = new FileReader();
       
-      showToast("⏳ Reading Databases (Villages & Crops)...");
+      showToast("⏳ Reading Databases (Villages, Crops, Lithology & Pumps)...");
       reader.onload = function(e) {
         try {
           const data = new Uint8Array(e.target.result);
@@ -591,7 +645,7 @@
           globalFileName = file.name;
           let dbUpdated = false;
 
-          // 1. Village Data from Sheet2
+          // 1. Village & District Data from Sheet2
           const sheet2 = workbook.Sheets["Sheet2"];
           if (sheet2) {
             const jsonData = XLSX.utils.sheet_to_json(sheet2, {defval: ""});
@@ -607,10 +661,11 @@
               const lat = String(row["Latitude"] || "").trim();
               const lon = String(row["Longitude"] || "").trim();
               const pop = String(row["Population"] || "").trim(); 
+              const district = String(row["District"] || row["District Name"] || row["district"] || "Solapur").trim();
               
               if(taluka && village) {
                   if(!db[taluka]) db[taluka] = [];
-                  db[taluka].push([village, gp, census, watershed, topo, lat, lon, pop]);
+                  db[taluka].push([village, gp, census, watershed, topo, lat, lon, pop, district]);
               }
             });
             if (Object.keys(db).length > 0) {
@@ -684,12 +739,97 @@
             }
           }
 
+          // 4. Lithology Data from "Lithology" sheet
+          const sheetLitho = workbook.Sheets["Lithology"];
+          if (sheetLitho) {
+            const sLithoDataArr = XLSX.utils.sheet_to_json(sheetLitho, {header: 1, defval: ""});
+            let parsedLists = [[], [], [], [], []];
+            
+            if (sLithoDataArr.length > 0) {
+              let hasNumericCol = -1;
+              let hasTextCol = -1;
+              
+              if (sLithoDataArr.length > 1) {
+                  for (let c=0; c<sLithoDataArr[1].length; c++) {
+                      let val = String(sLithoDataArr[1][c]).trim();
+                      if (val === "1" || val === "2" || val === "3" || val === "1." || val === "2.") hasNumericCol = c;
+                      else if (val.length > 3) hasTextCol = c;
+                  }
+              }
+
+              if (hasNumericCol !== -1 && hasTextCol !== -1) {
+                  for (let r=0; r<sLithoDataArr.length; r++) {
+                      let numStr = String(sLithoDataArr[r][hasNumericCol] || "").replace(/[^0-9]/g, '');
+                      let textStr = String(sLithoDataArr[r][hasTextCol] || "").trim();
+                      if (numStr && textStr) {
+                          let idx = parseInt(numStr) - 1;
+                          if (idx >= 0 && idx < 5 && textStr.toLowerCase() !== 'lithology' && textStr.toLowerCase() !== 'description') {
+                              if (!parsedLists[idx].includes(textStr)) parsedLists[idx].push(textStr);
+                          }
+                      }
+                  }
+              } else {
+                  for (let c=0; c<5; c++) {
+                      for (let r=0; r<sLithoDataArr.length; r++) {
+                          if (sLithoDataArr[r] && sLithoDataArr[r][c] !== undefined && sLithoDataArr[r][c] !== "") {
+                              let val = String(sLithoDataArr[r][c]).trim();
+                              let low = val.toLowerCase();
+                              if (val && !low.includes('sr') && !low.includes('lithology') && !low.includes('description')) {
+                                  if (!parsedLists[c].includes(val)) parsedLists[c].push(val);
+                              }
+                          }
+                      }
+                  }
+              }
+
+              let hasData = parsedLists.some(arr => arr.length > 0);
+              if (hasData) {
+                  for (let i = 1; i < 5; i++) {
+                      if (parsedLists[i].length === 0 && parsedLists[0].length > 0) {
+                          parsedLists[i] = [...parsedLists[0]];
+                      }
+                  }
+                  localStorage.setItem("HYDROGEO_LITHOLOGY_LISTS", JSON.stringify(parsedLists));
+                  LITHOLOGY_LISTS = parsedLists;
+                  dbUpdated = true;
+              }
+            }
+          }
+
+          // 5. Pump Data from "Pump" sheet
+          const sheetPump = workbook.Sheets["Pump"];
+          if (sheetPump) {
+            const sPumpData = XLSX.utils.sheet_to_json(sheetPump, {defval: ""});
+            const pumpDb = {};
+            sPumpData.forEach(row => {
+              const keys = Object.keys(row);
+              const hpKey = keys.find(k => k.toLowerCase().includes('hp')) || keys[0];
+              const disKey = keys.find(k => k.toLowerCase().includes('discharge')) || keys[1];
+              
+              if (hpKey && disKey) {
+                const hp = String(row[hpKey]).trim();
+                const discharge = String(row[disKey]).trim();
+                if (hp && discharge) {
+                  if (!pumpDb[hp]) pumpDb[hp] = [];
+                  if (!pumpDb[hp].includes(discharge)) pumpDb[hp].push(discharge);
+                }
+              }
+            });
+            if (Object.keys(pumpDb).length > 0) {
+              localStorage.setItem("HYDROGEO_PUMP_DB", JSON.stringify(pumpDb));
+              PUMP_DATABASE = pumpDb;
+              dbUpdated = true;
+            }
+          }
+
           if (dbUpdated) {
             initCropDropdowns();
+            initLithoDropdowns();
+            initPumpDropdowns();
             showToast(`✅ Databases Loaded Successfully!`);
             recalculateAll();
           } else {
-            showToast(`⚠️ No valid data found in Sheet1, Sheet2, or Sheet3.`);
+            showToast(`⚠️ No valid data found in Sheet1, Sheet2, Sheet3, Lithology or Pump.`);
           }
         } catch (error) {
           showToast(`❌ Parse Error: ${error.message}`);
@@ -724,6 +864,64 @@
       populate('summerCrop1', CROP_LISTS.Summer, 'None');
     }
 
+    function initLithoDropdowns() {
+      const populate = (id, list, defaultVal) => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const currentVal = el.value || defaultVal;
+        el.innerHTML = '';
+        let uniqueItems = Array.from(new Set(list));
+        if (uniqueItems.length === 0) {
+          uniqueItems = [defaultVal];
+        }
+        uniqueItems.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item;
+          opt.textContent = item;
+          if (item === currentVal) opt.selected = true;
+          el.appendChild(opt);
+        });
+        if (!el.value && uniqueItems.length > 0) {
+           el.value = uniqueItems[0];
+        }
+      };
+      populate('lithoType1', LITHOLOGY_LISTS[0] || [], 'Black Cotton Soil');
+      populate('lithoType2', LITHOLOGY_LISTS[1] || [], 'Highly Weathered Basalt');
+      populate('lithoType3', LITHOLOGY_LISTS[2] || [], 'Moderately Weathered Basalt');
+      populate('lithoType4', LITHOLOGY_LISTS[3] || [], 'Fractured/ Jointed  Basalt');
+      populate('lithoType5', LITHOLOGY_LISTS[4] || [], 'Massive Basalt');
+    }
+
+    function initPumpDropdowns() {
+      const hpSelect = document.getElementById('pumpHP');
+      const currentHP = hpSelect.value;
+      hpSelect.innerHTML = '<option value="">Select HP</option>';
+      Object.keys(PUMP_DATABASE).sort((a, b) => parseFloat(a) - parseFloat(b)).forEach(hp => {
+        const opt = document.createElement('option');
+        opt.value = hp;
+        opt.textContent = hp;
+        hpSelect.appendChild(opt);
+      });
+      if (currentHP && PUMP_DATABASE[currentHP]) hpSelect.value = currentHP;
+      onPumpHPChange();
+    }
+
+    function onPumpHPChange() {
+      const hp = document.getElementById('pumpHP').value;
+      const disSelect = document.getElementById('pumpDischarge');
+      const currentDis = disSelect.value;
+      disSelect.innerHTML = '';
+      const discharges = PUMP_DATABASE[hp] || [];
+      discharges.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d;
+        opt.textContent = d;
+        disSelect.appendChild(opt);
+      });
+      if (currentDis && discharges.includes(currentDis)) disSelect.value = currentDis;
+      recalculateAll();
+    }
+
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
@@ -742,16 +940,7 @@
     }
 
     function recalculateAll() {
-      const hp = parseFloat(document.getElementById('pumpHP').value) || 0;
-      let discharge = 0;
-      if (hp > 0) {
-        if (hp <= 3) discharge = 18.0;
-        else if (hp <= 6) discharge = 22.5;
-        else if (hp <= 8) discharge = 24.75;
-        else if (hp <= 10) discharge = 27.0;
-        else discharge = 50.0;
-      }
-      document.getElementById('pumpDischarge').value = discharge ? discharge.toFixed(2) : '';
+      let discharge = parseFloat(document.getElementById('pumpDischarge').value) || 0;
       document.querySelectorAll('.dischCol').forEach(el => el.innerText = discharge.toFixed(1));
 
       const depthWell = parseFloat(document.getElementById('depthWell').value) || 0;
@@ -864,11 +1053,12 @@
       const tbody = document.getElementById('cropWaterTableBody');
       tbody.innerHTML = '';
 
-      let totalAreaSum = 0, totalHamSum = 0, totalDaysSum = 0;
       let kharifHam = 0, kharifDays = 0, kharifArea = 0;
       let rabiHam = 0, rabiDays = 0, rabiArea = 0;
       let summerHam = 0, summerDays = 0, summerArea = 0;
-      const pumpKharifHrs = durW > 0 ? durW : 3.0;
+      const pumpKharifHrs = parseFloat(document.getElementById('pumpKharifHrsInput').value) || 0;
+
+      let totalAreaSum = 0, totalHamSum = 0, totalDaysSum = 0;
 
       const getCropConfig = (seasonObj, cName) => {
         if (!cName || cName.trim() === '' || cName.trim().toLowerCase() === 'none') return { waterings: 0, depth: 0 };
@@ -953,7 +1143,6 @@
       const totalPerfM3 = kharifM3 + rabi1M3 + rabi2M3 + summerM3;
       const totalPerfHam = totalHamSum;
 
-      document.getElementById('perfKharifHrs').innerText = pumpKharifHrs.toFixed(1);
       document.getElementById('perfKharifDays').innerText = Math.round(kharifDays);
       document.getElementById('perfKharifM3').innerText = kharifM3.toFixed(2);
       document.getElementById('perfKharifHam').innerText = kharifHam.toFixed(4);
@@ -1092,12 +1281,13 @@
       const data = SHEET2_FULL_DATABASE[taluka]?.[villageIdx];
 
       if (data) {
-        const [vName, gp, census, watershed, topo, lat, lon, pop] = data;
+        const [vName, gp, census, watershed, topo, lat, lon, pop, district] = data;
         document.getElementById('gpName').value = gp || vName;
         document.getElementById('censusNo').value = census || '';
         document.getElementById('watershedNo').value = watershed || '';
         document.getElementById('sheet10k').value = topo || '47 O/13';
         document.getElementById('population').value = pop || ''; 
+        if (district) document.getElementById('district').value = district;
         
         if (lat && lon && typeof lat === 'number') {
           document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
@@ -1183,7 +1373,7 @@
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
 
-          const bannerHeight = Math.max(60, height * 0.12);
+          const bannerHeight = Math.max(80, height * 0.16);
           ctx.fillStyle = 'rgba(7, 13, 24, 0.88)';
           ctx.fillRect(0, height - bannerHeight, width, bannerHeight);
 
@@ -1191,14 +1381,17 @@
           const alt = document.getElementById('altitudeGL').value || '485';
           const date = document.getElementById('surveyDate').value;
           const time = document.getElementById('surveyTime').value;
-          const name = document.getElementById('geologistName').value || 'VN Nimbalkar';
+          const mapSheet = document.getElementById('mapSheetNo').value || 'N/A';
+          const wellNo = document.getElementById('wellSeqNo').value || 'N/A';
+          const owner = document.getElementById('ownerName').value || 'N/A';
 
           const fontSize = Math.max(14, Math.round(width * 0.024));
           ctx.font = `bold ${fontSize}px sans-serif`;
           ctx.fillStyle = '#2dd4bf';
-          ctx.fillText(`📍 GPS: ${gps} | Alt: ${alt} m.MSL`, 15, height - bannerHeight + (bannerHeight * 0.4));
+          ctx.fillText(`📍 GPS: ${gps} | Alt: ${alt} m.MSL`, 15, height - bannerHeight + (bannerHeight * 0.3));
           ctx.fillStyle = '#ffffff';
-          ctx.fillText(`📅 ${date} ${time} | Geologist: ${name}`, 15, height - bannerHeight + (bannerHeight * 0.8));
+          ctx.fillText(`🗺️ Map: ${mapSheet} | Well: ${wellNo} | Owner: ${owner}`, 15, height - bannerHeight + (bannerHeight * 0.6));
+          ctx.fillText(`📅 ${date} ${time}`, 15, height - bannerHeight + (bannerHeight * 0.9));
 
           currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.65);
           const preview = document.getElementById('photoPreview');
@@ -1217,7 +1410,7 @@
       document.getElementById('cameraInput').value = '';
       document.getElementById('photoPreview').style.display = 'none';
       document.getElementById('removePhotoBtn').style.display = 'none';
-      document.getElementById('noPhotoText').innerText = 'Stamp includes: Lat/Long, Altitude, Date, Time, and Geologist Name.';
+      document.getElementById('noPhotoText').innerHTML = 'Stamp includes: Lat/Long, Altitude, Date, Time, Map Sheet, Well No, and Owner. Photos save in <strong>well data/images</strong> folder.';
     }
 
     function previewCurrentPhotoModal() {
@@ -1322,8 +1515,11 @@
       
       document.getElementById('pumpType').value = r.pumpType || 'Submersible';
       document.getElementById('powerMode').value = r.powerMode || 'Electric';
+      
       document.getElementById('pumpHP').value = r.pumpHP || '';
+      onPumpHPChange();
       document.getElementById('pumpDischarge').value = r.pumpDischarge || '';
+      
       document.getElementById('dischargeMethod').value = r.dischargeMethod || 'Adhoc';
       document.getElementById('dwl').value = r.dwl || '';
       document.getElementById('suctionPipeDia').value = r.suctionPipeDia || '50.5';
@@ -1345,6 +1541,8 @@
       document.getElementById('pumpDurationSummer').value = r.pumpDurationSummer || '';
       document.getElementById('volStorageSummer').value = r.volStorageSummer || '';
       document.getElementById('recupSummer').value = r.recupSummer || '';
+
+      document.getElementById('pumpKharifHrsInput').value = r.pumpKharifHrsInput || '3.0';
 
       document.getElementById('annualFluctuation').value = r.annualFluctuation || '';
       document.getElementById('wellStatus').value = r.wellStatus || 'Seasonal well';
@@ -1377,6 +1575,17 @@
 
       document.getElementById('geologyFormation').value = r.geologyFormation || 'Deccan Trap Basalt';
       document.getElementById('remarks').value = r.remarks || '';
+      
+      document.getElementById('lithoDepth1').value = r.lithoDepth1 || '1.0';
+      document.getElementById('lithoDepth2').value = r.lithoDepth2 || '5.0';
+      document.getElementById('lithoDepth3').value = r.lithoDepth3 || '7.0';
+      document.getElementById('lithoDepth4').value = r.lithoDepth4 || '10.0';
+      
+      document.getElementById('lithoType1').value = r.lithoType1 || 'Black Cotton Soil';
+      document.getElementById('lithoType2').value = r.lithoType2 || 'Highly Weathered Basalt';
+      document.getElementById('lithoType3').value = r.lithoType3 || 'Moderately Weathered Basalt';
+      document.getElementById('lithoType4').value = r.lithoType4 || 'Fractured/ Jointed  Basalt';
+      document.getElementById('lithoType5').value = r.lithoType5 || 'Massive Basalt';
 
       if (r.photoData) {
         currentPhotoBase64 = r.photoData;
@@ -1399,6 +1608,8 @@
       clearCurrentPhoto();
       initFormDefaults();
       initCropDropdowns();
+      initLithoDropdowns();
+      initPumpDropdowns();
       onTalukaChange();
       recalculateAll();
     }
@@ -1555,7 +1766,8 @@
         "Photo": r.photoData ? "Attached" : "", "Litho 1": document.getElementById('lithoType1')?.value || '', "Depth Litho 1": document.getElementById('lithoDepth1')?.value || '',
         "Litho 2": document.getElementById('lithoType2')?.value || '', "Depth Litho 2": document.getElementById('lithoDepth2')?.value || '',
         "Litho 3": document.getElementById('lithoType3')?.value || '', "Depth Litho 3": document.getElementById('lithoDepth3')?.value || '',
-        "Litho4": document.getElementById('lithoType4')?.value || '', "Depth Litho4": "Bottom", "nearest well": "No", "Remarks": r.remarks || ''
+        "Litho4": document.getElementById('lithoType4')?.value || '', "Depth Litho4": document.getElementById('lithoDepth4')?.value || '', 
+        "Litho 5": document.getElementById('lithoType5')?.value || '', "Depth Litho 5": "Bottom", "nearest well": "No", "Remarks": r.remarks || ''
       }));
 
       // Initialize workbook safely
