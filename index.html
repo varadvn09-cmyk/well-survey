@@ -631,6 +631,24 @@
       </div>
       <div id="recordsContainer"></div>
     </div>
+    
+    <!-- TAB 4: IRRIGATION EXCEL VIEW -->
+    <div id="irrigationTab" class="tab-panel">
+      <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="color: var(--primary); font-size: 1.2rem;">Irrigation Form</h2>
+        <button class="geo-btn" onclick="document.getElementById('irrFrame').contentWindow.print()">🖨️ Save as PDF</button>
+      </div>
+      <iframe id="irrFrame" src="irrigation_table.html" style="width: 100%; height: 75vh; border: 1px solid var(--border-color); background: white; border-radius: 8px;"></iframe>
+    </div>
+
+    <!-- TAB 5: PDF / PWS EXCEL VIEW -->
+    <div id="pdfTab" class="tab-panel">
+      <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="color: var(--primary); font-size: 1.2rem;">PWS Form</h2>
+        <button class="geo-btn" onclick="document.getElementById('pwsFrame').contentWindow.print()">🖨️ Save as PDF</button>
+      </div>
+      <iframe id="pwsFrame" src="pdf_table.html" style="width: 100%; height: 75vh; border: 1px solid var(--border-color); background: white; border-radius: 8px;"></iframe>
+    </div>
   </main>
 
   <!-- NATIVE BOTTOM NAVIGATION BAR -->
@@ -647,6 +665,14 @@
       <span class="nav-icon">📋</span>
       <span>Records</span>
       <span class="badge" id="recordCountBadge">0</span>
+    </button>
+    <button type="button" class="tab-btn" onclick="switchTab('irrigationTab')">
+      <span class="nav-icon">💧</span>
+      <span>Irrigation</span>
+    </button>
+    <button type="button" class="tab-btn" onclick="switchTab('pdfTab')">
+      <span class="nav-icon">📄</span>
+      <span>PDF</span>
     </button>
   </nav>
 
@@ -693,6 +719,14 @@
   <div id="toast"></div>
 
   <script>
+    // User Requested Logic Mirror:
+    // excel_file = "well_data.xlsx"
+    // sheet_to_export = "Well shedul"
+    // pdf_file = "Irrigation Dug well Inventory form.pdf"
+    // AND if Well Owner's Name Cell has letters "PWS" then:
+    // sheet_to_export = "PWS"
+    // pdf_file = "PWS Dug well Inventory form.pdf"
+
     let CROP_LISTS = JSON.parse(localStorage.getItem('HYDROGEO_CROP_LISTS')) || {
       Kharif: ["Cotton", "Soybean", "Tur", "Mug", "Jwar"],
       Rabi: ["Wheat", "Gram", "Jwar", "Tur"],
@@ -1102,7 +1136,7 @@
           targetPanel.classList.add('active');
       }
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      const tabIndices = { 'homeTab': 0, 'newEntry': 1, 'recordsList': 2 };
+      const tabIndices = { 'homeTab': 0, 'newEntry': 1, 'recordsList': 2, 'irrigationTab': 3, 'pdfTab': 4 };
       const idx = tabIndices[tabId] || 0;
       const btns = document.querySelectorAll('.tab-btn');
       if(btns[idx]) btns[idx].classList.add('active');
@@ -1829,7 +1863,7 @@
       document.getElementById('diaEffective').value = r.diaEffective || '';
       document.getElementById('depthWell').value = r.depthWell || '';
       document.getElementById('depthInwellBore').value = r.depthInwellBore || '';
-      document.getElementById('totalDepthDCB').value = r.totalDepthDCB || '';
+      if(document.getElementById('totalDepthDCB')) document.getElementById('totalDepthDCB').value = r.totalDepthDCB || '';
       
       document.getElementById('depthLining').value = r.depthLining || '';
       document.getElementById('wellCondition').value = r.wellCondition || 'Good';
@@ -1879,7 +1913,7 @@
       ['perennialFloodHa1','perennialFloodHa2','kharifFloodHa1','kharifFloodHa2','kharifFloodHa3','rabiFloodHa1','rabiFloodHa2','rabiFloodHa3','summerFloodHa1','summerFloodHa2',
        'perennialDripHa1','perennialDripHa2','kharifDripHa1','kharifDripHa2','kharifDripHa3','rabiDripHa1','rabiDripHa2','rabiDripHa3','summerDripHa1','summerDripHa2',
        'perennialSprinklerHa1','perennialSprinklerHa2','kharifSprinklerHa1','kharifSprinklerHa2','kharifSprinklerHa3','rabiSprinklerHa1','rabiSprinklerHa2','rabiSprinklerHa3','summerSprinklerHa1','summerSprinklerHa2'].forEach(id => {
-        if (r[id] !== undefined) document.getElementById(id).value = r[id];
+        if (r[id] !== undefined document.getElementById(id).value = r[id];
       });
 
       document.getElementById('geologyFormation').value = r.geologyFormation || 'Deccan Trap Basalt';
@@ -1908,7 +1942,6 @@
       updateWellStatusAuto();
       recalculateAll();
       
-      // Auto shift to Survey Tab and scroll to top
       switchTab('newEntry');
       document.getElementById('newEntry').scrollTop = 0;
       showToast(`📝 Loaded well record #${srNo} for editing.`);
@@ -1971,12 +2004,13 @@
       
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(14);
-      doc.text("Irrigation Dug well Inventory form", 107.5, 16, {align: 'center'});
+      const isPWS = r.ownerName && r.ownerName.includes("PWS");
+      const formTitle = isPWS ? "PWS Dug well Inventory form" : "Irrigation Dug well Inventory form";
+      doc.text(formTitle, 107.5, 16, {align: 'center'});
       
       const c = (content, colSpan = 1, rowSpan = 1, styles = {}) => ({ content: content !== undefined && content !== null ? String(content) : '', colSpan, rowSpan, styles });
       const h = (content, span=6) => c(content, span, 1, { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: [0,0,0], halign: 'left' });
 
-      // Calculate Performance
       const discharge = num(r.pumpDischarge);
       const pumpKharifHrs = num(r.pumpKharifHrsInput) || 3.0;
       const durW = num(r.pumpDurationWinter);
@@ -2196,12 +2230,11 @@
 
       if (r.photoData) {
         try {
-          // Adjust placement slightly based on F table ending
           doc.addImage(r.photoData, 'JPEG', 150, doc.lastAutoTable.finalY - 110, 45, 45); 
         } catch(e) {}
       }
       
-      const fileName = `Irrigation_Well_Form_${r.srNo}.pdf`;
+      const fileName = (r.ownerName && r.ownerName.includes("PWS")) ? `PWS Dug well Inventory form_${r.srNo}.pdf` : `Irrigation Dug well Inventory form_${r.srNo}.pdf`;
       doc.save(fileName);
     }
 
