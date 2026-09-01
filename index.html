@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>HydroGeo Field Survey Pro</title>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
   <style>
     :root {
       --bg-page: #f8fafc; --card-bg: #ffffff; --card-subtle: #f1f5f9; --primary: #2563eb; --primary-hover: #1d4ed8; --primary-light: #eff6ff; --accent: #f59e0b; --text-main: #0f172a; --text-muted: #64748b; --border-color: #cbd5e1; --border-subtle: #e2e8f0; --input-bg: #ffffff; --danger: #ef4444; --success: #10b981;
@@ -203,7 +205,7 @@
             <div class="setup-btn" onclick="document.getElementById('dbInput').click()">
               <span class="nav-icon">📂</span> 1. Load DBs<br><small style="font-weight:600; color:var(--text-muted)">Villages & Crops</small>
             </div>
-            <div class="setup-btn" style="border-color:var(--primary); background:var(--primary-light); color:var(--primary)" onclick="selectRootFolder()">
+            <div class="setup-btn" style="border-color:var(--primary); background:var(--primary-light); color:var(--primary)" onclick="selectRootFolderFallback()">
               <span class="nav-icon">🔗</span> 2. Link Folder<br><small style="font-weight:600; opacity:0.8">Local Auto-Backup</small>
             </div>
           </div>
@@ -299,7 +301,7 @@
               </div>
             </div>
             
-            <div class="field-group full-width"><label>Well Owner's Name</label><input type="text" id="ownerName" name="ownerName" placeholder="e.g. Sidharam Bhimashankar Gurav" /></div>
+            <div class="field-group full-width"><label>Well Owner's Name</label><input type="text" id="ownerName" name="ownerName" placeholder="e.g. Sidharam Bhimashankar Gurav" oninput="updateWellStatusAuto()" /></div>
           </div>
         </div>
 
@@ -353,7 +355,10 @@
             <div class="field-group"><label>Inner Diameter (Top)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="diaTop" name="diaTop" placeholder="0.0" /><span class="input-unit">m</span></div></div>
             <div class="field-group"><label>Inner Diameter (Bottom)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="diaBottom" name="diaBottom" placeholder="0.0" /><span class="input-unit">m</span></div></div>
             <div class="field-group"><label>Effective Diameter</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.01" id="diaEffective" name="diaEffective" placeholder="0.00" oninput="recalculateAll();" /><span class="input-unit">m</span></div></div>
+            
             <div class="field-group"><label>Depth of Dug Well (DW)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="depthWell" name="depthWell" placeholder="0.0" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div></div>
+            <div class="field-group"><label>Depth to DWL</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="dwl" name="dwl" placeholder="0.0" /><span class="input-unit">m.bgl</span></div></div>
+            
             <div class="field-group"><label>Depth of In-well Borehole</label><div class="input-wrapper"><input type="number" inputmode="decimal" id="depthInwellBore" name="depthInwellBore" placeholder="-" /></div></div>
             
             <div class="field-group full-width">
@@ -370,7 +375,13 @@
               </div>
             </div>
             <div class="field-group"><label>Depth of Lining</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="depthLining" name="depthLining" placeholder="0.0" /><span class="input-unit">m.bgl</span></div></div>
-            <div class="field-group"><label>Condition of Well/Lining</label><input type="text" id="wellCondition" name="wellCondition" placeholder="e.g. Good" /></div>
+            <div class="field-group"><label>Condition of Well/Lining</label>
+              <select id="wellCondition" name="wellCondition">
+                <option value="Good">Good</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Poor">Poor</option>
+              </select>
+            </div>
             <div class="field-group"><label>Year of Construction</label><input type="number" inputmode="numeric" pattern="[0-9]*" id="yearConstruction" name="yearConstruction" placeholder="YYYY" /></div>
           </div>
         </div>
@@ -407,7 +418,6 @@
             <div class="field-group"><label>HP of Pump</label><div class="input-wrapper"><select id="pumpHP" name="pumpHP" onchange="onPumpHPChange();"></select><span class="input-unit">HP</span></div></div>
             <div class="field-group"><label>Pump Discharge</label><div class="input-wrapper"><select id="pumpDischarge" name="pumpDischarge" onchange="recalculateAll();"></select><span class="input-unit">m³/hr</span></div></div>
             <div class="field-group"><label>Discharge Measure Method</label><input type="text" id="dischargeMethod" name="dischargeMethod" value="Adhoc" /></div>
-            <div class="field-group"><label>Depth to DWL</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="dwl" name="dwl" placeholder="0.0" /><span class="input-unit">m.bgl</span></div></div>
 
             <!-- WINTER BLOCK -->
             <div class="full-width season-card">
@@ -418,13 +428,14 @@
                 <div class="field-group"><label>Time for Complete Recuperation</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.5" id="recupWinter" name="recupWinter" placeholder="0" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div></div>
                 
                 <div class="field-group"><label>Pumped Water Level (PWL)</label><div class="input-wrapper"><input type="text" id="pwlWinter" name="pwlWinter" readonly placeholder="Auto" /><span class="input-unit">m.bgl</span></div></div>
-                <div class="field-group"><label>Drawdown</label><div class="input-wrapper"><input type="text" id="ddWinter" name="ddWinter" readonly /><span class="input-unit">m</span></div></div>
+                <div class="field-group"><label>Drawdown (PWL-SWL)</label><div class="input-wrapper"><input type="text" id="ddWinter" name="ddWinter" readonly /><span class="input-unit">m</span></div></div>
                 <div class="field-group"><label>Avg. Inflow Rate</label><div class="input-wrapper"><input type="text" id="inflowRateWinter" name="inflowRateWinter" readonly /><span class="input-unit">M³/Hr</span></div></div>
+                
+                <div class="field-group"><label>Quantity of water pumped</label><div class="input-wrapper"><input type="text" id="qtyPumpedWinter" name="qtyPumpedWinter" readonly /><span class="input-unit">m³</span></div></div>
+                <div class="field-group"><label>Vol of water Pumped from Storage</label><div class="input-wrapper"><input type="text" id="volStorageWinter" name="volStorageWinter" readonly /><span class="input-unit">m³</span></div></div>
                 
                 <input type="hidden" id="pumpSettingWinter" name="pumpSettingWinter" />
                 <input type="hidden" id="pumpInletWinter" name="pumpInletWinter" />
-                <input type="hidden" id="qtyPumpedWinter" name="qtyPumpedWinter" />
-                <input type="hidden" id="volStorageWinter" name="volStorageWinter" />
               </div>
             </div>
 
@@ -437,13 +448,14 @@
                 <div class="field-group"><label>Time for Complete Recuperation</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.5" id="recupSummer" name="recupSummer" placeholder="0" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div></div>
                 
                 <div class="field-group"><label>Pumped Water Level (PWL)</label><div class="input-wrapper"><input type="text" id="pwlSummer" name="pwlSummer" readonly placeholder="Auto" /><span class="input-unit">m.bgl</span></div></div>
-                <div class="field-group"><label>Drawdown</label><div class="input-wrapper"><input type="text" id="ddSummer" name="ddSummer" readonly /><span class="input-unit">m</span></div></div>
+                <div class="field-group"><label>Drawdown (PWL-SWL)</label><div class="input-wrapper"><input type="text" id="ddSummer" name="ddSummer" readonly /><span class="input-unit">m</span></div></div>
                 <div class="field-group"><label>Avg. Inflow Rate</label><div class="input-wrapper"><input type="text" id="inflowRateSummer" name="inflowRateSummer" readonly /><span class="input-unit">M³/Hr</span></div></div>
+                
+                <div class="field-group"><label>Quantity of water pumped</label><div class="input-wrapper"><input type="text" id="qtyPumpedSummer" name="qtyPumpedSummer" readonly /><span class="input-unit">m³</span></div></div>
+                <div class="field-group"><label>Vol of water Pumped from Storage</label><div class="input-wrapper"><input type="text" id="volStorageSummer" name="volStorageSummer" readonly /><span class="input-unit">m³</span></div></div>
                 
                 <input type="hidden" id="pumpSettingSummer" name="pumpSettingSummer" />
                 <input type="hidden" id="pumpInletSummer" name="pumpInletSummer" />
-                <input type="hidden" id="qtyPumpedSummer" name="qtyPumpedSummer" />
-                <input type="hidden" id="volStorageSummer" name="volStorageSummer" />
               </div>
             </div>
 
@@ -470,23 +482,24 @@
             <span class="section-title">D & E. Cropping & GW Application <span class="section-code">CROPS</span></span>
           </div>
           <div class="section-body collapsed">
-            <div class="field-group"><label>Total Land Holding</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.01" id="totalLandHolding" name="totalLandHolding" placeholder="0.00" oninput="recalculateAll();" /><span class="input-unit">Ha</span></div></div>
-            <div class="field-group"><label>Cultivable Land Holding</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.01" id="cultivableLand" name="cultivableLand" placeholder="0.00" /><span class="input-unit">Ha</span></div></div>
+            <div class="field-group"><label>Cultivable Land Holding (Max Limit)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.01" id="cultivableLand" name="cultivableLand" placeholder="0.00" oninput="recalculateAll();" /><span class="input-unit">Ha</span></div></div>
+            <div class="full-width" id="areaWarning" style="color:var(--danger); font-size:0.8rem; font-weight:800; display:none;">⚠️ Warning: Season Area exceeds Cultivable Land!</div>
             
             <div class="full-width" style="margin-top: 6px;"><label style="font-size: 0.8rem; color: var(--primary); font-weight: 800;">1. PERENNIAL CROPS</label></div>
-            <div class="field-group"><label>Perennial Crop 1</label><select id="perennialCrop1" name="perennialCrop1" onchange="recalculateAll();"></select></div>
-            <div class="field-group"><label>Perennial Crop 2</label><input type="text" id="perennialCrop2" name="perennialCrop2" oninput="recalculateAll();" placeholder="Custom crop..." /></div>
+            <div class="field-group"><label>Perennial Crop 1</label><select id="perennialCrop1" name="perennialCrop1" onchange="updateWellStatusAuto(); recalculateAll();"></select></div>
+            <div class="field-group"><label>Perennial Crop 2</label><input type="text" id="perennialCrop2" name="perennialCrop2" oninput="updateWellStatusAuto(); recalculateAll();" placeholder="Custom crop..." /></div>
             
             <div class="full-width" style="margin-top: 6px;"><label style="font-size: 0.8rem; color: var(--primary); font-weight: 800;">2. SEASONAL CROPS SELECTION</label></div>
             <div class="field-group"><label>Kharif Crop 1</label><select id="kharifCrop1" name="kharifCrop1" onchange="recalculateAll();"></select></div>
             <div class="field-group"><label>Kharif Crop 2</label><select id="kharifCrop2" name="kharifCrop2" onchange="recalculateAll();"></select></div>
+            <div class="field-group"><label>Kharif Crop 3</label><input type="text" id="kharifCrop3" name="kharifCrop3" oninput="recalculateAll();" placeholder="Custom crop..." /></div>
+            
             <div class="field-group"><label>Rabi Crop 1</label><select id="rabiCrop1" name="rabiCrop1" onchange="recalculateAll();"></select></div>
             <div class="field-group"><label>Rabi Crop 2</label><select id="rabiCrop2" name="rabiCrop2" onchange="recalculateAll();"></select></div>
-            <div class="field-group"><label>Summer Crop 1</label><select id="summerCrop1" name="summerCrop1" onchange="recalculateAll();"></select></div>
+            <div class="field-group"><label>Rabi Crop 3</label><input type="text" id="rabiCrop3" name="rabiCrop3" oninput="recalculateAll();" placeholder="Custom crop..." /></div>
             
-            <input type="hidden" id="kharifCrop3" name="kharifCrop3" value="" />
-            <input type="hidden" id="rabiCrop3" name="rabiCrop3" value="" />
-            <input type="hidden" id="summerCrop2" name="summerCrop2" value="" />
+            <div class="field-group"><label>Summer Crop 1</label><select id="summerCrop1" name="summerCrop1" onchange="recalculateAll();"></select></div>
+            <div class="field-group"><label>Summer Crop 2</label><input type="text" id="summerCrop2" name="summerCrop2" oninput="recalculateAll();" placeholder="Custom crop..." /></div>
 
             <div class="full-width" style="margin-top: 14px;">
               <label style="font-size: 0.82rem; color: var(--primary); font-weight: 800; margin-bottom: 6px; display: block;">3. AREA BY IRRIGATION METHOD (HA)</label>
@@ -499,25 +512,25 @@
               <!-- FLOOD METHOD -->
               <div id="floodTab" class="method-subpanel active">
                 <div class="season-card"><div class="season-card-title">Perennial Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_perennialFloodHa1">Perennial 1 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialFloodHa1" name="perennialFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_perennialFloodHa2">Perennial 2 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialFloodHa2" name="perennialFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
-                <div class="season-card"><div class="season-card-title">Kharif Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_kharifFloodHa1">Kharif 1</label><input type="number" inputmode="decimal" step="0.01" id="kharifFloodHa1" name="kharifFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifFloodHa2">Kharif 2</label><input type="number" inputmode="decimal" step="0.01" id="kharifFloodHa2" name="kharifFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div><input type="hidden" id="kharifFloodHa3" name="kharifFloodHa3" value="0" /></div></div>
-                <div class="season-card"><div class="season-card-title">Rabi Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_rabiFloodHa1">Rabi 1</label><input type="number" inputmode="decimal" step="0.01" id="rabiFloodHa1" name="rabiFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiFloodHa2">Rabi 2</label><input type="number" inputmode="decimal" step="0.01" id="rabiFloodHa2" name="rabiFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div><input type="hidden" id="rabiFloodHa3" name="rabiFloodHa3" value="0" /></div></div>
-                <div class="season-card"><div class="season-card-title">Summer Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr; gap: 10px;"><div class="field-group"><label id="lbl_summerFloodHa1">Summer 1</label><input type="number" inputmode="decimal" step="0.01" id="summerFloodHa1" name="summerFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><input type="hidden" id="summerFloodHa2" name="summerFloodHa2" value="0" /></div></div>
+                <div class="season-card"><div class="season-card-title">Kharif Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_kharifFloodHa1">Kharif 1</label><input type="number" inputmode="decimal" step="0.01" id="kharifFloodHa1" name="kharifFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifFloodHa2">Kharif 2</label><input type="number" inputmode="decimal" step="0.01" id="kharifFloodHa2" name="kharifFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifFloodHa3">Kharif 3</label><input type="number" inputmode="decimal" step="0.01" id="kharifFloodHa3" name="kharifFloodHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Rabi Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_rabiFloodHa1">Rabi 1</label><input type="number" inputmode="decimal" step="0.01" id="rabiFloodHa1" name="rabiFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiFloodHa2">Rabi 2</label><input type="number" inputmode="decimal" step="0.01" id="rabiFloodHa2" name="rabiFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiFloodHa3">Rabi 3</label><input type="number" inputmode="decimal" step="0.01" id="rabiFloodHa3" name="rabiFloodHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Summer Crops (Flood Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_summerFloodHa1">Summer 1</label><input type="number" inputmode="decimal" step="0.01" id="summerFloodHa1" name="summerFloodHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_summerFloodHa2">Summer 2</label><input type="number" inputmode="decimal" step="0.01" id="summerFloodHa2" name="summerFloodHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
               </div>
 
               <!-- DRIP METHOD -->
               <div id="dripTab" class="method-subpanel">
-                <div class="season-card"><div class="season-card-title">Perennial Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Perennial 1 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialDripHa1" name="perennialDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Perennial 2 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialDripHa2" name="perennialDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
-                <div class="season-card"><div class="season-card-title">Kharif Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Kharif 1</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa1" name="kharifDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Kharif 2</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa2" name="kharifDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><input type="hidden" id="kharifDripHa3" name="kharifDripHa3" value="0" /></div></div>
-                <div class="season-card"><div class="season-card-title">Rabi Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Rabi 1</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa1" name="rabiDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Rabi 2</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa2" name="rabiDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><input type="hidden" id="rabiDripHa3" name="rabiDripHa3" value="0" /></div></div>
-                <div class="season-card"><div class="season-card-title">Summer Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr; gap: 10px;"><div class="field-group"><label>Summer 1</label><input type="number" inputmode="decimal" step="0.01" id="summerDripHa1" name="summerDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><input type="hidden" id="summerDripHa2" name="summerDripHa2" value="0" /></div></div>
+                <div class="season-card"><div class="season-card-title">Perennial Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_perennialDripHa1">Perennial 1 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialDripHa1" name="perennialDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_perennialDripHa2">Perennial 2 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialDripHa2" name="perennialDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Kharif Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_kharifDripHa1">Kharif 1</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa1" name="kharifDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifDripHa2">Kharif 2</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa2" name="kharifDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifDripHa3">Kharif 3</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa3" name="kharifDripHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Rabi Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_rabiDripHa1">Rabi 1</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa1" name="rabiDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiDripHa2">Rabi 2</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa2" name="rabiDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiDripHa3">Rabi 3</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa3" name="rabiDripHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Summer Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_summerDripHa1">Summer 1</label><input type="number" inputmode="decimal" step="0.01" id="summerDripHa1" name="summerDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_summerDripHa2">Summer 2</label><input type="number" inputmode="decimal" step="0.01" id="summerDripHa2" name="summerDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
               </div>
 
               <!-- SPRINKLER METHOD -->
               <div id="sprinklerTab" class="method-subpanel">
-                <div class="season-card"><div class="season-card-title">Perennial Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Perennial 1 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialSprinklerHa1" name="perennialSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Perennial 2 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialSprinklerHa2" name="perennialSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
-                <div class="season-card"><div class="season-card-title">Kharif Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Kharif 1</label><input type="number" inputmode="decimal" step="0.01" id="kharifSprinklerHa1" name="kharifSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Kharif 2</label><input type="number" inputmode="decimal" step="0.01" id="kharifSprinklerHa2" name="kharifSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div><input type="hidden" id="kharifSprinklerHa3" name="kharifSprinklerHa3" value="0" /></div></div>
-                <div class="season-card"><div class="season-card-title">Rabi Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label>Rabi 1</label><input type="number" inputmode="decimal" step="0.01" id="rabiSprinklerHa1" name="rabiSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label>Rabi 2</label><input type="number" inputmode="decimal" step="0.01" id="rabiSprinklerHa2" name="rabiSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div><input type="hidden" id="rabiSprinklerHa3" name="rabiSprinklerHa3" value="0" /></div></div>
-                <div class="season-card"><div class="season-card-title">Summer Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr; gap: 10px;"><div class="field-group"><label>Summer 1</label><input type="number" inputmode="decimal" step="0.01" id="summerSprinklerHa1" name="summerSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><input type="hidden" id="summerSprinklerHa2" name="summerSprinklerHa2" value="0" /></div></div>
+                <div class="season-card"><div class="season-card-title">Perennial Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_perennialSprinklerHa1">Perennial 1 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialSprinklerHa1" name="perennialSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_perennialSprinklerHa2">Perennial 2 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialSprinklerHa2" name="perennialSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Kharif Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_kharifSprinklerHa1">Kharif 1</label><input type="number" inputmode="decimal" step="0.01" id="kharifSprinklerHa1" name="kharifSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifSprinklerHa2">Kharif 2</label><input type="number" inputmode="decimal" step="0.01" id="kharifSprinklerHa2" name="kharifSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifSprinklerHa3">Kharif 3</label><input type="number" inputmode="decimal" step="0.01" id="kharifSprinklerHa3" name="kharifSprinklerHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Rabi Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_rabiSprinklerHa1">Rabi 1</label><input type="number" inputmode="decimal" step="0.01" id="rabiSprinklerHa1" name="rabiSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiSprinklerHa2">Rabi 2</label><input type="number" inputmode="decimal" step="0.01" id="rabiSprinklerHa2" name="rabiSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiSprinklerHa3">Rabi 3</label><input type="number" inputmode="decimal" step="0.01" id="rabiSprinklerHa3" name="rabiSprinklerHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Summer Crops (Sprinkler Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_summerSprinklerHa1">Summer 1</label><input type="number" inputmode="decimal" step="0.01" id="summerSprinklerHa1" name="summerSprinklerHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_summerSprinklerHa2">Summer 2</label><input type="number" inputmode="decimal" step="0.01" id="summerSprinklerHa2" name="summerSprinklerHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
               </div>
             </div>
 
@@ -526,9 +539,9 @@
               <label style="font-size: 0.82rem; color: var(--primary); font-weight: 800;">📊 CROPPING IRRIGATION & GROUNDWATER APPLIED (HAM)</label>
               <div style="overflow-x: auto;">
                 <table class="calc-table" id="cropWaterTable">
-                  <thead><tr><th class="text-left">Season / Crop</th><th>Area (Ha)</th><th>No. of Waterings</th><th>Depth (m)</th><th>GW Applied (Ham)</th><th>Days Req. (1 Water)</th><th>Total Days Req.</th></tr></thead>
+                  <thead><tr><th class="text-left">Season / Crop</th><th>Flood Ha</th><th>Drip Ha</th><th>Sprinkler Ha</th><th>Total Ha</th><th>No. of Waterings</th><th>Depth (m)</th><th>GW Applied (Ham)</th><th>Days Req. (1 Water)</th><th>Total Days Req.</th></tr></thead>
                   <tbody id="cropWaterTableBody"></tbody>
-                  <tfoot><tr style="background: var(--card-subtle); font-weight: 800;"><td class="text-left">TOTAL GW APPLIED</td><td id="tableTotalArea">0.00</td><td>-</td><td>-</td><td id="tableTotalHam" class="highlight">0.0000</td><td>-</td><td id="tableTotalDays" class="highlight">0</td></tr></tfoot>
+                  <tfoot><tr style="background: var(--card-subtle); font-weight: 800;"><td class="text-left">TOTAL GW APPLIED</td><td id="tableTotalFlood">0.00</td><td id="tableTotalDrip">0.00</td><td id="tableTotalSprinkler">0.00</td><td id="tableTotalArea">0.00</td><td>-</td><td>-</td><td id="tableTotalHam" class="highlight">0.0000</td><td>-</td><td id="tableTotalDays" class="highlight">0</td></tr></tfoot>
                 </table>
               </div>
             </div>
@@ -590,7 +603,7 @@
           <div class="section-body">
             <div class="full-width photo-box">
               <canvas id="stampCanvas" style="display:none;"></canvas>
-              <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display: none;" onchange="processWatermarkedPhoto(event)" />
+              <input type="file" id="cameraInput" accept="image/*" style="display: none;" onchange="processWatermarkedPhoto(event)" />
               <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
                 <button type="button" class="geo-btn" style="padding: 12px 20px; font-size: 0.95rem;" onclick="document.getElementById('cameraInput').click()">📷 Take / Upload Stamped Photo</button>
                 <button type="button" id="removePhotoBtn" class="btn-sm" style="display: none; background: rgba(239, 68, 68, 0.1); border-color: var(--danger); color: var(--danger); padding: 12px 20px; font-size: 0.95rem;" onclick="clearCurrentPhoto()">❌ Remove Photo</button>
@@ -680,7 +693,6 @@
   <div id="toast"></div>
 
   <script>
-    // CACHED CROP DROPDOWN LISTS
     let CROP_LISTS = JSON.parse(localStorage.getItem('HYDROGEO_CROP_LISTS')) || {
       Kharif: ["Cotton", "Soybean", "Tur", "Mug", "Jwar"],
       Rabi: ["Wheat", "Gram", "Jwar", "Tur"],
@@ -688,7 +700,6 @@
       Perennial: ["Sugarcane", "Orange", "Pomegranate", "Greps", "Banana", "Drumstick", "Lemon"]
     };
 
-    // CACHED CROP DATABASE for calculations
     let CROP_WATER_DATABASE = JSON.parse(localStorage.getItem('HYDROGEO_CROP_DB')) || {
       "Kharif": { "Cotton": { waterings: 2, depth: 0.0635 }, "Soybean": { waterings: 2, depth: 0.0635 }, "Tur": { waterings: 2, depth: 0.0635 }, "Mug": { waterings: 2, depth: 0.0635 }, "Jwar": { waterings: 2, depth: 0.0635 }, "None": { waterings: 0, depth: 0 } },
       "Rabi": { "Wheat": { waterings: 9, depth: 0.0762 }, "Gram": { waterings: 3, depth: 0.0635 }, "Jwar": { waterings: 3, depth: 0.0635 }, "Tur": { waterings: 3, depth: 0.0635 }, "None": { waterings: 0, depth: 0 } },
@@ -740,7 +751,6 @@
       }
     });
 
-    // Theme Management
     function initTheme() {
       const savedTheme = localStorage.getItem('HYDROGEO_THEME') || 'daylight';
       setTheme(savedTheme);
@@ -754,7 +764,6 @@
       if(activeBtn) activeBtn.classList.add('active');
     }
 
-    // Profile Management
     function initProfile() {
       try {
           const profile = JSON.parse(localStorage.getItem('HYDROGEO_PROFILE') || '{"name":"VN Nimbalkar", "desig":"Assistant Geologist"}');
@@ -772,7 +781,6 @@
       document.getElementById('designation').value = desig;
     }
 
-    // Cloud Sync Management
     function saveCloudSetup() {
         const setup = {
             url: document.getElementById('cloudSyncUrl').value,
@@ -788,16 +796,12 @@
             document.getElementById('cloudSyncUrl').value = setup.url || '';
             document.getElementById('cloudSheetId').value = setup.sheet || '';
             document.getElementById('cloudFolderId').value = setup.folder || '';
-        } catch(e) {
-            console.warn("Could not load cloud setup.");
-        }
+        } catch(e) {}
     }
 
     function setRadioVal(name, val) {
       let radios = document.getElementsByName(name);
-      for (let r of radios) { 
-        if (r.value === val) r.checked = true; 
-      }
+      for (let r of radios) { if (r.value === val) r.checked = true; }
     }
 
     function toggleSection(headerElement) {
@@ -806,10 +810,7 @@
       body.classList.toggle('collapsed');
     }
 
-    function openOfflineGuide() {
-      document.getElementById('offlineGuideModal').classList.add('active');
-    }
-
+    function openOfflineGuide() { document.getElementById('offlineGuideModal').classList.add('active'); }
     function closeOfflineGuide(event) {
       if (event && event.target && !event.target.classList.contains('modal-backdrop') && !event.target.classList.contains('btn-export') && !event.target.classList.contains('modal-close')) return;
       document.getElementById('offlineGuideModal').classList.remove('active');
@@ -822,10 +823,7 @@
       }
       try {
         const [fileHandle] = await window.showOpenFilePicker({
-          types: [{ 
-            description: 'Excel Files', 
-            accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx', '.xlsm', '.xls'] } 
-          }]
+          types: [{ description: 'Excel Files', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx', '.xlsm', '.xls'] } }]
         });
         globalFileHandle = fileHandle;
         const file = await fileHandle.getFile();
@@ -840,7 +838,6 @@
       const file = event.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      
       showToast("⏳ Reading Databases...");
       reader.onload = function(e) {
         try {
@@ -850,7 +847,6 @@
           globalFileName = file.name;
           let dbUpdated = false;
 
-          // 1. Village Data from Sheet2
           const sheet2 = workbook.Sheets["Sheet2"];
           if (sheet2) {
             const jsonData = XLSX.utils.sheet_to_json(sheet2, {defval: ""});
@@ -867,7 +863,6 @@
               const lon = String(row["Longitude"] || "").trim();
               const pop = String(row["Population"] || "").trim(); 
               const district = String(row["District"] || row["District Name"] || row["district"] || "Solapur").trim();
-              
               if(taluka && village) {
                   if(!db[taluka]) db[taluka] = [];
                   db[taluka].push([village, gp, census, watershed, topo, lat, lon, pop, district]);
@@ -881,35 +876,29 @@
             }
           }
 
-          // 2. Crop Dropdown Lists from Sheet1
           const sheet1 = workbook.Sheets["Sheet1"];
           if (sheet1) {
             const s1Data = XLSX.utils.sheet_to_json(sheet1, {defval: ""});
             const newCropLists = { Kharif: [], Rabi: [], Summer: [], Perennial: [] };
-            
             s1Data.forEach(row => {
               const crop = String(row["Crops"] || "").trim();
               const season = String(row["Season"] || "").trim().toLowerCase();
               if (!crop || !season) return;
-              
               if (season.includes("kharif")) newCropLists.Kharif.push(crop);
               else if (season.includes("rabi")) newCropLists.Rabi.push(crop);
               else if (season.includes("summer")) newCropLists.Summer.push(crop);
               else if (season.includes("perennial")) newCropLists.Perennial.push(crop);
             });
-            
             localStorage.setItem("HYDROGEO_CROP_LISTS", JSON.stringify(newCropLists));
             CROP_LISTS = newCropLists;
             dbUpdated = true;
           }
 
-          // 3. Crop Calculations from Sheet3
           const sheet3 = workbook.Sheets["Sheet3"];
           if (sheet3) {
             const cropData = XLSX.utils.sheet_to_json(sheet3, {defval: ""});
             const newCropDB = { Kharif: {}, Rabi: {}, Summer: {}, Perennial: {} };
             const perennialNames = ["Sugarcane", "Orange", "Pomegranate", "Greps", "Grapes", "Banana", "Drumstick", "Lemon"];
-            
             newCropDB.Kharif["None"] = { waterings: 0, depth: 0 };
             newCropDB.Rabi["None"] = { waterings: 0, depth: 0 };
             newCropDB.Summer["None"] = { waterings: 0, depth: 0 };
@@ -920,23 +909,17 @@
               const seasonStr = String(row["Season"] || "").trim();
               const waterings = parseFloat(row["No. of waterings"]);
               const depth = parseFloat(row["Depth of watering in m"]);
-              
               if (!crop || !seasonStr || isNaN(waterings) || isNaN(depth)) return;
-
               let standardSeason = "Summer";
               if (seasonStr.toLowerCase().includes("kharif")) standardSeason = "Kharif";
               else if (seasonStr.toLowerCase().includes("rabi")) standardSeason = "Rabi";
-
               if (perennialNames.some(p => crop.toLowerCase().includes(p.toLowerCase()))) {
-                if (!newCropDB.Perennial[crop]) {
-                  newCropDB.Perennial[crop] = { Kharif: { waterings: 0, depth: 0 }, Rabi: { waterings: 0, depth: 0 }, Summer: { waterings: 0, depth: 0 } };
-                }
+                if (!newCropDB.Perennial[crop]) newCropDB.Perennial[crop] = { Kharif: { waterings: 0, depth: 0 }, Rabi: { waterings: 0, depth: 0 }, Summer: { waterings: 0, depth: 0 } };
                 newCropDB.Perennial[crop][standardSeason] = { waterings, depth };
               } else {
                 newCropDB[standardSeason][crop] = { waterings, depth };
               }
             });
-
             if (Object.keys(newCropDB.Kharif).length > 1) {
               localStorage.setItem("HYDROGEO_CROP_DB", JSON.stringify(newCropDB));
               CROP_WATER_DATABASE = newCropDB;
@@ -944,16 +927,13 @@
             }
           }
 
-          // 4. Lithology Data from "Lithology" sheet
           const sheetLitho = workbook.Sheets["Lithology"];
           if (sheetLitho) {
             const sLithoDataArr = XLSX.utils.sheet_to_json(sheetLitho, {header: 1, defval: ""});
             let parsedLists = [[], [], [], [], []];
-            
             if (sLithoDataArr.length > 0) {
               let hasNumericCol = -1;
               let hasTextCol = -1;
-              
               if (sLithoDataArr.length > 1) {
                   for (let c=0; c<sLithoDataArr[1].length; c++) {
                       let val = String(sLithoDataArr[1][c]).trim();
@@ -961,7 +941,6 @@
                       else if (val.length > 3) hasTextCol = c;
                   }
               }
-
               if (hasNumericCol !== -1 && hasTextCol !== -1) {
                   for (let r=0; r<sLithoDataArr.length; r++) {
                       let numStr = String(sLithoDataArr[r][hasNumericCol] || "").replace(/[^0-9]/g, '');
@@ -986,13 +965,10 @@
                       }
                   }
               }
-
               let hasData = parsedLists.some(arr => arr.length > 0);
               if (hasData) {
                   for (let i = 1; i < 5; i++) {
-                      if (parsedLists[i].length === 0 && parsedLists[0].length > 0) {
-                          parsedLists[i] = [...parsedLists[0]];
-                      }
+                      if (parsedLists[i].length === 0 && parsedLists[0].length > 0) parsedLists[i] = [...parsedLists[0]];
                   }
                   localStorage.setItem("HYDROGEO_LITHOLOGY_LISTS", JSON.stringify(parsedLists));
                   LITHOLOGY_LISTS = parsedLists;
@@ -1001,7 +977,6 @@
             }
           }
 
-          // 5. Pump Data from "Pump" sheet
           const sheetPump = workbook.Sheets["Pump"];
           if (sheetPump) {
             const sPumpData = XLSX.utils.sheet_to_json(sheetPump, {defval: ""});
@@ -1010,7 +985,6 @@
               const keys = Object.keys(row);
               const hpKey = keys.find(k => k.toLowerCase().includes('hp')) || keys[0];
               const disKey = keys.find(k => k.toLowerCase().includes('discharge')) || keys[1];
-              
               if (hpKey && disKey) {
                 const hp = String(row[hpKey]).trim();
                 const discharge = String(row[disKey]).trim();
@@ -1036,9 +1010,7 @@
           } else {
             showToast(`⚠️ No valid data found in databases.`);
           }
-        } catch (error) {
-          showToast(`❌ Parse Error: ${error.message}`);
-        }
+        } catch (error) { showToast(`❌ Parse Error: ${error.message}`); }
       };
       reader.readAsArrayBuffer(file);
     }
@@ -1048,7 +1020,6 @@
         const el = document.getElementById(id);
         if(!el) return;
         el.innerHTML = '';
-        
         const uniqueItems = Array.from(new Set([...list, 'None']));
         uniqueItems.forEach(crop => {
           const opt = document.createElement('option');
@@ -1058,7 +1029,6 @@
           el.appendChild(opt);
         });
       };
-
       populate('perennialCrop1', CROP_LISTS.Perennial, 'None');
       populate('kharifCrop1', CROP_LISTS.Kharif, 'Cotton');
       populate('kharifCrop2', CROP_LISTS.Kharif, 'Soybean');
@@ -1074,9 +1044,7 @@
         const currentVal = el.value || defaultVal;
         el.innerHTML = '';
         let uniqueItems = Array.from(new Set(list));
-        if (uniqueItems.length === 0) {
-          uniqueItems = [defaultVal];
-        }
+        if (uniqueItems.length === 0) uniqueItems = [defaultVal];
         uniqueItems.forEach(item => {
           const opt = document.createElement('option');
           opt.value = item;
@@ -1084,9 +1052,7 @@
           if (item === currentVal) opt.selected = true;
           el.appendChild(opt);
         });
-        if (!el.value && uniqueItems.length > 0) {
-           el.value = uniqueItems[0];
-        }
+        if (!el.value && uniqueItems.length > 0) el.value = uniqueItems[0];
       };
       populate('lithoType1', LITHOLOGY_LISTS[0] || [], 'Black Cotton Soil');
       populate('lithoType2', LITHOLOGY_LISTS[1] || [], 'Highly Weathered Basalt');
@@ -1135,7 +1101,6 @@
           targetPanel.style.display = 'block';
           targetPanel.classList.add('active');
       }
-
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       const tabIndices = { 'homeTab': 0, 'newEntry': 1, 'recordsList': 2 };
       const idx = tabIndices[tabId] || 0;
@@ -1143,10 +1108,7 @@
       if(btns[idx]) btns[idx].classList.add('active');
       
       const mainHeader = document.getElementById('mainHeader');
-      if (mainHeader) {
-          mainHeader.style.display = (tabId === 'homeTab') ? 'flex' : 'none';
-      }
-
+      if (mainHeader) mainHeader.style.display = (tabId === 'homeTab') ? 'flex' : 'none';
       if (tabId === 'recordsList') applyFilters();
     }
 
@@ -1155,6 +1117,17 @@
       document.querySelectorAll('.method-subpanel').forEach(p => p.classList.remove('active'));
       btnElement.classList.add('active');
       document.getElementById(methodTabId).classList.add('active');
+    }
+    
+    function updateWellStatusAuto() {
+      const p1 = document.getElementById('perennialCrop1').value;
+      const p2 = document.getElementById('perennialCrop2').value;
+      const owner = (document.getElementById('ownerName').value || '').toUpperCase();
+      if ((p1 && p1 !== 'None') || (p2 && p2.trim() !== '') || owner.includes('PWS')) {
+          setRadioVal('wellStatus', 'Perennial well');
+      } else {
+          setRadioVal('wellStatus', 'Seasonal well');
+      }
     }
 
     function recalculateAll() {
@@ -1174,13 +1147,10 @@
 
       const effDia = parseFloat(document.getElementById('diaEffective').value) || 0;
 
-      // WINTER SEASON FORMULAS
       const durW = parseFloat(document.getElementById('pumpDurationWinter').value) || 0;
       const recupW = parseFloat(document.getElementById('recupWinter').value) || 0;
-      
       const qtyW = discharge * durW;
       document.getElementById('qtyPumpedWinter').value = qtyW ? qtyW.toFixed(2) : '';
-
       let pwlW = 0;
       if (durW > 0 && recupW > 0 && effDia > 0) {
         const denomW = (durW + recupW) * 0.786 * effDia * effDia;
@@ -1189,23 +1159,17 @@
       } else {
         document.getElementById('pwlWinter').value = '';
       }
-
       const ddW = Math.max(0, pwlW - swlW);
       document.getElementById('ddWinter').value = ddW ? ddW.toFixed(2) : '';
-
       const storageW = 0.786 * effDia * effDia * ddW;
       document.getElementById('volStorageWinter').value = storageW ? storageW.toFixed(2) : '';
-
       const inflowW = durW > 0 ? Math.max(0, (qtyW - storageW) / durW) : 0;
       document.getElementById('inflowRateWinter').value = inflowW ? inflowW.toFixed(2) : '';
 
-      // SUMMER SEASON FORMULAS
       const durS = parseFloat(document.getElementById('pumpDurationSummer').value) || 0;
       const recupS = parseFloat(document.getElementById('recupSummer').value) || 0;
-
       const qtyS = discharge * durS;
       document.getElementById('qtyPumpedSummer').value = qtyS ? qtyS.toFixed(2) : '';
-
       let pwlS = 0;
       if (durS > 0 && recupS > 0 && effDia > 0) {
         const denomS = (durS + recupS) * 0.786 * effDia * effDia;
@@ -1214,13 +1178,10 @@
       } else {
         document.getElementById('pwlSummer').value = '';
       }
-
       const ddS = Math.max(0, pwlS - swlS);
       document.getElementById('ddSummer').value = ddS ? ddS.toFixed(2) : '';
-
       const storageS = 0.786 * effDia * effDia * ddS;
       document.getElementById('volStorageSummer').value = storageS ? storageS.toFixed(2) : '';
-
       const inflowS = durS > 0 ? Math.max(0, (qtyS - storageS) / durS) : 0;
       document.getElementById('inflowRateSummer').value = inflowS ? inflowS.toFixed(2) : '';
 
@@ -1228,17 +1189,45 @@
       const p2Name = document.getElementById('perennialCrop2').value;
       const k1Name = document.getElementById('kharifCrop1').value;
       const k2Name = document.getElementById('kharifCrop2').value;
+      const k3Name = document.getElementById('kharifCrop3').value;
       const r1Name = document.getElementById('rabiCrop1').value;
       const r2Name = document.getElementById('rabiCrop2').value;
+      const r3Name = document.getElementById('rabiCrop3').value;
       const s1Name = document.getElementById('summerCrop1').value;
+      const s2Name = document.getElementById('summerCrop2').value;
 
       document.getElementById('lbl_perennialFloodHa1').innerText = `${p1Name} (Ha)`;
       document.getElementById('lbl_perennialFloodHa2').innerText = `${p2Name || 'Perennial 2'} (Ha)`;
       document.getElementById('lbl_kharifFloodHa1').innerText = `${k1Name} (Ha)`;
       document.getElementById('lbl_kharifFloodHa2').innerText = `${k2Name} (Ha)`;
+      document.getElementById('lbl_kharifFloodHa3').innerText = `${k3Name || 'Kharif 3'} (Ha)`;
       document.getElementById('lbl_rabiFloodHa1').innerText = `${r1Name} (Ha)`;
       document.getElementById('lbl_rabiFloodHa2').innerText = `${r2Name} (Ha)`;
+      document.getElementById('lbl_rabiFloodHa3').innerText = `${r3Name || 'Rabi 3'} (Ha)`;
       document.getElementById('lbl_summerFloodHa1').innerText = `${s1Name} (Ha)`;
+      document.getElementById('lbl_summerFloodHa2').innerText = `${s2Name || 'Summer 2'} (Ha)`;
+      
+      document.getElementById('lbl_perennialDripHa1').innerText = `${p1Name} (Ha)`;
+      document.getElementById('lbl_perennialDripHa2').innerText = `${p2Name || 'Perennial 2'} (Ha)`;
+      document.getElementById('lbl_kharifDripHa1').innerText = `${k1Name} (Ha)`;
+      document.getElementById('lbl_kharifDripHa2').innerText = `${k2Name} (Ha)`;
+      document.getElementById('lbl_kharifDripHa3').innerText = `${k3Name || 'Kharif 3'} (Ha)`;
+      document.getElementById('lbl_rabiDripHa1').innerText = `${r1Name} (Ha)`;
+      document.getElementById('lbl_rabiDripHa2').innerText = `${r2Name} (Ha)`;
+      document.getElementById('lbl_rabiDripHa3').innerText = `${r3Name || 'Rabi 3'} (Ha)`;
+      document.getElementById('lbl_summerDripHa1').innerText = `${s1Name} (Ha)`;
+      document.getElementById('lbl_summerDripHa2').innerText = `${s2Name || 'Summer 2'} (Ha)`;
+      
+      document.getElementById('lbl_perennialSprinklerHa1').innerText = `${p1Name} (Ha)`;
+      document.getElementById('lbl_perennialSprinklerHa2').innerText = `${p2Name || 'Perennial 2'} (Ha)`;
+      document.getElementById('lbl_kharifSprinklerHa1').innerText = `${k1Name} (Ha)`;
+      document.getElementById('lbl_kharifSprinklerHa2').innerText = `${k2Name} (Ha)`;
+      document.getElementById('lbl_kharifSprinklerHa3').innerText = `${k3Name || 'Kharif 3'} (Ha)`;
+      document.getElementById('lbl_rabiSprinklerHa1').innerText = `${r1Name} (Ha)`;
+      document.getElementById('lbl_rabiSprinklerHa2').innerText = `${r2Name} (Ha)`;
+      document.getElementById('lbl_rabiSprinklerHa3').innerText = `${r3Name || 'Rabi 3'} (Ha)`;
+      document.getElementById('lbl_summerSprinklerHa1').innerText = `${s1Name} (Ha)`;
+      document.getElementById('lbl_summerSprinklerHa2').innerText = `${s2Name || 'Summer 2'} (Ha)`;
 
       const num = (id) => parseFloat(document.getElementById(id).value) || 0;
 
@@ -1250,13 +1239,16 @@
         { season: '2a Kharif', tag: 'P', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Kharif' },
         { season: '2a Kharif', tag: '1', name: k1Name, flood: num('kharifFloodHa1'), drip: num('kharifDripHa1'), sp: num('kharifSprinklerHa1'), isPerennial: false },
         { season: '2a Kharif', tag: '2', name: k2Name, flood: num('kharifFloodHa2'), drip: num('kharifDripHa2'), sp: num('kharifSprinklerHa2'), isPerennial: false },
+        { season: '2a Kharif', tag: '3', name: k3Name, flood: num('kharifFloodHa3'), drip: num('kharifDripHa3'), sp: num('kharifSprinklerHa3'), isPerennial: false },
         { season: '2b Rabi', tag: 'P', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Rabi' },
         { season: '2b Rabi', tag: 'P', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Rabi' },
         { season: '2b Rabi', tag: '1', name: r1Name, flood: num('rabiFloodHa1'), drip: num('rabiDripHa1'), sp: num('rabiSprinklerHa1'), isPerennial: false },
         { season: '2b Rabi', tag: '2', name: r2Name, flood: num('rabiFloodHa2'), drip: num('rabiDripHa2'), sp: num('rabiSprinklerHa2'), isPerennial: false },
+        { season: '2b Rabi', tag: '3', name: r3Name, flood: num('rabiFloodHa3'), drip: num('rabiDripHa3'), sp: num('rabiSprinklerHa3'), isPerennial: false },
         { season: '2c Summer', tag: 'P', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Summer' },
         { season: '2c Summer', tag: 'P', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Summer' },
-        { season: '2c Summer', tag: '1', name: s1Name, flood: num('summerFloodHa1'), drip: num('summerDripHa1'), sp: num('summerSprinklerHa1'), isPerennial: false }
+        { season: '2c Summer', tag: '1', name: s1Name, flood: num('summerFloodHa1'), drip: num('summerDripHa1'), sp: num('summerSprinklerHa1'), isPerennial: false },
+        { season: '2c Summer', tag: '2', name: s2Name, flood: num('summerFloodHa2'), drip: num('summerDripHa2'), sp: num('summerSprinklerHa2'), isPerennial: false }
       ];
 
       const tbody = document.getElementById('cropWaterTableBody');
@@ -1267,7 +1259,7 @@
       let summerHam = 0, summerDays = 0, summerArea = 0;
       const pumpKharifHrs = parseFloat(document.getElementById('pumpKharifHrsInput').value) || 0;
 
-      let totalAreaSum = 0, totalHamSum = 0, totalDaysSum = 0;
+      let totalAreaSum = 0, totalFloodSum = 0, totalDripSum = 0, totalSprinklerSum = 0, totalHamSum = 0, totalDaysSum = 0;
 
       const getCropConfig = (seasonObj, cName) => {
         if (!cName || cName.trim() === '' || cName.trim().toLowerCase() === 'none') return { waterings: 0, depth: 0 };
@@ -1313,13 +1305,19 @@
 
         if (item.name && item.name.trim() !== 'None' && item.name.trim() !== '' && area > 0) {
           totalAreaSum += area;
+          totalFloodSum += item.flood;
+          totalDripSum += item.drip;
+          totalSprinklerSum += item.sp;
           totalHamSum += gwHam;
           totalDaysSum += totalDaysExact;
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td class="text-left"><strong>${item.season} (${item.tag})</strong> - ${item.name}</td>
-            <td>${area.toFixed(2)}</td>
+            <td>${item.flood.toFixed(2)}</td>
+            <td>${item.drip.toFixed(2)}</td>
+            <td>${item.sp.toFixed(2)}</td>
+            <td><strong>${area.toFixed(2)}</strong></td>
             <td>${waterings}</td>
             <td>${depth > 0 ? depth.toFixed(4) : '0.00'}</td>
             <td class="highlight">${gwHam.toFixed(4)}</td>
@@ -1330,6 +1328,9 @@
         }
       });
 
+      document.getElementById('tableTotalFlood').innerText = totalFloodSum.toFixed(2);
+      document.getElementById('tableTotalDrip').innerText = totalDripSum.toFixed(2);
+      document.getElementById('tableTotalSprinkler').innerText = totalSprinklerSum.toFixed(2);
       document.getElementById('tableTotalArea').innerText = totalAreaSum.toFixed(2);
       document.getElementById('tableTotalHam').innerText = totalHamSum.toFixed(4);
       document.getElementById('tableTotalDays').innerText = Math.round(totalDaysSum);
@@ -1339,6 +1340,14 @@
       document.getElementById('totalSummerHa').value = (summerArea).toFixed(2);
       document.getElementById('totalGWAppliedHam').value = totalHamSum.toFixed(4);
       document.getElementById('totalOperatingDays').value = Math.round(totalDaysSum);
+      
+      const culLand = parseFloat(document.getElementById('cultivableLand').value) || 0;
+      const awarn = document.getElementById('areaWarning');
+      if(culLand > 0 && (kharifArea > culLand || rabiArea > culLand || summerArea > culLand)) {
+          awarn.style.display = 'block';
+      } else {
+          awarn.style.display = 'none';
+      }
 
       const rabi1DaysExact = rabiDays / 2;
       const rabi2DaysExact = rabiDays / 2;
@@ -1376,15 +1385,12 @@
       document.getElementById('perfTotalHam').innerText = totalPerfHam.toFixed(4);
     }
 
-    // CLOUD SYNC LOGIC
     function formatRecordForExport(r) {
       const num = (val) => parseFloat(val) || 0;
-      
       const p1Name = r.perennialCrop1;
       const p2Name = r.perennialCrop2;
       const p1Area = { flood: num(r.perennialFloodHa1), drip: num(r.perennialDripHa1), sp: num(r.perennialSprinklerHa1) };
       const p2Area = { flood: num(r.perennialFloodHa2), drip: num(r.perennialDripHa2), sp: num(r.perennialSprinklerHa2) };
-
       const cropList = [
           { season: 'Kharif', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Kharif' },
           { season: 'Kharif', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Kharif' },
@@ -1401,9 +1407,7 @@
           { season: 'Summer', name: r.summerCrop1, flood: num(r.summerFloodHa1), drip: num(r.summerDripHa1), sp: num(r.summerSprinklerHa1), isPerennial: false },
           { season: 'Summer', name: r.summerCrop2, flood: num(r.summerFloodHa2), drip: num(r.summerDripHa2), sp: num(r.summerSprinklerHa2), isPerennial: false }
       ];
-
       let kharifHam = 0, rabiHam = 0, summerHam = 0;
-
       const getCropConfig = (seasonObj, cName) => {
           if (!cName || cName.trim() === '' || cName.trim().toLowerCase() === 'none') return { waterings: 0, depth: 0 };
           const keys = Object.keys(seasonObj);
@@ -1418,7 +1422,6 @@
           if (match) return CROP_WATER_DATABASE.Perennial[match][perSeason];
           return { waterings: 5, depth: 0.0762 };
       };
-
       cropList.forEach(item => {
           let info = { waterings: 0, depth: 0 };
           if (item.isPerennial) {
@@ -1431,7 +1434,6 @@
           if (item.season === 'Rabi') rabiHam += gwHam;
           if (item.season === 'Summer') summerHam += gwHam;
       });
-
       let lat = "", lon = "";
       if (r.gpsCoords && r.gpsCoords.includes(',')) {
           const parts = r.gpsCoords.split(',');
@@ -1440,7 +1442,6 @@
       } else {
           lat = r.gpsCoords || "";
       }
-
       return [
           Number(r.srNo) || '', r.taluka || '', r.village || '', r.ownerName || '', r.surveyDate || '', r.wellType || '',
           r.gatNo || '', r.quadrantNo || '', lat, lon, r.depthWell || '', r.diaEffective || '', r.depthLining || '',
@@ -1459,15 +1460,11 @@
       if(!setupStr) return showToast("⚠️ Go to Home Tab and enter Sync URLs first!");
       const setup = JSON.parse(setupStr);
       if(!setup.url || !setup.sheet || !setup.folder) return showToast("⚠️ Missing Cloud URL or IDs in Home Tab!");
-
       const records = getStoredRecords();
       if(records.length === 0) return showToast("No records to sync!");
-
       showToast(`☁️ Syncing ${records.length} records to Cloud...`);
-
       let successCount = 0;
       const sortedRecords = [...records].sort((a, b) => (Number(a.srNo) || 0) - (Number(b.srNo) || 0));
-
       for(let r of sortedRecords) {
           const rowData = formatRecordForExport(r);
           const payload = {
@@ -1477,9 +1474,7 @@
               photoBase64: r.photoData || "",
               photoName: "SrNo_" + r.srNo + "_" + (r.village||"Well") + ".jpg"
           };
-
           try {
-              // mode: 'no-cors' allows browser to transmit data without throwing cross-origin security errors
               await fetch(setup.url.trim(), {
                   method: "POST",
                   mode: "no-cors",
@@ -1487,31 +1482,25 @@
                   headers: { "Content-Type": "text/plain;charset=utf-8" }
               });
               successCount++;
-          } catch(e) {
-              console.error("Fetch failed:", e);
-          }
+          } catch(e) {}
       }
-      
-      if (successCount === records.length) {
-          showToast(`✅ Sent to drive successfully!`);
-      } else if (successCount > 0) {
-          showToast(`⚠️ Sent to drive successfully! (${successCount}/${records.length} sent)`);
-      } else {
-          showToast(`❌ Sync Failed! Check Web App permissions.`);
-      }
+      if (successCount === records.length) showToast(`✅ Sent to drive successfully!`);
+      else if (successCount > 0) showToast(`⚠️ Sent to drive successfully! (${successCount}/${records.length} sent)`);
+      else showToast(`❌ Sync Failed! Check Web App permissions.`);
     }
 
-    // DIRECT FOLDER PERSISTENCE & RECOVERY
-    async function selectRootFolder() {
+    async function selectRootFolderFallback() {
       if (!('showDirectoryPicker' in window)) {
-        showToast('⚠️ Direct folder access not supported by mobile browser.');
+        showToast('⚠️ Directory API not supported on this browser/device. Using localStorage only.');
         return null;
       }
+      return await selectRootFolder();
+    }
+    
+    async function selectRootFolder() {
       try {
         rootDirHandle = await window.showDirectoryPicker();
         showToast(`✅ Folder linked: ${rootDirHandle.name}`);
-        
-        // AUTO-RECOVER DATA IF EXISTS
         try {
             const fileHandle = await rootDirHandle.getFileHandle('survey_backup.json');
             const file = await fileHandle.getFile();
@@ -1532,6 +1521,7 @@
 
     async function getWellDataFolder() {
       if (rootDirHandle) return rootDirHandle;
+      if (!('showDirectoryPicker' in window)) return null;
       return await selectRootFolder();
     }
 
@@ -1540,12 +1530,9 @@
       if (dirHandle) {
         try {
           let targetFolderHandle = dirHandle;
-          if (subFolder) {
-            targetFolderHandle = await dirHandle.getDirectoryHandle(subFolder, { create: true });
-          }
+          if (subFolder) targetFolderHandle = await dirHandle.getDirectoryHandle(subFolder, { create: true });
           const fileHandle = await targetFolderHandle.getFileHandle(filename, { create: true });
           const writable = await fileHandle.createWritable();
-          
           if (isBinary) {
             const response = await fetch(content);
             const blob = await response.blob();
@@ -1555,9 +1542,7 @@
           }
           await writable.close();
           return true;
-        } catch (e) {
-          console.error(e);
-        }
+        } catch (e) {}
       }
       return false;
     }
@@ -1565,9 +1550,7 @@
     async function savePhotoToWellDataFolder(base64Data, filename) {
       if (!base64Data) return;
       const saved = await saveFileToFolder('images', filename, base64Data, true);
-      if (saved) {
-        return;
-      }
+      if (saved) return;
       const a = document.createElement('a');
       a.href = base64Data;
       a.download = filename;
@@ -1576,7 +1559,6 @@
       document.body.removeChild(a);
     }
 
-    // AUTO-BACKUP LOGIC
     async function autoBackupToFolder(records) {
         if (!rootDirHandle) return;
         try {
@@ -1584,24 +1566,19 @@
             const jWritable = await jsonHandle.createWritable();
             await jWritable.write(JSON.stringify(records, null, 2));
             await jWritable.close();
-            
             await exportToExcel(true);
-        } catch (e) {
-            console.error("Auto-backup failed", e);
-        }
+        } catch (e) {}
     }
 
     function initTalukaDropdowns() {
       const talukaSelect = document.getElementById('taluka');
       const filterTaluka = document.getElementById('filterTaluka');
       talukaSelect.innerHTML = '';
-      
       Object.keys(SHEET2_FULL_DATABASE).sort().forEach(t => {
         const opt = document.createElement('option');
         opt.value = t;
         opt.textContent = t;
         talukaSelect.appendChild(opt);
-
         const fOpt = document.createElement('option');
         fOpt.value = t;
         fOpt.textContent = t;
@@ -1614,11 +1591,9 @@
       const records = getStoredRecords();
       const nextSrNo = records.length > 0 ? Math.max(...records.map(r => Number(r.srNo) || 0)) + 1 : 1;
       document.getElementById('srNo').value = nextSrNo;
-      
       const now = new Date();
       document.getElementById('surveyDate').value = now.toISOString().split('T')[0];
       document.getElementById('surveyTime').value = now.toTimeString().split(' ')[0].substring(0, 5);
-      
       document.getElementById('mapSheetNo').value = '';
       document.getElementById('population').value = '';
     }
@@ -1627,7 +1602,6 @@
       const taluka = document.getElementById('taluka').value;
       const villageSelect = document.getElementById('village');
       villageSelect.innerHTML = '';
-
       const villages = SHEET2_FULL_DATABASE[taluka] || [];
       villages.forEach((v, idx) => {
         const opt = document.createElement('option');
@@ -1642,7 +1616,6 @@
       const taluka = document.getElementById('taluka').value;
       const villageIdx = document.getElementById('village').value;
       const data = SHEET2_FULL_DATABASE[taluka]?.[villageIdx];
-
       if (data) {
         const [vName, gp, census, watershed, topo, lat, lon, pop, district] = data;
         document.getElementById('gpName').value = gp || vName;
@@ -1651,7 +1624,6 @@
         document.getElementById('sheet10k').value = topo || '47 O/13';
         document.getElementById('population').value = pop || ''; 
         if (district) document.getElementById('district').value = district;
-        
         if (lat && lon && typeof lat === 'number') {
           document.getElementById('gpsCoords').value = `${lat}, ${lon}`;
           calculateAltitude(lat, lon);
@@ -1670,7 +1642,6 @@
       }
       if (statusEl) statusEl.innerText = 'Locking...';
       if (formBtn) formBtn.innerText = '📍 Locking...';
-      
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           const lat = pos.coords.latitude.toFixed(6);
@@ -1706,9 +1677,7 @@
       try {
         const res = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
         const data = await res.json();
-        if (data.elevation && data.elevation.length > 0) {
-          document.getElementById('altitudeGL').value = Math.round(data.elevation[0]);
-        }
+        if (data.elevation && data.elevation.length > 0) document.getElementById('altitudeGL').value = Math.round(data.elevation[0]);
       } catch (e) {
         document.getElementById('altitudeGL').value = '485';
       }
@@ -1717,7 +1686,6 @@
     function processWatermarkedPhoto(event) {
       const file = event.target.files[0];
       if (!file) return;
-
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
@@ -1728,15 +1696,9 @@
           let width = img.width;
           let height = img.height;
           if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
+            if (width > height) { height = Math.round((height * maxDim) / width); width = maxDim; }
+            else { width = Math.round((width * maxDim) / height); height = maxDim; }
           }
-
           canvas.width = width;
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
@@ -1755,7 +1717,6 @@
 
           const fontSize = Math.max(14, Math.round(width * 0.024));
           ctx.font = `bold ${fontSize}px sans-serif`;
-          
           ctx.fillStyle = '#38bdf8';
           ctx.fillText(`📍 GPS: ${gps} | Alt: ${alt} m.MSL`, 15, height - bannerHeight + (bannerHeight * 0.3));
           ctx.fillStyle = '#ffffff';
@@ -1788,36 +1749,24 @@
     }
 
     function getStoredRecords() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch (e) {
-        return [];
-      }
+      try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; }
+      catch (e) { return []; }
     }
 
     async function saveStoredRecords(records) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
         updateBadge();
-        if (rootDirHandle) {
-            autoBackupToFolder(records);
-        }
+        if (rootDirHandle) autoBackupToFolder(records);
         return true;
-      } catch (e) {
-        return false;
-      }
+      } catch (e) { return false; }
     }
 
-    function updateBadge() {
-      const records = getStoredRecords();
-      document.getElementById('recordCountBadge').innerText = records.length;
-    }
+    function updateBadge() { document.getElementById('recordCountBadge').innerText = getStoredRecords().length; }
 
     async function handleFormSubmit(e) {
       if (e) e.preventDefault();
       recalculateAll();
-
       const form = document.getElementById('surveyForm');
       const formData = new FormData(form);
       const entry = Object.fromEntries(formData.entries());
@@ -1830,11 +1779,8 @@
 
       let records = getStoredRecords();
       const existingIdx = records.findIndex(r => String(r.srNo) === String(entry.srNo));
-      if (existingIdx >= 0) {
-        records[existingIdx] = entry;
-      } else {
-        records.unshift(entry);
-      }
+      if (existingIdx >= 0) records[existingIdx] = entry;
+      else records.unshift(entry);
       
       const success = await saveStoredRecords(records);
       if (success) {
@@ -1851,10 +1797,7 @@
     function editRecord(srNo) {
       const records = getStoredRecords();
       const r = records.find(item => Number(item.srNo) === Number(srNo));
-      if (!r) {
-        showToast('❌ Record not found.');
-        return;
-      }
+      if (!r) { showToast('❌ Record not found.'); return; }
 
       document.getElementById('srNo').value = r.srNo || '';
       document.getElementById('surveyDate').value = r.surveyDate || '';
@@ -1889,7 +1832,7 @@
       document.getElementById('totalDepthDCB').value = r.totalDepthDCB || '';
       
       document.getElementById('depthLining').value = r.depthLining || '';
-      document.getElementById('wellCondition').value = r.wellCondition || '';
+      document.getElementById('wellCondition').value = r.wellCondition || 'Good';
       document.getElementById('yearConstruction').value = r.yearConstruction || '';
       
       document.getElementById('pumpHP').value = r.pumpHP || '';
@@ -1916,11 +1859,8 @@
       document.getElementById('recupSummer').value = r.recupSummer || '';
 
       document.getElementById('pumpKharifHrsInput').value = r.pumpKharifHrsInput || '3.0';
-
       document.getElementById('annualFluctuation').value = r.annualFluctuation || '';
-      document.getElementById('totalLandHolding').value = r.totalLandHolding || '';
       document.getElementById('cultivableLand').value = r.cultivableLand || '';
-      
       document.getElementById('mapSheetNo').value = r.mapSheetNo || '';
       document.getElementById('population').value = r.population || '';
 
@@ -1929,19 +1869,16 @@
         onTalukaChange();
         const villages = SHEET2_FULL_DATABASE[r.taluka] || [];
         const vIdx = villages.findIndex(v => v[0] === r.village);
-        if (vIdx >= 0) {
-          document.getElementById('village').value = vIdx;
-          onVillageChange();
-        }
+        if (vIdx >= 0) { document.getElementById('village').value = vIdx; onVillageChange(); }
       }
 
-      ['perennialCrop1','perennialCrop2','kharifCrop1','kharifCrop2','rabiCrop1','rabiCrop2','summerCrop1'].forEach(id => {
+      ['perennialCrop1','perennialCrop2','kharifCrop1','kharifCrop2','kharifCrop3','rabiCrop1','rabiCrop2','rabiCrop3','summerCrop1','summerCrop2'].forEach(id => {
         if (r[id]) document.getElementById(id).value = r[id];
       });
 
-      ['perennialFloodHa1','perennialFloodHa2','kharifFloodHa1','kharifFloodHa2','rabiFloodHa1','rabiFloodHa2','summerFloodHa1',
-       'perennialDripHa1','perennialDripHa2','kharifDripHa1','kharifDripHa2','rabiDripHa1','rabiDripHa2','summerDripHa1',
-       'perennialSprinklerHa1','perennialSprinklerHa2','kharifSprinklerHa1','kharifSprinklerHa2','rabiSprinklerHa1','rabiSprinklerHa2','summerSprinklerHa1'].forEach(id => {
+      ['perennialFloodHa1','perennialFloodHa2','kharifFloodHa1','kharifFloodHa2','kharifFloodHa3','rabiFloodHa1','rabiFloodHa2','rabiFloodHa3','summerFloodHa1','summerFloodHa2',
+       'perennialDripHa1','perennialDripHa2','kharifDripHa1','kharifDripHa2','kharifDripHa3','rabiDripHa1','rabiDripHa2','rabiDripHa3','summerDripHa1','summerDripHa2',
+       'perennialSprinklerHa1','perennialSprinklerHa2','kharifSprinklerHa1','kharifSprinklerHa2','kharifSprinklerHa3','rabiSprinklerHa1','rabiSprinklerHa2','rabiSprinklerHa3','summerSprinklerHa1','summerSprinklerHa2'].forEach(id => {
         if (r[id] !== undefined) document.getElementById(id).value = r[id];
       });
 
@@ -1966,12 +1903,14 @@
         preview.style.display = 'block';
         document.getElementById('removePhotoBtn').style.display = 'inline-flex';
         document.getElementById('noPhotoText').innerHTML = '<span style="color: var(--primary); font-weight: 800;">✅ Stamped Photo Loaded</span>';
-      } else {
-        clearCurrentPhoto();
-      }
+      } else { clearCurrentPhoto(); }
 
+      updateWellStatusAuto();
       recalculateAll();
+      
+      // Auto shift to Survey Tab and scroll to top
       switchTab('newEntry');
+      document.getElementById('newEntry').scrollTop = 0;
       showToast(`📝 Loaded well record #${srNo} for editing.`);
     }
 
@@ -2010,6 +1949,262 @@
       renderFilteredCards(filtered);
     }
 
+    function generateRecordPDF(srNo) {
+      const records = getStoredRecords();
+      const r = records.find(item => Number(item.srNo) === Number(srNo));
+      if (!r) return;
+      
+      const num = (val) => parseFloat(val) || 0;
+      let latDMS = ["0","0","0"], lonDMS = ["0","0","0"];
+      let latDD = "", lonDD = "";
+      if (r.gpsCoords && r.gpsCoords.includes(',')) {
+          latDD = r.gpsCoords.split(',')[0].trim();
+          lonDD = r.gpsCoords.split(',')[1].trim();
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ format: [215, 345] });
+      
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'italic');
+      doc.text("Technical Form No.GSDA/IRR/DW/2025", 200, 10, {align: 'right'});
+      
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(14);
+      doc.text("Irrigation Dug well Inventory form", 107.5, 16, {align: 'center'});
+      
+      const c = (content, colSpan = 1, rowSpan = 1, styles = {}) => ({ content: content !== undefined && content !== null ? String(content) : '', colSpan, rowSpan, styles });
+      const h = (content, span=6) => c(content, span, 1, { fillColor: [240, 240, 240], fontStyle: 'bold', textColor: [0,0,0], halign: 'left' });
+
+      // Calculate Performance
+      const discharge = num(r.pumpDischarge);
+      const pumpKharifHrs = num(r.pumpKharifHrsInput) || 3.0;
+      const durW = num(r.pumpDurationWinter);
+      const durS = num(r.pumpDurationSummer);
+      
+      let kharifHam = 0, rabiHam = 0, summerHam = 0;
+      const cropListForPdf = [
+          { season: 'Kharif', name: r.perennialCrop1, flood: num(r.perennialFloodHa1), drip: num(r.perennialDripHa1), sp: num(r.perennialSprinklerHa1), isPerennial: true, perSeason: 'Kharif' },
+          { season: 'Kharif', name: r.perennialCrop2, flood: num(r.perennialFloodHa2), drip: num(r.perennialDripHa2), sp: num(r.perennialSprinklerHa2), isPerennial: true, perSeason: 'Kharif' },
+          { season: 'Kharif', name: r.kharifCrop1, flood: num(r.kharifFloodHa1), drip: num(r.kharifDripHa1), sp: num(r.kharifSprinklerHa1), isPerennial: false },
+          { season: 'Kharif', name: r.kharifCrop2, flood: num(r.kharifFloodHa2), drip: num(r.kharifDripHa2), sp: num(r.kharifSprinklerHa2), isPerennial: false },
+          { season: 'Kharif', name: r.kharifCrop3, flood: num(r.kharifFloodHa3), drip: num(r.kharifDripHa3), sp: num(r.kharifSprinklerHa3), isPerennial: false },
+          { season: 'Rabi', name: r.perennialCrop1, flood: num(r.perennialFloodHa1), drip: num(r.perennialDripHa1), sp: num(r.perennialSprinklerHa1), isPerennial: true, perSeason: 'Rabi' },
+          { season: 'Rabi', name: r.perennialCrop2, flood: num(r.perennialFloodHa2), drip: num(r.perennialDripHa2), sp: num(r.perennialSprinklerHa2), isPerennial: true, perSeason: 'Rabi' },
+          { season: 'Rabi', name: r.rabiCrop1, flood: num(r.rabiFloodHa1), drip: num(r.rabiDripHa1), sp: num(r.rabiSprinklerHa1), isPerennial: false },
+          { season: 'Rabi', name: r.rabiCrop2, flood: num(r.rabiFloodHa2), drip: num(r.rabiDripHa2), sp: num(r.rabiSprinklerHa2), isPerennial: false },
+          { season: 'Rabi', name: r.rabiCrop3, flood: num(r.rabiFloodHa3), drip: num(r.rabiDripHa3), sp: num(r.rabiSprinklerHa3), isPerennial: false },
+          { season: 'Summer', name: r.perennialCrop1, flood: num(r.perennialFloodHa1), drip: num(r.perennialDripHa1), sp: num(r.perennialSprinklerHa1), isPerennial: true, perSeason: 'Summer' },
+          { season: 'Summer', name: r.perennialCrop2, flood: num(r.perennialFloodHa2), drip: num(r.perennialDripHa2), sp: num(r.perennialSprinklerHa2), isPerennial: true, perSeason: 'Summer' },
+          { season: 'Summer', name: r.summerCrop1, flood: num(r.summerFloodHa1), drip: num(r.summerDripHa1), sp: num(r.summerSprinklerHa1), isPerennial: false },
+          { season: 'Summer', name: r.summerCrop2, flood: num(r.summerFloodHa2), drip: num(r.summerDripHa2), sp: num(r.summerSprinklerHa2), isPerennial: false }
+      ];
+      cropListForPdf.forEach(item => {
+          let info = { waterings: 0, depth: 0 };
+          if (item.isPerennial && item.name && item.name !== 'None') {
+              const keys = Object.keys(CROP_WATER_DATABASE.Perennial);
+              const match = keys.find(k => k.toLowerCase() === item.name.trim().toLowerCase());
+              if(match) info = CROP_WATER_DATABASE.Perennial[match][item.perSeason];
+          } else if(item.name && item.name !== 'None') {
+              const keys = Object.keys(CROP_WATER_DATABASE[item.season]);
+              const match = keys.find(k => k.toLowerCase() === item.name.trim().toLowerCase());
+              if(match) info = CROP_WATER_DATABASE[item.season][match];
+          }
+          const gwHam = (item.flood * info.depth * info.waterings) + (item.sp * info.depth * info.waterings * 0.75) + (item.drip * info.depth * info.waterings * 0.65);
+          if (item.season === 'Kharif') kharifHam += gwHam;
+          if (item.season === 'Rabi') rabiHam += gwHam;
+          if (item.season === 'Summer') summerHam += gwHam;
+      });
+
+      const kharifDays = (discharge * pumpKharifHrs) > 0 ? (kharifHam * 10000) / (discharge * pumpKharifHrs) : 0;
+      const rabiDays = (discharge * durW) > 0 ? (rabiHam * 10000) / (discharge * durW) : 0;
+      const summerDays = (discharge * durS) > 0 ? (summerHam * 10000) / (discharge * durS) : 0;
+      const rabi1Days = rabiDays / 2;
+      const rabi2Days = rabiDays / 2;
+      const kharifM3 = discharge * pumpKharifHrs * kharifDays;
+      const rabi1M3 = discharge * durW * rabi1Days;
+      const rabi2M3 = discharge * durW * rabi2Days;
+      const summerM3 = discharge * durS * summerDays;
+      const perfTotalDays = kharifDays + rabi1Days + rabi2Days + summerDays;
+      const perfTotalM3 = kharifM3 + rabi1M3 + rabi2M3 + summerM3;
+      const perfTotalHam = kharifHam + rabiHam + summerHam;
+
+      const tblStyles = { fontSize: 7.5, cellPadding: 1, lineColor: [0, 0, 0], lineWidth: 0.1, textColor: [0,0,0], halign: 'center', valign: 'middle' };
+
+      // --- SECTION 0 & A ---
+      let bodyA = [];
+      bodyA.push([ c("1", 1), c("Name of Geologist", 2), c(r.geologistName, 4), c("2", 1), c("Designation", 3), c(r.designation, 5) ]);
+      bodyA.push([ c("3", 1), c("Date of Inventory\n(DD/MM/YY)", 2), c(r.surveyDate, 2), c("4", 1), c("Time (24 Hrs\nformat)", 2), c(r.surveyTime, 2), c("5", 1), c("Project/Assignment for which Inventory is\nbeing done", 4), c(r.projectAssignment, 1) ]);
+      
+      bodyA.push([ h("A Well Location details", 16) ]);
+      bodyA.push([ c("1", 1), c("Well No.\n(Sequence No. in\nthe 10K sheet)", 2), c(r.wellSeqNo, 2), c("2", 1), c("Type of well\n(DW/DCB)", 2), c(r.wellType, 2), c("3", 1), c("Altitude (m.MSL)", 2), c("GL", 1), c(r.altitudeGL, 1), c("MP", 1) ]);
+      bodyA.push([ c("4", 1), c("Owner's Name and Address", 5), c(r.ownerName, 10) ]);
+      bodyA.push([ c("5", 1), c("Village Name", 2), c(r.village, 3), c("6", 1), c("G.P. Name", 2), c(r.gpName, 3), c("7", 1), c("Village Census No.", 2), c(r.censusNo, 1) ]);
+      bodyA.push([ c("8", 1), c("Taluka Name", 2), c(r.taluka, 3), c("9", 1), c("District Name", 2), c(r.district, 3), c("10", 1), c("Mini Watershed No.", 2), c(r.watershedNo, 1) ]);
+      bodyA.push([ c("11", 1), c("SOI Toposheet No.", 2), c(r.sheet10k, 3), c("12", 1), c("10 K Sheet No.", 2), c("-", 3), c("13", 1), c("Quadrant No.of 10K Sheet\n(EX-A1)", 2), c(r.quadrantNo, 1) ]);
+      bodyA.push([ c("14", 1), c("Latitude (DD)", 2), c(latDD, 5), c("15", 1), c("Longitude", 2), c(lonDD, 5) ]);
+      bodyA.push([ c("", 1), c("Latitude (DMS)", 2), c("0", 1), c("0", 1), c("0", 1), c("", 1), c("Longitude (DMS)", 2), c("0", 1), c("0", 1), c("0", 1), c("16", 1), c("Gat/Survey No.", 2), c(r.gatNo, 1) ]);
+      bodyA.push([ c("17", 1), c("Well ID (Census no+Lat+long+type of well", 5), c((r.censusNo||'') + (r.wellType||'').replace(/\s/g,''), 10) ]);
+      
+      bodyA.push([ c("18", 1), c("Whether the well is located in command area of any surface water reservoir (projects) (if yes mention the following details)", 15, 1, {halign:'left'}) ]);
+      bodyA.push([ c("", 1), c("Name of the Reservour (project)", 4), c(r.reservoirType, 5), c("Type (major/medium/mionr/PT)", 4), c("-", 2) ]);
+      bodyA.push([ c("", 1), c("Distance and Direction of reservoir\nfrom the well", 4), c(r.reservoirDistDir, 5), c("Name of the nearest Canal of the project", 4), c(r.canalName, 2) ]);
+      bodyA.push([ c("", 1), c("Distance and Direction of the Canal\nfrom the well", 4), c(r.canalDistDir, 5), c("Nature of operartion of Canal\n(Seasonal/perennial)", 4), c("-", 2) ]);
+
+      doc.autoTable({ startY: 20, body: bodyA, theme: 'grid', styles: tblStyles, margin: { left: 10, right: 10 } });
+
+      // --- SECTION B ---
+      let bodyB = [];
+      bodyB.push([ h("B Well Dimensions :", 16) ]);
+      bodyB.push([ c("1", 1), c("Measurement point (MP) (e.g. on GL/Parapet due N40", 7), c(r.mpLocation, 4), c("2", 1), c("Height of Parapet (m.bgl)", 2), c(r.parapetHeight, 1) ]);
+      bodyB.push([ c("3", 1), c("Inner Diameter of Dug Well (DW) in m.", 5), c("Top", 2), c(r.diaTop, 2), c("Bottom", 2), c(r.diaBottom, 2), c("Effective", 1), c(r.diaEffective, 1) ]);
+      bodyB.push([ c("4", 1), c("Lining/Curbing Material (Brick/RCC/Stone pitching)", 7), c(r.liningMaterial, 4), c("5", 1), c("Depth of Lining (m.bgl)", 2), c(r.depthLining, 1) ]);
+      bodyB.push([ c("6", 1), c("Condition of Well and Lining", 7), c(r.wellCondition, 4), c("7", 1), c("Year of Construction", 2), c(r.yearConstruction, 1) ]);
+      bodyB.push([ c("8", 1), c("Depth of Dug Well (DW) m.bgl", 5), c(r.depthWell, 3), c("9", 1), c("Depth of Inwell Borehole from bottom of well (m)", 5), c(r.depthInwellBore || '-', 1) ]);
+      bodyB.push([ c("10", 1), c("Total Depth of Dug Cum Borewell (=Depth of DW+Depth of Inwell Borehole) if Applicable (in m.bgl)", 14), c("-", 1) ]);
+
+      doc.autoTable({ startY: doc.lastAutoTable.finalY, body: bodyB, theme: 'grid', styles: tblStyles, margin: { left: 10, right: 10 } });
+
+      // --- SECTION C ---
+      let bodyC = [];
+      bodyC.push([ h("C Groundwater level and Pumping details", 16) ]);
+      bodyC.push([ c("1", 1), c("Pump type (Monoblock/Open well submersible)", 6), c(r.pumpType, 4), c("2", 1), c("Mode of Power (Electric/Solar)", 3), c(r.powerMode, 1) ]);
+      bodyC.push([ c("3", 1), c("HP of pump", 3), c(r.pumpHP, 2), c("4", 1), c("Pump Setting", 2), c("Winter", 1), c(r.pumpSettingWinter, 2), c("m.bgl", 1), c("Summer", 1), c(r.pumpSettingSummer, 1), c("m.bgl", 1) ]);
+      bodyC.push([ c("5", 1), c("Depth of pump inlet", 6), c("Winter", 1), c(r.pumpInletWinter, 2), c("m.bgl", 1), c("Summer", 1), c(r.pumpInletSummer, 2), c("m.bgl", 2) ]);
+      bodyC.push([ c("6", 1), c("Diameter of Pipe(mm)", 3), c("Suction pipe", 2), c("50.5", 2), c("Delivery pipe", 2), c("63.50", 2), c("Delivery pipe material", 2), c("HDPE", 2) ]);
+      bodyC.push([ c("7", 1), c("Pump discharge (m3/hour)", 4), c(r.pumpDischarge, 2), c("Method Used For Discharge measurement", 6), c(r.dischargeMethod, 3) ]);
+      bodyC.push([ c("8", 1), c("Depth to Pumped groundwater level (DWL)", 5), c(r.dwl, 2), c("m.bgl", 1), c("mention depth to groundwater level at the time of measurment)", 7) ]);
+      bodyC.push([ c("9", 1), c("Depth to Static groundwater level (SWL)\n(Reported R for previous season)", 5), c("Winter", 1), c(r.swlWinter, 2), c("m.bgl", 1), c("Summer", 1), c(r.swlSummer, 2), c("m.bgl", 1), c("Annual Water Level\nfluctuation (m)", 1), c(r.annualFluctuation, 1) ]);
+      bodyC.push([ c("10", 1), c("Depth to Pumped groundwater level (PWL)", 5), c("Winter", 1), c(r.pwlWinter, 2), c("m.bgl", 1), c("summer", 1), c(r.pwlSummer, 2), c("m.bgl", 1), c("(DWL just before pumping\nstopped) mention R if\nreported (e.g.10 (R))", 2) ]);
+      bodyC.push([ c("11", 1), c("Drawdown (D/D) (PWL - SWL)", 5), c("Winter", 1), c(r.ddWinter, 2), c("m.", 1), c("Summer", 2), c(r.ddSummer, 2), c("m.", 2) ]);
+      bodyC.push([ c("12", 1), c("Duration of Pumping", 5), c("Winter", 1), c(r.pumpDurationWinter, 2), c("Hrs", 1), c("Summer", 2), c(r.pumpDurationSummer, 2), c("Hrs", 2) ]);
+      bodyC.push([ c("13", 1), c("Quantity of water pumped", 5), c("Winter", 1), c(r.qtyPumpedWinter, 2), c("M3", 1), c("Summer", 2), c(r.qtyPumpedSummer, 2), c("m3", 2) ]);
+      bodyC.push([ c("14", 1), c("Volume of water Pumped from Storage", 5), c("Winter", 1), c(r.volStorageWinter, 2), c("M3", 1), c("Summer", 2), c(r.volStorageSummer, 2), c("m3", 2) ]);
+      bodyC.push([ c("15", 1), c("Avg. Rate of Inflow during pumping", 5), c("Winter", 1), c(r.inflowRateWinter, 2), c("M3/Hr", 1), c("Summer", 2), c(r.inflowRateSummer, 2), c("M3/Hr", 2) ]);
+      bodyC.push([ c("16", 1), c("Time required for complete recuperation", 5), c("Winter", 1), c(r.recupWinter, 2), c("Hrs", 1), c("Summer", 2), c(r.recupSummer, 2), c("Hrs", 2) ]);
+
+      doc.autoTable({ startY: doc.lastAutoTable.finalY, body: bodyC, theme: 'grid', styles: tblStyles, margin: { left: 10, right: 10 } });
+
+      // --- SECTION D ---
+      let bodyD = [];
+      bodyD.push([ h("D Well Performance", 6) ]);
+      bodyD.push([ c("Seasons", 1, 1, {halign:'center', fontStyle:'bold'}), c("Pump\nDischarge", 1, 1, {halign:'center', fontStyle:'bold'}), c("Pumping\nHrs/Day", 1, 1, {halign:'center', fontStyle:'bold'}), c("Operating\nDays", 1, 1, {halign:'center', fontStyle:'bold'}), c("GW applied (M3)", 1, 1, {halign:'center', fontStyle:'bold'}), c("GW applied\n(Ham)", 1, 1, {halign:'center', fontStyle:'bold'}) ]);
+      bodyD.push([ c("1", 1), c("2", 1), c("3", 1), c("4", 1), c("5", 1), c("6", 1) ]);
+      bodyD.push([ c("1 Khariff season (Mid June - Sept)", 1, 1, {halign:'left'}), c(r.pumpDischarge, 1), c(r.pumpKharifHrsInput, 1), c(Math.round(kharifDays), 1), c(kharifM3.toFixed(2), 1), c(kharifHam.toFixed(4), 1) ]);
+      bodyD.push([ c("2 Rabbi (October-Dec)", 1, 1, {halign:'left'}), c(r.pumpDischarge, 1), c(r.pumpDurationWinter, 1), c(Math.round(rabi1Days), 1), c(rabi1M3.toFixed(2), 1), c((rabiHam/2).toFixed(4), 1) ]);
+      bodyD.push([ c("3 Rabbi (Jan-March)", 1, 1, {halign:'left'}), c(r.pumpDischarge, 1), c(r.pumpDurationWinter, 1), c(Math.round(rabi2Days), 1), c(rabi2M3.toFixed(2), 1), c((rabiHam/2).toFixed(4), 1) ]);
+      bodyD.push([ c("4 Summer (April-Mid June)", 1, 1, {halign:'left'}), c(r.pumpDischarge, 1), c(r.pumpDurationSummer, 1), c(Math.round(summerDays), 1), c(summerM3.toFixed(2), 1), c(summerHam.toFixed(4), 1) ]);
+      bodyD.push([ c("", 1), c("", 1), c("", 1), c(Math.round(perfTotalDays), 1), c(perfTotalM3.toFixed(2), 1), c(perfTotalHam.toFixed(4), 1) ]);
+
+      doc.autoTable({ startY: doc.lastAutoTable.finalY, body: bodyD, theme: 'grid', styles: tblStyles, margin: { left: 10, right: 10 } });
+
+      // PAGE 2
+      doc.addPage([215, 345]);
+
+      // --- SECTION E ---
+      let bodyE = [];
+      bodyE.push([ h("E Cropping, Irrigation and water Application", 13) ]);
+      bodyE.push([ c("1", 1), c("Total land holding at well site (in Ha)", 4), c(r.cultivableLand, 2), c("Ha", 6, 1, {halign:'left'}) ]);
+      bodyE.push([ c("2", 1, 2), c("Season Wise\nCrops", 1, 2), c("Cultivat\ned Area\n(Ha)", 1, 2), c("GW Irrigated Area (Ha)", 3, 1), c("No. of\nWaterings\nApplied", 1, 2), c("Depth of\nWaterings\nApplied (m.)", 1, 2), c("GW Apllied (Ham)", 4, 1), c("Days\nRequired for\nOne\nWatering", 1, 2) ]);
+      bodyE.push([ c("Flood", 1), c("Sprinkler", 1), c("Drip", 1), c("Flood", 1), c("Sprinkler", 1), c("Drip", 1), c("Total", 1) ]);
+      bodyE.push([ c("1", 1), c("2", 1), c("3", 1), c("4", 1), c("5", 1), c("6", 1), c("7", 1), c("8", 1), c("9", 1), c("10", 1), c("11", 1), c("12", 1), c("13", 1) ]);
+      
+      const getW = (s, cname) => {
+          if (!cname || cname==='None') return {w:0, d:0, ham:0, dh:0, sh:0, fh:0};
+          let cf = CROP_WATER_DATABASE[s];
+          let key = Object.keys(cf).find(k => k.toLowerCase() === cname.trim().toLowerCase());
+          if (key) return {w: cf[key].waterings, d: cf[key].depth}; return {w:0, d:0};
+      };
+      const getWP = (s, cname) => {
+          if (!cname || cname==='None') return {w:0, d:0, ham:0, dh:0, sh:0, fh:0};
+          let cf = CROP_WATER_DATABASE.Perennial;
+          let key = Object.keys(cf).find(k => k.toLowerCase() === cname.trim().toLowerCase());
+          if (key) return {w: cf[key][s].waterings, d: cf[key][s].depth}; return {w:0, d:0};
+      };
+      const calcRow = (s, n, isP, f, sp, d) => {
+          let a = num(f)+num(sp)+num(d); let w = 0, dep = 0;
+          if(isP) { let info = getWP(s, n); w = info.w; dep = info.d; }
+          else { let info = getW(s, n); w = info.w; dep = info.d; }
+          let fHam = num(f)*dep*w; let sHam = num(sp)*dep*w*0.75; let dHam = num(d)*dep*w*0.65;
+          let tHam = fHam+sHam+dHam;
+          let req = (tHam>0 && w>0) ? Math.round(((tHam*10000)/(discharge*(s==='Kharif'?pumpKharifHrs:(s==='Rabi'?durW:durS))))/w) : 0;
+          return [
+              n||'', a>0?a.toFixed(2):'0.00', num(f)>0?num(f).toFixed(2):'', num(sp)>0?num(sp).toFixed(2):'', num(d)>0?num(d).toFixed(2):'',
+              w||'0', dep>0?dep.toFixed(4):'0', fHam>0?fHam.toFixed(4):'0.0000', sHam>0?sHam.toFixed(4):'0', dHam>0?dHam.toFixed(4):'0', tHam>0?tHam.toFixed(4):'0.00', req||'0'
+          ];
+      };
+
+      bodyE.push([ c("2a Khariff Season (Mid June-Sept) (Khariff and Perennial Crops)", 13, 1, {halign:'left', fontStyle:'bold', fillColor:[245,245,245]}) ]);
+      bodyE.push([ c("P", 1), ...calcRow('Kharif', r.perennialCrop1, true, r.perennialFloodHa1, r.perennialSprinklerHa1, r.perennialDripHa1) ]);
+      bodyE.push([ c("P", 1), ...calcRow('Kharif', r.perennialCrop2, true, r.perennialFloodHa2, r.perennialSprinklerHa2, r.perennialDripHa2) ]);
+      bodyE.push([ c("1", 1), ...calcRow('Kharif', r.kharifCrop1, false, r.kharifFloodHa1, r.kharifSprinklerHa1, r.kharifDripHa1) ]);
+      bodyE.push([ c("2", 1), ...calcRow('Kharif', r.kharifCrop2, false, r.kharifFloodHa2, r.kharifSprinklerHa2, r.kharifDripHa2) ]);
+      bodyE.push([ c("3", 1), ...calcRow('Kharif', r.kharifCrop3, false, r.kharifFloodHa3, r.kharifSprinklerHa3, r.kharifDripHa3) ]);
+      bodyE.push([ c("", 1), c("", 1), c("", 1), c("", 1), c("", 1), c("", 1), c("TOTAL", 1, 1, {fontStyle:'bold'}), c("0.0000", 1), c("0.0000", 1), c("0.0", 1), c(kharifHam.toFixed(4), 1), c("0", 1) ]);
+
+      bodyE.push([ c("2b Rabbi season (Oct-March) (Rabbi and Perennial Crops)", 13, 1, {halign:'left', fontStyle:'bold', fillColor:[245,245,245]}) ]);
+      bodyE.push([ c("P", 1), ...calcRow('Rabi', r.perennialCrop1, true, r.perennialFloodHa1, r.perennialSprinklerHa1, r.perennialDripHa1) ]);
+      bodyE.push([ c("P", 1), ...calcRow('Rabi', r.perennialCrop2, true, r.perennialFloodHa2, r.perennialSprinklerHa2, r.perennialDripHa2) ]);
+      bodyE.push([ c("1", 1), ...calcRow('Rabi', r.rabiCrop1, false, r.rabiFloodHa1, r.rabiSprinklerHa1, r.rabiDripHa1) ]);
+      bodyE.push([ c("2", 1), ...calcRow('Rabi', r.rabiCrop2, false, r.rabiFloodHa2, r.rabiSprinklerHa2, r.rabiDripHa2) ]);
+      bodyE.push([ c("3", 1), ...calcRow('Rabi', r.rabiCrop3, false, r.rabiFloodHa3, r.rabiSprinklerHa3, r.rabiDripHa3) ]);
+      bodyE.push([ c("", 1), c("", 1), c("", 1), c("", 1), c("", 1), c("", 1), c("TOTAL", 1, 1, {fontStyle:'bold'}), c("0.0000", 1), c("0.0000", 1), c("0.0", 1), c(rabiHam.toFixed(4), 1), c("0", 1) ]);
+
+      bodyE.push([ c("2c Summer (April-Mid June)(Summer and Perennial Crops)", 13, 1, {halign:'left', fontStyle:'bold', fillColor:[245,245,245]}) ]);
+      bodyE.push([ c("P", 1), ...calcRow('Summer', r.perennialCrop1, true, r.perennialFloodHa1, r.perennialSprinklerHa1, r.perennialDripHa1) ]);
+      bodyE.push([ c("P", 1), ...calcRow('Summer', r.perennialCrop2, true, r.perennialFloodHa2, r.perennialSprinklerHa2, r.perennialDripHa2) ]);
+      bodyE.push([ c("1", 1), ...calcRow('Summer', r.summerCrop1, false, r.summerFloodHa1, r.summerSprinklerHa1, r.summerDripHa1) ]);
+      bodyE.push([ c("2", 1), ...calcRow('Summer', r.summerCrop2, false, r.summerFloodHa2, r.summerSprinklerHa2, r.summerDripHa2) ]);
+      bodyE.push([ c("", 1), c("", 1), c("", 1), c("", 1), c("", 1), c("", 1), c("TOTAL", 1, 1, {fontStyle:'bold'}), c("0.00", 1), c("0.00", 1), c("0.0", 1), c(summerHam.toFixed(4), 1), c("0", 1) ]);
+
+      bodyE.push([ c("TOTAL GW Application /Draft/Yield (2a+2b+2c)", 7, 1, {fontStyle:'bold'}), c("TOTAL", 1, 1, {fontStyle:'bold'}), c("0.0000", 1), c("", 1), c("", 1), c(perfTotalHam.toFixed(4), 1), c("0", 1) ]);
+
+      doc.autoTable({ startY: 15, body: bodyE, theme: 'grid', styles: tblStyles, margin: { left: 10, right: 10 } });
+
+      // --- SECTION F ---
+      let bodyF = [];
+      bodyF.push([ h("F Geological Formation", 1), c(r.geologyFormation, 1, 1, {halign:'left'}), c("(Mention Name of Geological Formation)", 1) ]);
+      bodyF.push([ c("1", 1), c("Lithological section observed in well (w.r.t.G.L.)", 1), c("Sketctch of the well site", 1) ]);
+      bodyF.push([ c("GL", 1), c("Lithology", 1), c("(mention the direction of fractures/dyke/inflows, etc)", 1, 10, {valign:'top'}) ]);
+      bodyF.push([ c("0", 1), c("", 1) ]);
+      bodyF.push([ c(r.lithoDepth1, 1), c(r.lithoType1, 1) ]);
+      bodyF.push([ c("", 1), c("", 1) ]);
+      bodyF.push([ c(r.lithoDepth2, 1), c(r.lithoType2, 1) ]);
+      bodyF.push([ c("", 1), c("", 1) ]);
+      bodyF.push([ c(r.lithoDepth3, 1), c(r.lithoType3, 1) ]);
+      bodyF.push([ c("", 1), c("", 1) ]);
+      bodyF.push([ c(r.lithoDepth4, 1), c(r.lithoType4, 1) ]);
+      bodyF.push([ c("", 1), c("", 1) ]);
+      bodyF.push([ c("2 Mention the Depth of Inflows observed in the Well (m.bgl)", 3, 1, {halign:'left'}) ]);
+
+      doc.autoTable({ startY: doc.lastAutoTable.finalY, body: bodyF, theme: 'grid', styles: tblStyles, margin: { left: 10, right: 10 } });
+
+      // --- SECTION G, H, I ---
+      let bodyG = [];
+      bodyG.push([ h("G Wells in nearest (up to 200 m) periphery : No", 4) ]);
+      bodyG.push([ c("Sr.No.", 1, 1, {fontStyle:'bold'}), c("Date", 1, 1, {fontStyle:'bold'}), c("Use of well", 1, 1, {fontStyle:'bold'}), c("Name of owner", 1, 1, {fontStyle:'bold'}) ]);
+      bodyG.push([ c("", 1), c("", 1), c("", 1), c("-", 1) ]);
+      bodyG.push([ c("", 1), c("", 1), c("", 1), c("", 1) ]);
+      bodyG.push([ c("", 1), c("", 1), c("", 1), c("", 1) ]);
+      
+      bodyG.push([ h("H Any other Observations and Recommendations", 1), c(r.remarks||'Near PT', 3, 1, {halign:'left'}) ]);
+      bodyG.push([ h("I", 1), c("Signature", 1), c("", 2) ]);
+      bodyG.push([ c("", 1), c("Name of Geologist", 1, 1, {halign:'left'}), c(r.geologistName, 1), c("Dr.MAJ Shaikh", 1) ]);
+      bodyG.push([ c("", 1), c("", 1), c("(Reporting officer)", 1), c("(Verifying officer-senior Geologist)", 1) ]);
+
+      doc.autoTable({ startY: doc.lastAutoTable.finalY, body: bodyG, theme: 'grid', styles: tblStyles, margin: { left: 10, right: 10 } });
+
+      if (r.photoData) {
+        try {
+          // Adjust placement slightly based on F table ending
+          doc.addImage(r.photoData, 'JPEG', 150, doc.lastAutoTable.finalY - 110, 45, 45); 
+        } catch(e) {}
+      }
+      
+      const fileName = `Irrigation_Well_Form_${r.srNo}.pdf`;
+      doc.save(fileName);
+    }
+
     function renderFilteredCards(records) {
       const container = document.getElementById('recordsContainer');
       if (records.length === 0) {
@@ -2046,8 +2241,8 @@
           </div>
 
           <div class="record-btn-group">
-            <button class="btn-icon btn-edit" onclick="editRecord(${r.srNo})">✏️ Edit Record</button>
-            ${hasPhoto ? `<button class="btn-icon btn-photo" onclick="viewRecordPhoto(${r.srNo})">📷 View Photo</button>` : ''}
+            <button class="btn-icon btn-edit" onclick="editRecord(${r.srNo})">✏️ Edit</button>
+            <button class="btn-icon btn-photo" onclick="generateRecordPDF(${r.srNo})">📄 PDF</button>
             <button class="btn-icon delete" onclick="deleteRecord(${r.srNo})">🗑️ Delete</button>
           </div>
         </div>
@@ -2106,7 +2301,6 @@
 
       const records = [...rawRecords].sort((a, b) => (Number(a.srNo) || 0) - (Number(b.srNo) || 0));
 
-      // 1. ORIGINAL SHEET (calc)
       const formattedRows = records.map(r => ({
         "Sr.No.": Number(r.srNo) || '', "Date": r.surveyDate || '', "Time": r.surveyTime || '', "Geologist Name": r.geologistName || '',
         "Mapsheetno": r.mapSheetNo || '', "well no": r.wellSeqNo || '', "Type of well": r.wellType || '', "Well Owner": r.ownerName || '',
@@ -2145,13 +2339,9 @@
       let workbook = globalWorkbook ? globalWorkbook : XLSX.utils.book_new();
 
       const wsCalc = XLSX.utils.json_to_sheet(formattedRows);
-      if (workbook.SheetNames.includes("calc")) {
-          workbook.Sheets["calc"] = wsCalc;
-      } else {
-          XLSX.utils.book_append_sheet(workbook, wsCalc, "calc");
-      }
+      if (workbook.SheetNames.includes("calc")) workbook.Sheets["calc"] = wsCalc;
+      else XLSX.utils.book_append_sheet(workbook, wsCalc, "calc");
 
-      // 2. NEW SHEET (MRSAC Format)
       const calculateRecordYield = (r) => {
         const num = (val) => parseFloat(val) || 0;
         const p1Name = r.perennialCrop1;
@@ -2164,13 +2354,16 @@
             { season: 'Kharif', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Kharif' },
             { season: 'Kharif', name: r.kharifCrop1, flood: num(r.kharifFloodHa1), drip: num(r.kharifDripHa1), sp: num(r.kharifSprinklerHa1), isPerennial: false },
             { season: 'Kharif', name: r.kharifCrop2, flood: num(r.kharifFloodHa2), drip: num(r.kharifDripHa2), sp: num(r.kharifSprinklerHa2), isPerennial: false },
+            { season: 'Kharif', name: r.kharifCrop3, flood: num(r.kharifFloodHa3), drip: num(r.kharifDripHa3), sp: num(r.kharifSprinklerHa3), isPerennial: false },
             { season: 'Rabi', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Rabi' },
             { season: 'Rabi', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Rabi' },
             { season: 'Rabi', name: r.rabiCrop1, flood: num(r.rabiFloodHa1), drip: num(r.rabiDripHa1), sp: num(r.rabiSprinklerHa1), isPerennial: false },
             { season: 'Rabi', name: r.rabiCrop2, flood: num(r.rabiFloodHa2), drip: num(r.rabiDripHa2), sp: num(r.rabiSprinklerHa2), isPerennial: false },
+            { season: 'Rabi', name: r.rabiCrop3, flood: num(r.rabiFloodHa3), drip: num(r.rabiDripHa3), sp: num(r.rabiSprinklerHa3), isPerennial: false },
             { season: 'Summer', name: p1Name, flood: p1Area.flood, drip: p1Area.drip, sp: p1Area.sp, isPerennial: true, perSeason: 'Summer' },
             { season: 'Summer', name: p2Name, flood: p2Area.flood, drip: p2Area.drip, sp: p2Area.sp, isPerennial: true, perSeason: 'Summer' },
-            { season: 'Summer', name: r.summerCrop1, flood: num(r.summerFloodHa1), drip: num(r.summerDripHa1), sp: num(r.summerSprinklerHa1), isPerennial: false }
+            { season: 'Summer', name: r.summerCrop1, flood: num(r.summerFloodHa1), drip: num(r.summerDripHa1), sp: num(r.summerSprinklerHa1), isPerennial: false },
+            { season: 'Summer', name: r.summerCrop2, flood: num(r.summerFloodHa2), drip: num(r.summerDripHa2), sp: num(r.summerSprinklerHa2), isPerennial: false }
         ];
 
         let kharifHam = 0, rabiHam = 0, summerHam = 0;
@@ -2224,67 +2417,35 @@
             const parts = r.gpsCoords.split(',');
             lat = parts[0].trim();
             lon = parts[1].trim();
-        } else {
-            lat = r.gpsCoords || "";
-        }
+        } else { lat = r.gpsCoords || ""; }
         const y = calculateRecordYield(r);
         mrsacData.push([
-            Number(r.srNo) || '',
-            r.taluka || '',
-            r.village || '',
-            r.ownerName || '',
-            r.surveyDate || '',
-            r.wellType || '',
-            r.gatNo || '',
-            r.quadrantNo || '',
-            lat,
-            lon,
-            r.depthWell || '',
-            r.diaEffective || '',
-            r.depthLining || '',
-            r.depthInwellBore || '',
-            r.swlWinter || '',
-            r.swlSummer || '',
-            r.dwl || '',
-            y.kharif > 0 ? y.kharif.toFixed(4) : '0.0000',
-            y.rabi > 0 ? y.rabi.toFixed(4) : '0.0000',
-            y.summer > 0 ? y.summer.toFixed(4) : '0.0000',
-            y.total > 0 ? y.total.toFixed(4) : '0.0000',
-            r.wellStatus || '',
-            r.geologistName || '',
-            r.remarks || '',
-            r.sheet10k || ''
+            Number(r.srNo) || '', r.taluka || '', r.village || '', r.ownerName || '', r.surveyDate || '', r.wellType || '',
+            r.gatNo || '', r.quadrantNo || '', lat, lon, r.depthWell || '', r.diaEffective || '', r.depthLining || '',
+            r.depthInwellBore || '', r.swlWinter || '', r.swlSummer || '', r.dwl || '',
+            y.kharif > 0 ? y.kharif.toFixed(4) : '0.0000', y.rabi > 0 ? y.rabi.toFixed(4) : '0.0000', y.summer > 0 ? y.summer.toFixed(4) : '0.0000',
+            y.total > 0 ? y.total.toFixed(4) : '0.0000', r.wellStatus || '', r.geologistName || '', r.remarks || '', r.sheet10k || ''
         ]);
       });
 
       const wsMrsac = XLSX.utils.aoa_to_sheet(mrsacData);
-      wsMrsac['!merges'] = [
-        { s: { r: 0, c: 14 }, e: { r: 0, c: 16 } },
-        { s: { r: 0, c: 17 }, e: { r: 0, c: 20 } }
-      ];
-      [0,1,2,3,4,5,6,7,8,9,10,11,12,13,21,22,23,24].forEach(col => {
-        wsMrsac['!merges'].push({ s: { r: 0, c: col }, e: { r: 1, c: col } });
-      });
+      wsMrsac['!merges'] = [ { s: { r: 0, c: 14 }, e: { r: 0, c: 16 } }, { s: { r: 0, c: 17 }, e: { r: 0, c: 20 } } ];
+      [0,1,2,3,4,5,6,7,8,9,10,11,12,13,21,22,23,24].forEach(col => { wsMrsac['!merges'].push({ s: { r: 0, c: col }, e: { r: 1, c: col } }); });
 
-      if (workbook.SheetNames.includes("MRSAC Format")) {
-          workbook.Sheets["MRSAC Format"] = wsMrsac;
-      } else {
-          XLSX.utils.book_append_sheet(workbook, wsMrsac, "MRSAC Format");
-      }
+      if (workbook.SheetNames.includes("MRSAC Format")) workbook.Sheets["MRSAC Format"] = wsMrsac;
+      else XLSX.utils.book_append_sheet(workbook, wsMrsac, "MRSAC Format");
 
       const ext = globalFileName ? globalFileName.split('.').pop() : 'xlsx';
       const fileName = globalFileName || `Well_Data_Export_${Date.now()}.xlsx`;
       const bType = ext === 'xlsm' ? 'xlsm' : 'xlsx';
 
       const wbout = XLSX.write(workbook, { bookType: bType, type: 'binary', bookVBA: true });
-      
       function s2ab(s) {
           const buf = new ArrayBuffer(s.length);
           const view = new Uint8Array(buf);
           for (let i=0; i<s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
           return buf;
       }
-
       const blob = new Blob([s2ab(wbout)], { type: "application/octet-stream" });
       
       if (globalFileHandle) {
@@ -2294,10 +2455,7 @@
           await writable.close();
           if(!silentMode) showToast(`✅ Sent to folder successfully!`);
           return;
-        } catch (e) {
-          console.error("Overwrite failed:", e);
-          if(!silentMode) showToast("⚠️ Overwrite permission denied. Attempting alternative save...");
-        }
+        } catch (e) { if(!silentMode) showToast("⚠️ Overwrite permission denied. Attempting alternative save..."); }
       }
 
       const dirHandle = await getWellDataFolder();
@@ -2309,15 +2467,10 @@
           await writable.close();
           if(!silentMode) showToast(`✅ Sent to folder successfully!`);
           return;
-        } catch (e) {
-          console.error(e);
-        }
+        } catch (e) {}
       }
 
-      if(!silentMode) {
-          XLSX.writeFile(workbook, fileName);
-          showToast('✅ Sent to folder successfully!');
-      }
+      if(!silentMode) { XLSX.writeFile(workbook, fileName); showToast('✅ Sent to folder successfully!'); }
     }
 
     function showToast(msg) {
