@@ -631,6 +631,24 @@
       </div>
       <div id="recordsContainer"></div>
     </div>
+    
+    <!-- TAB 4: IRRIGATION EXCEL VIEW -->
+    <div id="irrigationTab" class="tab-panel">
+      <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="color: var(--primary); font-size: 1.2rem;">Irrigation Form</h2>
+        <button class="geo-btn" onclick="document.getElementById('irrFrame').contentWindow.print()">🖨️ Save as PDF</button>
+      </div>
+      <iframe id="irrFrame" src="irrigation_table.html" style="width: 100%; height: 75vh; border: 1px solid var(--border-color); background: white; border-radius: 8px;"></iframe>
+    </div>
+
+    <!-- TAB 5: PDF / PWS EXCEL VIEW -->
+    <div id="pdfTab" class="tab-panel">
+      <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="color: var(--primary); font-size: 1.2rem;">PWS Form</h2>
+        <button class="geo-btn" onclick="document.getElementById('pwsFrame').contentWindow.print()">🖨️ Save as PDF</button>
+      </div>
+      <iframe id="pwsFrame" src="pdf_table.html" style="width: 100%; height: 75vh; border: 1px solid var(--border-color); background: white; border-radius: 8px;"></iframe>
+    </div>
   </main>
 
   <!-- NATIVE BOTTOM NAVIGATION BAR -->
@@ -647,6 +665,14 @@
       <span class="nav-icon">📋</span>
       <span>Records</span>
       <span class="badge" id="recordCountBadge">0</span>
+    </button>
+    <button type="button" class="tab-btn" onclick="switchTab('irrigationTab')">
+      <span class="nav-icon">💧</span>
+      <span>Irrigation</span>
+    </button>
+    <button type="button" class="tab-btn" onclick="switchTab('pdfTab')">
+      <span class="nav-icon">📄</span>
+      <span>PDF</span>
     </button>
   </nav>
 
@@ -1110,7 +1136,7 @@
           targetPanel.classList.add('active');
       }
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      const tabIndices = { 'homeTab': 0, 'newEntry': 1, 'recordsList': 2 };
+      const tabIndices = { 'homeTab': 0, 'newEntry': 1, 'recordsList': 2, 'irrigationTab': 3, 'pdfTab': 4 };
       const idx = tabIndices[tabId] || 0;
       const btns = document.querySelectorAll('.tab-btn');
       if(btns[idx]) btns[idx].classList.add('active');
