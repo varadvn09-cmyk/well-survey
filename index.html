@@ -57,7 +57,7 @@
     html, body { height: 100%; width: 100vw; margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-page); color: var(--text-main); }
     body { display: flex; flex-direction: column; transition: background-color 0.3s, color 0.3s; }
 
-    header { position: relative; background: var(--card-bg); border-bottom: 2px solid var(--primary); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 2[...] }
+    header { position: relative; background: var(--card-bg); border-bottom: 2px solid var(--primary); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; z-inde[...]
     .header-left { flex: 1; display: flex; justify-content: flex-start; gap: 10px; align-items: center; }
     .header-center { flex: 2; display: flex; justify-content: center; align-items: center; gap: 8px; }
     .header-right { flex: 1; display: flex; justify-content: flex-end; position: relative; }
@@ -67,13 +67,13 @@
     .btn-settings-dot { background: var(--card-subtle); border: 1.5px solid var(--border-color); color: var(--text-main); position: relative; width: 38px; height: 38px; border-radius: 50%; display[...]
     .btn-settings-dot:hover { border-color: var(--primary); background: var(--primary-light); }
     .settings-icon { font-size: 1.2rem; line-height: 1; }
-    .setting-dot { position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); border: 1.5px solid var(--card-bg); box-shadow: 0 0 6px var(--a[...] }
+    .setting-dot { position: absolute; top: 6px; right: 6px; width: 9px; height: 9px; border-radius: 50%; background: var(--accent); border: 1.5px solid var(--card-bg); box-shadow: 0 0 6px var(--a[...]
 
-    .settings-dropdown { position: absolute; top: 48px; right: 0; background: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.22); mi[...] }
+    .settings-dropdown { position: absolute; top: 48px; right: 0; background: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.22)[...]
     .settings-dropdown.show { display: block; }
     .settings-dropdown-header { padding: 10px 14px; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); background: var(--card-subtle); border-bottom: 1px so[...]
 
-    nav.tab-bar { position: fixed; bottom: calc(10px + env(safe-area-inset-bottom)); left: 14px; right: 14px; max-width: 440px; margin: 0 auto; background: var(--dock-bg); backdrop-filter: blur(12px);[...] }
+    nav.tab-bar { position: fixed; bottom: calc(10px + env(safe-area-inset-bottom)); left: 14px; right: 14px; max-width: 440px; margin: 0 auto; background: var(--dock-bg); backdrop-filter: blur(12[...]
     .tab-btn { flex: 1; padding: 6px 4px; background: none; border: none; color: var(--text-muted); font-size: 0.72rem; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; al[...]
     .tab-btn.active { color: var(--primary); background: var(--primary-light); }
     .tab-btn-hero { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%); color: #fff; border: none; display: flex; alig[...]
@@ -87,7 +87,7 @@
     .section-title { font-size: 0.9rem; font-weight: 900; color: var(--text-main); }
     .section-body { padding-top: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
 
-    input, select, textarea { width: 100%; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 8px; font-size: 15px; outli[...] }
+    input, select, textarea { width: 100%; background: var(--input-bg); border: 1.5px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 8px; font-size: 15px; o[...]
     input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
 
     .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 10000; padding: 16px; box-sizing: border-box; overflow-y: auto; }
@@ -98,53 +98,10 @@
 
     /* Utility */
     .hidden { display: none !important; }
-    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-subtle); cursor: pointer; font-wei[...]
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-subtle); cursor: pointer; fon[...]
 
     @media (max-width: 600px) {
       nav.tab-bar { left: 8px; right: 8px; }
-    }
-
-    /* ------------------ Print fixes ------------------ */
-    /* Keep the on-screen header visible on-screen but for print we'll show a lightweight print-only header
-       placed in the document flow so it appears only on the first printed page. We hide the fixed dock and
-       other chrome in print, remove large bottom padding, and avoid page breaks inside form sections. */
-    .print-header { display: none; }
-
-    @media print {
-      /* Hide interactive chrome that consumes vertical space */
-      nav.tab-bar,
-      .btn-settings-dot,
-      .settings-dropdown,
-      .modal-backdrop,
-      .modal-card,
-      .settings-icon,
-      .setting-dot { display: none !important; }
-
-      /* Hide the fixed on-screen header (we'll use print-header instead) */
-      header { display: none !important; }
-
-      /* Print-only header that appears in the normal flow (first page only) */
-      .print-header { display: block !important; background: #fff; border-bottom: 1px solid #ddd; padding: 10px 12px; margin-bottom: 10px; }
-      .print-header .brand { display: flex; align-items: center; gap: 10px; }
-      .print-header .brand-icon { width: 36px; height: 36px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 900; }
-      .print-header h2 { font-size: 1rem; margin: 0; font-weight: 800; }
-
-      /* Ensure body/page flows normally */
-      html, body { height: auto !important; overflow: visible !important; }
-      main { padding-bottom: 0 !important; }
-
-      /* Avoid splitting form-section across pages where possible */
-      .form-section {
-        break-inside: avoid;
-        page-break-inside: avoid;
-        -webkit-region-break-inside: avoid;
-      }
-
-      /* Make controls print-friendly */
-      input, textarea, select { background: transparent !important; color: #000 !important; -webkit-print-color-adjust: exact; border: 1px solid #000 !important; }
-
-      /* Slightly smaller page margins to fit more on small screens if needed */
-      @page { margin: 12mm; }
     }
   </style>
 </head>
@@ -170,17 +127,6 @@
   </header>
 
   <main>
-    <!-- Print-only header: visible only when printing and placed in the document flow so it appears on page 1 -->
-    <div class="print-header" aria-hidden="true">
-      <div class="brand">
-        <div class="brand-icon" style="background:var(--primary);color:var(--card-bg);width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;">HG</div>
-        <div>
-          <h2>HydroGeo Field Survey Pro</h2>
-          <div style="font-size:12px;color:#666;">Printed: <span id="printDate"></span></div>
-        </div>
-      </div>
-    </div>
-
     <section class="tab-panel active" id="panel-home">
       <div class="form-section">
         <div class="section-header">
@@ -260,20 +206,6 @@
 
     function closeModal() {
       document.getElementById('modalBackdrop').classList.remove('active');
-    }
-
-    // Set print date in print header
-    document.getElementById('printDate').textContent = new Date().toLocaleString();
-
-    // Optional: before printing ensure print header is visible (some browsers may snapshot layout)
-    function beforePrintHandler() {
-      // nothing heavy — print-header is controlled by CSS only
-    }
-    if (window.matchMedia) {
-      const mediaQueryList = window.matchMedia('print');
-      mediaQueryList.addEventListener('change', (m) => {
-        if (m.matches) beforePrintHandler();
-      });
     }
   </script>
 </body>
