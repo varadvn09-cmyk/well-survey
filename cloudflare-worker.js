@@ -46,7 +46,7 @@ export default {
         return Array.from(cookieJar.entries()).map(([k, v]) => `${k}=${v}`).join('; ');
       }
 
-      let currentUrl = "https://mahabhunakasha.mahabhumi.gov.in/27/index.jsp";
+      let currentUrl = "https://mahabhunakasha.mahabhumi.gov.in/27/index.html";
       for (let hop = 0; hop < 3; hop++) {
         const hResp = await fetch(currentUrl, {
           headers: {
