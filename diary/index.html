@@ -70,20 +70,76 @@
     .card-route { font-size: 0.72rem; color: #64748b; display: flex; justify-content: space-between; border-top: 1px dashed #e2e8f0; padding-top: 4px; margin-top: 4px; }
 
     /* Calendar Grid */
-    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: white; padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
-    .cal-header { text-align: center; font-weight: bold; font-size: 0.75rem; padding: 4px; background: #f8fafc; border-radius: 4px; color: #475569; }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 3px;
+      background: white;
+      padding: 6px 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .cal-header {
+      text-align: center;
+      font-weight: bold;
+      font-size: 0.72rem;
+      padding: 4px 1px;
+      background: #f8fafc;
+      border-radius: 4px;
+      color: #475569;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .cal-header.sun { color: #dc2626; }
-    .cal-day { border: 1px solid #e2e8f0; border-radius: 6px; min-height: 64px; padding: 4px 2px; text-align: center; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; transition: all 0.15s; }
+    .cal-day {
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      min-height: 52px;
+      padding: 3px 1px;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.15s;
+      min-width: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
     .cal-day:hover { border-color: var(--primary); background: #f8fafc; }
     .cal-day.empty { border: none; background: transparent; cursor: default; }
-    .cal-day-num { font-size: 0.82rem; font-weight: bold; color: #1e293b; }
+    .cal-day-num { font-size: 0.8rem; font-weight: bold; color: #1e293b; line-height: 1.1; }
     .cal-day.is-sun .cal-day-num { color: #dc2626; }
-    .cal-badge { font-size: 0.62rem; padding: 2px 3px; border-radius: 3px; font-weight: bold; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cal-badge {
+      font-size: 0.58rem;
+      padding: 1px 2px;
+      border-radius: 3px;
+      font-weight: bold;
+      margin-top: 1px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 1.1;
+      display: block;
+      width: 100%;
+    }
     .cal-badge-hol { background: #fee2e2; color: #b91c1c; }
     .cal-badge-tour { background: #dcfce7; color: #15803d; }
     .cal-badge-meet { background: #fef3c7; color: #b45309; }
     .cal-badge-lev { background: #f3e8ff; color: #6b21a8; }
     .cal-badge-off { background: #e0f2fe; color: #0369a1; }
+
+    @media (max-width: 480px) {
+      .calendar-grid { gap: 2px; padding: 4px 2px; }
+      .cal-header { font-size: 0.65rem; padding: 2px 0; }
+      .cal-day { min-height: 48px; padding: 2px 1px; }
+      .cal-day-num { font-size: 0.74rem; }
+      .cal-badge { font-size: 0.50rem; padding: 1px; }
+    }
 
     /* Summary & Progress View Styles */
     .stat-cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
@@ -123,27 +179,50 @@
     /* Print Preview 1-Page A4 Styles (Full A4 Page Height) */
     @media print {
       body { background: white !important; padding: 0 !important; color: black !important; }
-      header, .controls, .summary-strip, .bottom-nav, .no-print { display: none !important; }
-      .container { max-width: 100% !important; padding: 0 !important; }
+      header, .controls, .summary-strip, .bottom-nav, .no-print, .desktop-nav, #printMobileHelpBanner { display: none !important; }
+      .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
       #view-print { display: block !important; }
+      .print-preview-wrapper { overflow: visible !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
+      .print-sheet {
+        padding: 0 !important;
+        border: 1px solid #000 !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: 100% !important;
+        height: 288mm !important;
+        min-height: 288mm !important;
+        max-height: 288mm !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+      }
+      #mPrSubmissionDate { border: none !important; background: transparent !important; }
       @page { size: A4 portrait; margin: 3.5mm 4mm; }
+    }
+
+    .print-preview-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 95px;
+      box-sizing: border-box;
     }
 
     .print-sheet {
       background: white;
-      padding: 0;
+      padding: 3mm 4mm;
       border: 1px solid #000;
       font-size: 7.4pt;
       line-height: 1.15;
       color: black;
-      width: 100%;
-      height: 288mm;
+      width: 780px;
+      min-width: 780px;
+      margin: 0 auto;
       min-height: 288mm;
-      max-height: 288mm;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       box-sizing: border-box;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
     }
     .print-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2px 0; }
     .print-table th, .print-table td { border: 0.75px solid #000; padding: 1.5px 2px; text-align: center; vertical-align: middle; height: 5.4mm; }
@@ -319,8 +398,8 @@
 
     <!-- VIEW 2: CALENDAR VIEW (कॅलेंडर) -->
     <div id="view-calendar" class="view-panel no-print">
-      <div style="background: white; border-radius: 10px; padding: 12px; border: 1px solid var(--border); margin-bottom: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <div style="background: white; border-radius: 10px; padding: 8px 6px; border: 1px solid var(--border); margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 0 2px;">
           <h3 id="calMonthTitle" style="font-size: 0.95rem; color: var(--primary); font-weight: bold;">कॅलेंडर २०२६</h3>
           <span style="font-size: 0.72rem; color: #64748b;">(नोंद बदलण्यासाठी तारखेवर क्लिक करा)</span>
         </div>
@@ -392,12 +471,19 @@
 
     <!-- VIEW 4: OFFICIAL 1-PAGE A4 PRINT (प्रपत्र A4) -->
     <div id="view-print" class="view-panel">
-      <div class="no-print" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="no-print" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
         <div style="font-size: 0.75rem; color: #475569;">अधिकृत शासकीय प्रपत्र (Cell A1:J50) हुबेहूब 1 पूर्ण पानावर मुद्रित होते.</div>
         <button class="btn btn-purple" onclick="window.print()"><i class="fa-solid fa-print"></i> A4 Portrait वर मुद्रण / PDF सेव्ह करा</button>
       </div>
 
-      <div class="print-sheet">
+      <!-- Mobile swipe hint banner (no-print) -->
+      <div class="no-print" id="printMobileHelpBanner" style="background: #eff6ff; border: 1px solid #93c5fd; color: #1e40af; padding: 6px 10px; border-radius: 6px; font-size: 0.73rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+        <i class="fa-solid fa-arrows-left-right" style="font-size: 0.9rem;"></i>
+        <span><strong>मोबाईल व्ह्यू:</strong> संपूर्ण प्रपत्र (तक्ता, दिनांक व स्वाक्षरी) स्पष्ट पाहण्यासाठी डावीकडे/उजवीकडे सरकवा (Horizontal Scroll).</span>
+      </div>
+
+      <div class="print-preview-wrapper">
+        <div class="print-sheet">
         <!-- Merged Header Title (A1:J1) -->
         <div style="text-align: center; font-weight: bold; font-size: 8.5pt; text-decoration: underline; margin-bottom: 2px;">
           <span id="prMonthTitle">माहे जानेवारी २०२६ ची दैनंदिनी</span>
@@ -483,6 +569,7 @@
             <p id="prBottomOffice">ग्रामीण पाणी पुरवठा, जिल्हा परिषद , लातूर</p>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
