@@ -63,31 +63,15 @@ window.DraftCalcCloudSync = (function() {
 
   // --- Getters / Setters ---
   function getSyncKey() {
-    const path = (window.location.pathname || '').toLowerCase();
-    let raw = '';
-    if (path.includes('/slp')) {
-      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP') || '9822114400';
-    } else if (path.includes('/ltr')) {
-      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_LTR') || '9822114402';
-    } else if (path.includes('/kop')) {
-      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_KOP') || '9822114401';
-    } else {
-      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP') || localStorage.getItem(STORAGE_KEYS.SYNC_KEY) || '9822114400';
-    }
+    const raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_LTR') || localStorage.getItem(STORAGE_KEYS.SYNC_KEY) || '9822114402';
     const clean = (raw || '').replace(/\D/g, '').trim();
-    return clean || '9822114400';
+    return clean || '9822114402';
   }
 
   function isRecordBelongsToDistrict(r, roomKey) {
     if (!r) return false;
     const d = (r.district || '').toLowerCase().trim();
-    const t = (r.taluka || '').toLowerCase().trim();
-    const laturTalukas = ['latur', 'ausa', 'renapur', 'nilanga', 'shirur anantpal', 'deoni', 'udgir', 'jalkot', 'chakur', 'ahmedpur'];
-    if (roomKey === '9822114400') {
-      if (d === 'latur' || laturTalukas.includes(t)) return false;
-    } else if (roomKey === '9822114402') {
-      if (d === 'solapur') return false;
-    }
+    if (d && d !== 'latur') return false;
     return true;
   }
 
@@ -149,18 +133,7 @@ window.DraftCalcCloudSync = (function() {
   }
 
   function getActiveStorageKey() {
-    if (typeof window.STORAGE_KEY === 'string' && window.STORAGE_KEY) {
-      return window.STORAGE_KEY;
-    }
-    const path = (window.location.pathname || '').toLowerCase();
-    if (path.includes('/kop')) return 'HYDROGEO_SURVEY_RECORDS_KOP';
-    if (path.includes('/ltr')) return 'HYDROGEO_SURVEY_RECORDS_LTR';
-    if (path.includes('/slp')) return 'HYDROGEO_SURVEY_RECORDS_SLP';
-    if (localStorage.getItem('HYDROGEO_SURVEY_RECORDS_SLP')) return 'HYDROGEO_SURVEY_RECORDS_SLP';
-    if (localStorage.getItem('HYDROGEO_SURVEY_RECORDS_KOP')) return 'HYDROGEO_SURVEY_RECORDS_KOP';
-    if (localStorage.getItem('HYDROGEO_SURVEY_RECORDS_LTR')) return 'HYDROGEO_SURVEY_RECORDS_LTR';
-    if (localStorage.getItem('HYDROGEO_SURVEY_RECORDS_V22')) return 'HYDROGEO_SURVEY_RECORDS_V22';
-    return 'HYDROGEO_SURVEY_RECORDS_SLP';
+    return 'HYDROGEO_SURVEY_RECORDS_LTR';
   }
 
   // --- Deletion & Tombstone Tracking ---
@@ -3559,8 +3532,7 @@ window.DraftCalcCloudSync = (function() {
     font-weight: 800 !important;
     height: 34px !important;
     text-align: center !important;
-    box-sizing: border-box !important;
-    border-radius: 6px !important;
+    box-sizing: border-box !border-radius: 6px !important;
   }
 
   /* 4. Aquifer Yield Range & Annual Draft Card */
@@ -3785,68 +3757,6 @@ window.DraftCalcCloudSync = (function() {
     max-width: 100% !important;
   }
 }
-
-  /* ============================================================== */
-  /* LIVE EXCEL SPREADSHEET GRID STYLING                           */
-  /* ============================================================== */
-  .excel-live-table th {
-    font-weight: 800;
-    color: var(--text-main);
-    background: var(--card-subtle);
-    border-bottom: 2px solid #059669;
-    border-right: 1px solid var(--border-color);
-    white-space: nowrap;
-    padding: 9px 10px;
-    font-size: 0.78rem;
-    letter-spacing: 0.3px;
-    user-select: none;
-  }
-  .excel-live-table td {
-    padding: 7px 10px;
-    border-bottom: 1px solid var(--border-color);
-    border-right: 1px solid var(--border-color);
-    color: var(--text-main);
-    white-space: nowrap;
-    outline: none;
-    transition: background 0.15s, box-shadow 0.15s;
-  }
-  .excel-live-table tr:nth-child(even) td {
-    background: rgba(255, 255, 255, 0.02);
-  }
-  .excel-live-table td:focus {
-    background: rgba(5, 150, 105, 0.12) !important;
-    box-shadow: inset 0 0 0 2px #059669;
-    border-radius: 2px;
-  }
-  .excel-live-table td.cell-edited {
-    background: rgba(217, 119, 6, 0.15) !important;
-    box-shadow: inset 0 0 0 1px #d97706;
-  }
-  .excel-row-num {
-    background: var(--card-subtle) !important;
-    font-weight: 800;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0.74rem;
-    user-select: none;
-    position: sticky;
-    left: 0;
-    z-index: 5;
-    border-right: 1.5px solid var(--border-color) !important;
-  }
-  .excel-action-btn {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: background 0.15s;
-  }
-  .excel-action-btn:hover {
-    background: var(--card-subtle);
-  }
-
 
   /* ========================================================================== */
   /* ADVANCED EXCEL TABLE ENGINE: FILTER DROPDOWN, FILL HANDLE, HIGHLIGHTS     */
@@ -4092,11 +4002,11 @@ window.DraftCalcCloudSync = (function() {
           </div>
           <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
             <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.74rem; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px;">
-              <span>📱 District 10-Digit Mobile Room <span id="lblRoomCompulsoryBracket" style="color: #0284c7; font-weight: 800;">(Compulsory: 9822114400)</span> <strong style="color: #ef4444;">*</strong></span>
-              <span id="lblHomeRoomBadge" style="font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #10b981;">✅ Room 9822114400</span>
+              <span>📱 District 10-Digit Mobile Room <span id="lblRoomCompulsoryBracket" style="color: #0284c7; font-weight: 800;">(Compulsory: 9822114402)</span> <strong style="color: #ef4444;">*</strong></span>
+              <span id="lblHomeRoomBadge" style="font-size: 0.7rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: rgba(16, 185, 129, 0.15); color: #10b981;">✅ Room 9822114402</span>
             </label>
             <div style="display: flex; gap: 8px;">
-              <input type="tel" id="globalMobileRoom" maxlength="10" value="9822114400" readonly style="flex: 1; padding: 9px 12px; font-size: 0.95rem; font-weight: 800; letter-spacing: 1px; border: 2px solid #0284c7; border-radius: 8px; background: var(--card-subtle); color: var(--text-main);" />
+              <input type="tel" id="globalMobileRoom" maxlength="10" value="9822114402" readonly style="flex: 1; padding: 9px 12px; font-size: 0.95rem; font-weight: 800; letter-spacing: 1px; border: 2px solid #0284c7; border-radius: 8px; background: var(--card-subtle); color: var(--text-main);" />
               <button type="button" id="btnAdminUnlockRoom" class="btn-sm" onclick="toggleAdminUnlockRoom()" style="background: rgba(2, 132, 199, 0.12); color: #0284c7; border: 1.5px solid #0284c7; font-weight: 800; padding: 9px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap;">
                 🔒 Admin Edit
               </button>
@@ -4379,7 +4289,7 @@ window.DraftCalcCloudSync = (function() {
                 </div>
               </div>
 
-              <div class="field-group"><label>District</label><input type="text" id="district" name="district" value="Solapur" readonly /></div>
+              <div class="field-group"><label>District</label><input type="text" id="district" name="district" value="Latur" readonly /></div>
               <div class="field-group"><label>Taluka</label><select id="taluka" name="taluka" onchange="onTalukaChange()"></select></div>
               <div class="field-group"><label>Village Name</label><select id="village" name="village" onchange="onVillageChange()"></select></div>
               <div class="field-group"><label>G.P. Name</label><input type="text" id="gpName" name="gpName" placeholder="Gram Panchayat" /></div>
@@ -4506,8 +4416,8 @@ window.DraftCalcCloudSync = (function() {
               </div>
             </div>
             <div class="field-group"><label>Height of Parapet</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.01" id="parapetHeight" name="parapetHeight" placeholder="0.00" /><span class="input-unit">m.bgl</span></div></div>
-            <div class="field-group"><label>Inner Diameter (Top)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="diaTop" name="diaTop" placeholder="0.0" oninput="onFormDiameterManual()" /><span class="input-unit">m</span></div></div>
-            <div class="field-group"><label>Inner Diameter (Bottom)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="diaBottom" name="diaBottom" placeholder="0.0" oninput="onFormDiameterManual()" /><span class="input-unit">m</span></div></div>
+            <div class="field-group"><label>Inner Diameter (Top)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="diaTop" name="diaTop" placeholder="0.0" /><span class="input-unit">m</span></div></div>
+            <div class="field-group"><label>Inner Diameter (Bottom)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="diaBottom" name="diaBottom" placeholder="0.0" /><span class="input-unit">m</span></div></div>
             <div class="field-group"><label>Effective Diameter</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.01" id="diaEffective" name="diaEffective" placeholder="0.00" oninput="recalculateAll();" /><span class="input-unit">m</span></div></div>
             
             <div class="field-group"><label>Depth of Dug Well (DW)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="depthWell" name="depthWell" placeholder="0.0" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div></div>
@@ -4568,16 +4478,7 @@ window.DraftCalcCloudSync = (function() {
               </div>
             </div>
             
-            <div class="field-group">
-              <label>HP of Pump</label>
-              <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-                <button type="button" class="btn-sm btn-hp-chip" data-hp="3" onclick="setFormPumpHp('3')" style="flex:1; padding: 5px 0; font-size: 0.78rem; font-weight: 800; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer;">3 HP</button>
-                <button type="button" class="btn-sm btn-hp-chip" data-hp="5" onclick="setFormPumpHp('5')" style="flex:1; padding: 5px 0; font-size: 0.78rem; font-weight: 800; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer;">5 HP</button>
-                <button type="button" class="btn-sm btn-hp-chip" data-hp="7.5" onclick="setFormPumpHp('7.5')" style="flex:1; padding: 5px 0; font-size: 0.78rem; font-weight: 800; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer;">7.5 HP</button>
-                <button type="button" class="btn-sm btn-hp-chip" data-hp="10" onclick="setFormPumpHp('10')" style="flex:1; padding: 5px 0; font-size: 0.78rem; font-weight: 800; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); cursor: pointer;">10 HP</button>
-              </div>
-              <div class="input-wrapper"><select id="pumpHP" name="pumpHP" onchange="onPumpHPChange();"></select><span class="input-unit">HP</span></div>
-            </div>
+            <div class="field-group"><label>HP of Pump</label><div class="input-wrapper"><select id="pumpHP" name="pumpHP" onchange="onPumpHPChange();"></select><span class="input-unit">HP</span></div></div>
             <div class="field-group"><label>Pump Discharge</label><div class="input-wrapper"><select id="pumpDischarge" name="pumpDischarge" onchange="recalculateAll();"></select><span class="input-unit">m³/hr</span></div></div>
             <div class="field-group"><label>Discharge Measure Method</label><input type="text" id="dischargeMethod" name="dischargeMethod" value="Adhoc" /></div>
 
@@ -4807,8 +4708,8 @@ window.DraftCalcCloudSync = (function() {
 
               <div id="dripTab" class="method-subpanel">
                 <div class="season-card"><div class="season-card-title">Perennial Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_perennialDripHa1">Perennial 1 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialDripHa1" name="perennialDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_perennialDripHa2">Perennial 2 (Ha)</label><input type="number" inputmode="decimal" step="0.01" id="perennialDripHa2" name="perennialDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
-                <div class="season-card"><div class="season-card-title">Kharif Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_kharifDripHa1">Kharif 1</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa1" name="kharifDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifDripHa2">Kharif 2</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa2" name="kharifDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifDripHa3">Kharif 3</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa3" name="kharifDripHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
-                <div class="season-card"><div class="season-card-title">Rabi Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_rabiDripHa1">Rabi 1</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa1" name="rabiDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiDripHa2">Rabi 2</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa2" name="rabiDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiDripHa3">Rabi 3</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa3" name="rabiDripHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Kharif Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_kharifDripHa1">Kharif 1</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa1" name="kharifDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifDripHa2">Kharif 2</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa2" name="kharifDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_kharifDripHa3">Kharif 3</label><input type="number" inputmode="decimal" step="0.01" id="kharifDripHa3" name="kharifDripHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
+                <div class="season-card"><div class="season-card-title">Rabi Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_rabiDripHa1">Rabi 1</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa1" name="rabiDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiDripHa2">Rabi 2</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa2" name="rabiDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_rabiDripHa3">Rabi 3</label><input type="number" inputmode="decimal" step="0.01" id="rabiDripHa3" name="rabiDripHa3" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
                 <div class="season-card"><div class="season-card-title">Summer Crops (Drip Ha)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div class="field-group"><label id="lbl_summerDripHa1">Summer 1</label><input type="number" inputmode="decimal" step="0.01" id="summerDripHa1" name="summerDripHa1" placeholder="0.00" oninput="recalculateAll();" /></div><div class="field-group"><label id="lbl_summerDripHa2">Summer 2</label><input type="number" inputmode="decimal" step="0.01" id="summerDripHa2" name="summerDripHa2" placeholder="0.00" oninput="recalculateAll();" /></div></div></div>
                 <div style="display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; width: 100%;">
                   <button type="button" onclick="document.getElementById('btnMethodFlood').click();" style="flex: 1; padding: 11px 8px; font-size: 0.8rem; font-weight: 800; background: var(--card-subtle); border: 1.5px solid var(--border-color); color: var(--text-main); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;">
@@ -5121,10 +5022,10 @@ window.DraftCalcCloudSync = (function() {
             <div class="full-width">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <label style="font-size: 0.8rem; color: var(--primary); font-weight: 800; text-transform: uppercase;">Stratigraphic Section Observed (0.0m to Bottom)</label>
-                <span id="lblStrataCountBadge" style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">5 Geological Strata</span>
+                <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700;">5 Geological Strata</span>
               </div>
 
-              <!-- Native Stratigraphic Dug Well Cross-Section -->
+              <!-- Interactive Stratigraphic Rock & Soil Column -->
               <div class="stratum-visual-card" id="stratumVisualCrossSection">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 6px; margin-bottom: 8px;">
                   <div style="font-size: 0.78rem; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.4px;">
@@ -5926,7 +5827,7 @@ window.DraftCalcCloudSync = (function() {
             <div class="chrome-item-icon">🏛️</div>
             <div class="chrome-item-content">
               <div class="chrome-item-title">3. Survey &amp; Regional Defaults</div>
-              <div class="chrome-item-subtitle">Active District (Solapur), Databases &amp; Templates</div>
+              <div class="chrome-item-subtitle">Active District (Latur), Databases &amp; Templates</div>
             </div>
             <span class="chrome-chevron" id="secRegionalArrow">▸</span>
           </div>
@@ -5934,14 +5835,14 @@ window.DraftCalcCloudSync = (function() {
           <div id="secRegional" class="chrome-section-data" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <span style="font-size: 0.85rem; font-weight: 800; color: var(--text-main);">Choose Survey District:</span>
-              <span id="lblActiveDistrictBadge" class="chrome-status-chip">Active: D1 Solapur ✅</span>
+              <span id="lblActiveDistrictBadge" class="chrome-status-chip">Active: D3 Latur ✅</span>
             </div>
 
-            <!-- District Switching Chips (SLP) -->
+            <!-- District Switching Chips (LTR) -->
             <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-bottom: 12px;" id="districtTabContainer">
-              <button type="button" id="btnDistrictD1" onclick="switchActiveDistrict('D1')" style="padding: 10px 8px; border-radius: 12px; border: 2px solid var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 800; text-align: left; cursor: pointer;">
-                <div style="font-size: 0.85rem;">🏛️ SLP</div>
-                <div style="font-size: 0.68rem; font-weight: 600; opacity: 0.85; margin-top: 2px;">11 Tal • 1,165 Vil</div>
+              <button type="button" id="btnDistrictD3" onclick="switchActiveDistrict('D3')" style="padding: 10px 8px; border-radius: 12px; border: 2px solid var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 800; text-align: left; cursor: pointer;">
+                <div style="font-size: 0.85rem;">🏛️ LTR</div>
+                <div style="font-size: 0.68rem; font-weight: 600; opacity: 0.85; margin-top: 2px;">10 Tal • 926 Vil</div>
               </button>
             </div>
 
@@ -6264,9 +6165,8 @@ window.DraftCalcCloudSync = (function() {
       </div>
     </div>
     
-  
       <!-- ============================================================== -->
-      <!-- TAB: LIVE EXCEL SHEET VIEW, UPDATE & SAVE (GWD SOLAPUR)       -->
+      <!-- TAB: LIVE EXCEL SHEET VIEW, UPDATE & SAVE (GWD LATUR)         -->
       <!-- ============================================================== -->
       <div class="tab-panel" id="excelSheetTab" style="display: none; padding-bottom: 90px;">
         <div style="display: flex; flex-direction: column; gap: 14px; max-width: 1300px; margin: 0 auto;">
@@ -6277,11 +6177,11 @@ window.DraftCalcCloudSync = (function() {
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 1.5rem;">📑</span>
                 <h2 style="margin: 0; font-size: 1.25rem; font-weight: 900; color: var(--text-main);">Live Excel Master Register</h2>
-                <span style="font-size: 0.72rem; font-weight: 800; background: #059669; color: #fff; padding: 2px 8px; border-radius: 6px;">Solapur GWD</span>
+                <span style="font-size: 0.72rem; font-weight: 800; background: #059669; color: #fff; padding: 2px 8px; border-radius: 6px;">Latur GWD</span>
                 <span id="excelGridDirtyBadge" style="display: none; font-size: 0.72rem; font-weight: 800; background: #d97706; color: #fff; padding: 2px 8px; border-radius: 6px; animation: pulse 1.5s infinite;">● Unsaved Edits</span>
               </div>
               <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                Click any cell to edit directly like Microsoft Excel • Changes recalculate drafts & sync to Room 9822114400
+                Click any cell to edit directly like Microsoft Excel • Changes recalculate drafts & sync to Room 9822114402
               </div>
             </div>
 
@@ -6332,7 +6232,7 @@ window.DraftCalcCloudSync = (function() {
                 💧 0.00 Ham Total Draft
               </span>
               <span style="font-size: 0.78rem; font-weight: 800; padding: 6px 12px; border-radius: 20px; background: var(--card-subtle); color: var(--text-muted); border: 1px solid var(--border-color);">
-                📱 Room: 9822114400
+                📱 Room: 9822114402
               </span>
             </div>
           </div>
@@ -6370,7 +6270,7 @@ window.DraftCalcCloudSync = (function() {
             <!-- Table Footer Status -->
             <div style="background: var(--card-subtle); border-top: 1px solid var(--border-color); padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-muted);">
               <div id="excelGridFooterStatus">Showing all records</div>
-              <div>⚡ Solapur Hydrogeology Survey Engine</div>
+              <div>⚡ Latur Hydrogeology Survey Engine</div>
             </div>
 
           </div>
@@ -7585,12 +7485,11 @@ window.DraftCalcCloudSync = (function() {
       "15": ["50.0"]
     };
 
-    let SHEET2_FULL_DATABASE = sortVillageDatabase(JSON.parse(localStorage.getItem('HYDROGEO_VILLAGE_DB_SLP')) || window.INBUILT_VILLAGES_SOLAPUR || window.INBUILT_VILLAGES || {
+    let SHEET2_FULL_DATABASE = sortVillageDatabase(JSON.parse(localStorage.getItem('HYDROGEO_VILLAGE_DB_LTR')) || window.INBUILT_VILLAGES_LATUR || {
       "Akkalkot": [["Akkalkot Rural", "Akkalkot GP", "562839", "BM-133", "56 C/2", "", "", "", "Solapur"]]
     });
 
-    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_SLP';
-    window.STORAGE_KEY = STORAGE_KEY;
+    const STORAGE_KEY = 'HYDROGEO_SURVEY_RECORDS_LTR';
     let currentPhotoBase64 = null;
     let activeModalPhoto = null;
     let rootDirHandle = null;
@@ -7602,20 +7501,12 @@ window.DraftCalcCloudSync = (function() {
     // Auto-load bundled databases and template if not already in localStorage
     async function loadBundledDataIfEmpty() {
       try {
-        localStorage.setItem('HYDROGEO_ACTIVE_DISTRICT', 'D1');
-        // Clean up any stale Latur keys or legacy state if migrating
-        try {
-          localStorage.removeItem('HYDROGEO_SURVEY_RECORDS_LTR');
-          localStorage.removeItem('HYDROGEO_VILLAGE_DB_LTR');
-          localStorage.removeItem('HYDROGEO_GIS_LAYER_INFO_LTR');
-          localStorage.removeItem('HYDROGEO_CLOUD_SYNC_PHONE_LTR');
-        } catch(e) {}
-        localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP', '9822114400');
-        localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE', '9822114400');
-        if (window.DraftCalcCloudSync && typeof window.DraftCalcCloudSync.setSyncKey === 'function') {
-          window.DraftCalcCloudSync.setSyncKey('9822114400');
+        
+        localStorage.setItem('HYDROGEO_ACTIVE_DISTRICT', 'D3');
+        if (!localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE')) {
+          localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE', '9822114402');
         }
-        const activeDist = 'D1';
+        const activeDist = 'D3';
     
         await switchActiveDistrict(activeDist, true);
 
@@ -7835,6 +7726,13 @@ window.DraftCalcCloudSync = (function() {
       initCloudSetup();
       initTalukaDropdowns();
       initCropDropdowns();
+      window.currentStrataLayers = [
+        { id: 'layer_1', type: 'Black Cotton Soil', depth: 1.0, isSoil: true },
+        { id: 'layer_2', type: 'Highly Weathered Basalt', depth: 5.0 },
+        { id: 'layer_3', type: 'Moderately Weathered Basalt', depth: 8.0 },
+        { id: 'layer_4', type: 'Fractured/ Jointed  Basalt', depth: 12.0 },
+        { id: 'layer_5', type: 'Massive Basalt', isMassive: true }
+      ];
       initLithoDropdowns();
       initPumpDropdowns();
       initFormDefaults();
@@ -7942,7 +7840,7 @@ window.DraftCalcCloudSync = (function() {
 
         
         const defRoom = window.DISTRICT_DEFAULT_ROOM || '';
-        const savedSyncPhone = (localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP') || defRoom).replace(/\D/g, '');
+        const savedSyncPhone = (localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_LTR') || defRoom).replace(/\D/g, '');
         const mRoomInp = document.getElementById('globalMobileRoom');
         if (mRoomInp && savedSyncPhone) {
           mRoomInp.value = savedSyncPhone;
@@ -7964,7 +7862,7 @@ window.DraftCalcCloudSync = (function() {
     }
 
     
-    window.DISTRICT_DEFAULT_ROOM = '9822114400';
+    window.DISTRICT_DEFAULT_ROOM = '9822114402';
     let isRoomUnlockedByAdmin = false;
 
     function toggleAdminUnlockRoom() {
@@ -8001,7 +7899,7 @@ window.DraftCalcCloudSync = (function() {
         btn.style.color = "#0284c7";
         btn.style.borderColor = "#0284c7";
         
-        localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP', raw);
+        localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE_LTR', raw);
         if (window.DraftCalcCloudSync) {
           window.DraftCalcCloudSync.setSyncKey(raw);
           window.DraftCalcCloudSync.pushAllRecords(true);
@@ -8801,7 +8699,7 @@ window.DraftCalcCloudSync = (function() {
 
       if (targetVillages && Object.keys(targetVillages).length > 0) {
         SHEET2_FULL_DATABASE = sortVillageDatabase(JSON.parse(JSON.stringify(targetVillages)));
-        localStorage.setItem('HYDROGEO_VILLAGE_DB_SLP', JSON.stringify(SHEET2_FULL_DATABASE));
+        localStorage.setItem('HYDROGEO_VILLAGE_DB_LTR', JSON.stringify(SHEET2_FULL_DATABASE));
       }
 
       // 3. Load Inbuilt Lithology if district specific
@@ -8842,7 +8740,7 @@ window.DraftCalcCloudSync = (function() {
         if (feats.length > 0) {
           window.GIS_SPATIAL_FEATURES = feats;
           const assignedFileName = isD1 ? 'SolapurVillage.kml' : (isD2 ? 'Village_kolhapur_26.kml' : 'lATURvILLaLL.kml');
-          localStorage.setItem('HYDROGEO_GIS_LAYER_INFO_SLP', JSON.stringify({
+          localStorage.setItem('HYDROGEO_GIS_LAYER_INFO_LTR', JSON.stringify({
             fileName: assignedFileName,
             featuresCount: feats.length,
             villageCount: feats.length,
@@ -8884,13 +8782,13 @@ window.DraftCalcCloudSync = (function() {
       const statsSummary = document.getElementById('lblDbStatsSummary');
       const stats = getDatabaseStats();
       
-        localStorage.setItem('HYDROGEO_ACTIVE_DISTRICT', 'D1');
+        localStorage.setItem('HYDROGEO_ACTIVE_DISTRICT', 'D3');
         if (!localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE')) {
-          localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE', '9822114400');
+          localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE', '9822114402');
         }
-        const activeDist = 'D1';
+        const activeDist = 'D3';
     
-      const distName = (activeDist === 'D3' || activeDist === 'LTR') ? 'Latur' : ((activeDist === 'D2' || activeDist === 'KOP') ? 'Kolhapur' : 'Solapur');
+      const distName = (activeDist === 'D2') ? 'Latur' : 'Solapur';
 
       if (statsSummary) {
         const gisInfo = getGisLayerInfo();
@@ -8918,7 +8816,7 @@ window.DraftCalcCloudSync = (function() {
     // ==========================================
     // GIS, KML/KMZ ENGINE & SPATIAL AUTO-LOOKUP
     // ==========================================
-    const GIS_DB_NAME = 'HydroGeoGISDB_SLP';
+    const GIS_DB_NAME = 'HydroGeoGISDB_LTR';
     const GIS_STORE_NAME = 'spatialLayers';
     window.GIS_SPATIAL_FEATURES = [];
 
@@ -8993,7 +8891,7 @@ window.DraftCalcCloudSync = (function() {
 
     function getGisLayerInfo() {
       try {
-        return JSON.parse(localStorage.getItem('HYDROGEO_GIS_LAYER_INFO_SLP')) || null;
+        return JSON.parse(localStorage.getItem('HYDROGEO_GIS_LAYER_INFO_LTR')) || null;
       } catch(e) {
         return null;
       }
@@ -9267,7 +9165,7 @@ window.DraftCalcCloudSync = (function() {
       Object.values(talukaMap).forEach(m => uniqueVilCount += Object.keys(m).length);
       const talukaCount = Object.keys(talukaMap).length;
 
-      localStorage.setItem('HYDROGEO_GIS_LAYER_INFO_SLP', JSON.stringify({
+      localStorage.setItem('HYDROGEO_GIS_LAYER_INFO_LTR', JSON.stringify({
         fileName: fileName,
         featuresCount: combinedFeatures.length,
         newFeaturesCount: newFeatures.length,
@@ -12296,7 +12194,6 @@ window.DraftCalcCloudSync = (function() {
       let updated = 0;
 
       parsedRecords.forEach(newR => {
-        if (!newR.district || !newR.district.trim()) newR.district = 'Solapur';
         const idx = currentRecords.findIndex(r => matchSrNo(r.srNo, newR.srNo));
         if (idx >= 0) {
           currentRecords[idx] = Object.assign({}, currentRecords[idx], newR);
@@ -12312,9 +12209,6 @@ window.DraftCalcCloudSync = (function() {
       updateHomeDashboard();
       renderRecordCards();
       recalculateAll();
-      if (window.DraftCalcCloudSync && typeof window.DraftCalcCloudSync.pushAllRecords === 'function') {
-        window.DraftCalcCloudSync.pushAllRecords(false);
-      }
       return { added, updated, total: currentRecords.length };
     }
 
@@ -12379,7 +12273,7 @@ window.DraftCalcCloudSync = (function() {
       });
 
       SHEET2_FULL_DATABASE = sortVillageDatabase(targetDb);
-      localStorage.setItem('HYDROGEO_VILLAGE_DB_SLP', JSON.stringify(targetDb));
+      localStorage.setItem('HYDROGEO_VILLAGE_DB_LTR', JSON.stringify(targetDb));
       initTalukaDropdowns();
       return { added, updated, newTalukas };
     }
@@ -13178,11 +13072,11 @@ window.DraftCalcCloudSync = (function() {
         XLSX.utils.book_append_sheet(wb, ws2, "Sheet2");
 
         
-        localStorage.setItem('HYDROGEO_ACTIVE_DISTRICT', 'D1');
+        localStorage.setItem('HYDROGEO_ACTIVE_DISTRICT', 'D3');
         if (!localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE')) {
-          localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE', '9822114400');
+          localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE', '9822114402');
         }
-        const activeDist = 'D1';
+        const activeDist = 'D3';
     
         const isD1 = (activeDist === 'D1');
         const fileName = isD1 ? "HydroGeo_Master_Database_Template.xlsx" : "HydroGeo_Master_Database_Template_L.xlsx";
@@ -13253,7 +13147,7 @@ window.DraftCalcCloudSync = (function() {
       if (!confirm("Are you sure you want to reset all databases (Crops, Lithology, Pump, Villages) to inbuilt factory defaults?")) return;
       localStorage.removeItem('HYDROGEO_CROP_LISTS');
       localStorage.removeItem('HYDROGEO_CROP_DB');
-      localStorage.removeItem('HYDROGEO_VILLAGE_DB_SLP');
+      localStorage.removeItem('HYDROGEO_VILLAGE_DB_LTR');
       localStorage.removeItem('HYDROGEO_PUMP_DB');
       localStorage.removeItem('HYDROGEO_LITHOLOGY_LISTS');
       localStorage.removeItem('HYDROGEO_DB_CUSTOM_NAME');
@@ -13432,7 +13326,6 @@ window.DraftCalcCloudSync = (function() {
       const btnHero = document.getElementById('tabBtnSurveyHero');
       const btnAnalytics = document.getElementById('tabBtnAnalytics');
       const btnSettings = document.getElementById('tabBtnSettings');
-      const btnExcel = document.getElementById('tabBtnExcelSheet');
       const btnRecords = document.getElementById('tabBtnRecords');
 
       if (btnHome) btnHome.classList.toggle('active', tabId === 'homeTab');
@@ -13440,12 +13333,14 @@ window.DraftCalcCloudSync = (function() {
       if (btnHero) btnHero.classList.toggle('active', tabId === 'newEntry');
       if (btnAnalytics) btnAnalytics.classList.toggle('active', tabId === 'analyticsTab');
       if (btnSettings) btnSettings.classList.toggle('active', tabId === 'settingsTab');
-      if (btnExcel) btnExcel.classList.toggle('active', tabId === 'excelSheetTab');
-      if (tabId === 'excelSheetTab') renderLiveExcelSheet();
       if (btnRecords) btnRecords.classList.toggle('active', tabId === 'recordsList');
       
+      const btnExcel = document.getElementById('tabBtnExcelSheet');
+      if (btnExcel) btnExcel.classList.toggle('active', tabId === 'excelSheetTab');
+      if (tabId === 'excelSheetTab') renderLiveExcelSheet();
+
       const mainHeader = document.getElementById('mainHeader');
-      if (mainHeader) mainHeader.style.display = (tabId === 'homeTab' || tabId === 'analyticsTab' || tabId === 'settingsTab') ? 'flex' : 'none';
+      if (mainHeader) mainHeader.style.display = (tabId === 'homeTab' || tabId === 'analyticsTab' || tabId === 'settingsTab' || tabId === 'excelSheetTab') ? 'flex' : 'none';
       if (tabId === 'homeTab') updateHomeDashboard();
       if (tabId === 'recordsList') applyFilters();
       if (tabId === 'pdfMapTab') {
@@ -13551,6 +13446,7 @@ window.DraftCalcCloudSync = (function() {
       sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    // --- Section F: Interactive Stratigraphic Lithology Column ---
     // --- Section F: Dynamic Interactive Stratigraphic Rock & Soil Cross-Section ---
     window.currentStrataLayers = [
       { id: 'layer_1', type: 'Black Cotton Soil', depth: 1.0, isSoil: true },
@@ -16148,9 +16044,7 @@ ${arrowsXml}
         if (rad) rad.checked = true;
       };
 
-      const _actD = localStorage.getItem('HYDROGEO_ACTIVE_DISTRICT');
-      const _curDistName = (_actD === 'D3' || _actD === 'LTR') ? 'Latur' : ((_actD === 'D2' || _actD === 'KOP') ? 'Kolhapur' : 'Solapur');
-      setVal('district', _curDistName);
+            setVal('district', 'Latur');
       setVal('pumpKharifHrsInput', '3.0');
       setVal('pumpRabi1HrsInput', '4.0');
       setVal('pumpRabi2HrsInput', '4.0');
@@ -16208,7 +16102,7 @@ ${arrowsXml}
     async function resetLoadedKmlAndPdf() {
       // 1. Clear KML in-memory and IndexedDB storage
       window.GIS_SPATIAL_FEATURES = [];
-      localStorage.removeItem('HYDROGEO_GIS_LAYER_INFO_SLP');
+      localStorage.removeItem('HYDROGEO_GIS_LAYER_INFO_LTR');
       await clearGisFeaturesFromIdb();
       updateGisStatusBadge();
 
@@ -16299,7 +16193,7 @@ ${arrowsXml}
       // Clear database localStorage overrides
       localStorage.removeItem('HYDROGEO_CROP_LISTS');
       localStorage.removeItem('HYDROGEO_CROP_DB');
-      localStorage.removeItem('HYDROGEO_VILLAGE_DB_SLP');
+      localStorage.removeItem('HYDROGEO_VILLAGE_DB_LTR');
       localStorage.removeItem('HYDROGEO_PUMP_DB');
       localStorage.removeItem('HYDROGEO_LITHOLOGY_LISTS');
       localStorage.removeItem('HYDROGEO_DB_CUSTOM_NAME');
@@ -16340,9 +16234,7 @@ ${arrowsXml}
         if (rad) rad.checked = true;
       };
 
-      const _actD = localStorage.getItem('HYDROGEO_ACTIVE_DISTRICT');
-      const _curDistName = (_actD === 'D3' || _actD === 'LTR') ? 'Latur' : ((_actD === 'D2' || _actD === 'KOP') ? 'Kolhapur' : 'Solapur');
-      forceVal('district', _curDistName);
+      forceVal('district', (localStorage.getItem('HYDROGEO_ACTIVE_DISTRICT') === 'D2') ? 'Latur' : 'Solapur');
       forceVal('parapetHeight', '1');
       forceVal('diaTop', '10');
       forceVal('diaEffective', '9');
@@ -16778,46 +16670,22 @@ ${arrowsXml}
 
     function getStoredRecords() {
       try {
-        let raw = localStorage.getItem(STORAGE_KEY);
-        // Fallback migration: Only check Solapur-specific storage keys, NEVER Latur (LTR) or Kolhapur (KOP)!
-        if (!raw || raw === '[]' || raw.length < 5) {
-          const fallbackKeys = [
-            'HYDROGEO_SURVEY_RECORDS_SLP',
-            'HYDROGEO_SURVEY_RECORDS_V22'
-          ];
-          for (const fk of fallbackKeys) {
-            if (fk !== STORAGE_KEY) {
-              const testRaw = localStorage.getItem(fk);
-              if (testRaw && testRaw.length > 5 && testRaw !== '[]') {
-                raw = testRaw;
-                localStorage.setItem(STORAGE_KEY, testRaw);
-                break;
-              }
-            }
-          }
-        }
-        let list = raw ? JSON.parse(raw) : [];
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const list = raw ? JSON.parse(raw) : [];
         if (!Array.isArray(list)) return [];
-        // Strictly filter out any cross-district contaminated records (e.g. Latur records from room 9822114402)
-        const laturTalukas = ['latur', 'ausa', 'renapur', 'nilanga', 'shirur anantpal', 'deoni', 'udgir', 'jalkot', 'chakur', 'ahmedpur'];
-        const cleanList = list.filter(r => {
-          const d = (r.district || '').toLowerCase().trim();
-          const t = (r.taluka || '').toLowerCase().trim();
-          if (d === 'latur' || d === 'kolhapur' || laturTalukas.includes(t)) {
-            return false;
-          }
-          return true;
-        });
-        if (cleanList.length !== list.length) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanList));
-          list = cleanList;
-        }
         list.forEach(r => {
-          if (!r.smartWellId || r.smartWellId.includes('-') || r.smartWellId.includes('.')) {
+          if (!r.smartWellId || r.smartWellId.includes('-')) {
             r.smartWellId = (typeof makeTechnicalWellId === 'function') ? makeTechnicalWellId(r) : '';
           }
         });
-        return list;
+        // Strict district isolation: Solapur only shows Solapur, Kolhapur only shows Kolhapur, Latur only shows Latur
+        const laturTalukas = ['latur', 'ausa', 'renapur', 'nilanga', 'shirur anantpal', 'deoni', 'udgir', 'jalkot', 'chakur', 'ahmedpur'];
+        return list.filter(r => {
+          const rd = (r.district || '').trim().toLowerCase();
+          const rt = (r.taluka || '').trim().toLowerCase();
+          if (!rd) return laturTalukas.includes(rt) || true;
+          return rd === 'latur' || laturTalukas.includes(rt);
+        });
       } catch (e) {
         return [];
       }
@@ -16834,7 +16702,7 @@ ${arrowsXml}
           records.forEach(r => {
             if (!r.updatedAt && !r.timestamp) r.updatedAt = nowIso;
             if (!r.smartWellId && typeof makeUniqueSurveyKey === 'function') r.smartWellId = makeUniqueSurveyKey(r);
-            if (!r.creatorDeviceId) r.creatorDeviceId = myDevId; if (!r.district) r.district = 'Solapur';
+            if (!r.creatorDeviceId) r.creatorDeviceId = myDevId; if (!r.district) r.district = 'Latur';
             if (!r.creatorName) r.creatorName = r.geologistName || currentGeoName;
           });
         }
@@ -16868,7 +16736,7 @@ ${arrowsXml}
     async function handleFormSubmit(e) {
       if (e) e.preventDefault();
       // Compulsory District 10-Digit Mobile Room Check
-      const curSyncRoom = (window.DraftCalcCloudSync ? window.DraftCalcCloudSync.getSyncKey() : (localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP') || '')).replace(/\D/g, '');
+      const curSyncRoom = (window.DraftCalcCloudSync ? window.DraftCalcCloudSync.getSyncKey() : (localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_LTR') || '')).replace(/\D/g, '');
       if (!curSyncRoom || curSyncRoom.length !== 10) {
         showToast("⚠️ Compulsory: District 10-Digit Mobile Room is required! Please enter on Home tab.");
         switchTab('homeTab');
@@ -17405,13 +17273,6 @@ ${arrowsXml}
       initFormDefaults();
       initProfile();
       initCropDropdowns();
-      window.currentStrataLayers = [
-        { id: 'layer_1', type: 'Black Cotton Soil', depth: 1.0, isSoil: true },
-        { id: 'layer_2', type: 'Highly Weathered Basalt', depth: 5.0 },
-        { id: 'layer_3', type: 'Moderately Weathered Basalt', depth: 8.0 },
-        { id: 'layer_4', type: 'Fractured/ Jointed  Basalt', depth: 12.0 },
-        { id: 'layer_5', type: 'Massive Basalt', isMassive: true }
-      ];
       initLithoDropdowns();
       initPumpDropdowns();
       onTalukaChange();
@@ -18965,7 +18826,7 @@ ${arrowsXml}
 <body>
   ${bodyHtml}
 
-  </body>
+</body>
 </html>`;
 
       closePrintPreviewModal();
@@ -18999,7 +18860,7 @@ ${arrowsXml}
     }
 
   // ==============================================================
-  // LIVE EXCEL SHEET VIEW, UPDATE & SAVE CONTROLLER (SOLAPUR)
+  // LIVE EXCEL SHEET VIEW, UPDATE & SAVE CONTROLLER (LATUR)
   // ==============================================================
   window.isExcelGridDirty = false;
   window.currentExcelLiveSheet = 'calc';
@@ -19920,7 +19781,7 @@ ${arrowsXml}
     if (!tbody) return;
 
     const sheetMode = window.currentExcelLiveSheet || 'calc';
-    const defaultDistrict = 'Solapur';
+    const defaultDistrict = 'Latur';
 
     if (thead) {
       if (sheetMode === 'calc') {
@@ -19974,12 +19835,12 @@ ${arrowsXml}
     }
 
     const allRecords = (typeof getStoredRecords === 'function') ? getStoredRecords() : [];
-    // District Solapur only
+    // District Latur filter
     const districtRecords = allRecords.filter(r => {
       const d = (r.district || '').toLowerCase().trim();
       const t = (r.taluka || '').toLowerCase().trim();
       const laturTalukas = ['latur', 'ausa', 'renapur', 'nilanga', 'shirur anantpal', 'deoni', 'udgir', 'jalkot', 'chakur', 'ahmedpur'];
-      return !laturTalukas.includes(t) && d !== 'latur' && d !== 'kolhapur';
+      return laturTalukas.includes(t) || d === 'latur';
     });
 
     tbody.innerHTML = '';
@@ -20070,7 +19931,7 @@ ${arrowsXml}
 
     const footStatus = document.getElementById('excelGridFooterStatus');
     const sheetTitle = sheetMode === 'calc' ? 'calc (124 Master Calculation Columns)' : 'MRSAC Format (25 Columns)';
-    if (footStatus) footStatus.innerText = `Showing ${districtRecords.length} Solapur Wells [Sheet: ${sheetTitle}] • Sync Room: 9822114400`;
+    if (footStatus) footStatus.innerText = `Showing ${districtRecords.length} Latur Wells [Sheet: ${sheetTitle}] • Sync Room: 9822114402`;
 
     setExcelGridDirty(false);
   }
@@ -20090,8 +19951,13 @@ ${arrowsXml}
     setExcelGridDirty(true);
   }
 
+
+
   function handleExcelTablePaste(e) {
-    const activeCell = document.activeElement;
+    let activeCell = document.activeElement;
+    if (!activeCell || !activeCell.isContentEditable || !activeCell.dataset.field) {
+      activeCell = window.excelActiveCell;
+    }
     if (!activeCell || !activeCell.isContentEditable || !activeCell.dataset.field) return;
     const clipData = (e.clipboardData || window.clipboardData)?.getData('text');
     if (!clipData) return;
@@ -20157,8 +20023,8 @@ ${arrowsXml}
     const sheetMode = window.currentExcelLiveSheet || 'calc';
     const rowCount = tbody.children.length;
     const nextSrNo = `VN-${String(rowCount + 1).padStart(3, '0')}`;
-    const defVil = document.getElementById('villageSelect')?.value || document.getElementById('village')?.value || 'Konheri';
-    const defTal = document.getElementById('talukaSelect')?.value || document.getElementById('taluka')?.value || 'Mohol';
+    const defVil = document.getElementById('villageSelect')?.value || document.getElementById('village')?.value || 'Latur';
+    const defTal = document.getElementById('talukaSelect')?.value || document.getElementById('taluka')?.value || 'Latur';
     const defDate = new Date().toISOString().split('T')[0];
 
     const tr = document.createElement('tr');
@@ -20171,7 +20037,7 @@ ${arrowsXml}
       surveyDate: defDate,
       village: defVil,
       taluka: defTal,
-      district: 'Solapur',
+      district: 'Latur',
       ownerName: 'Unnamed',
       wellType: 'Dug Well',
       pumpHP: '7.5',
@@ -20187,9 +20053,9 @@ ${arrowsXml}
       const wInfo = getRecordCropWateringInfo(dummyR);
       let tds = `<td class="excel-row-num" style="position: sticky; left: 0; z-index: 5; background: var(--card-bg); color: #059669; font-weight: 900;">${rowCount + 1}</td>`;
       CALC_AVAILABLE_COLUMNS.forEach(col => {
-        let val = col.get(dummyR, rowCount + 1, wInfo, 'Solapur');
+        let val = col.get(dummyR, rowCount + 1, wInfo, 'Latur');
         if (val === undefined || val === null) val = '';
-        tds += `<td contenteditable="true" data-field="${col.id}" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)" class="cell-edited">${val}</td>`;
+        tds += `<td contenteditable="true" data-field="${col.id}" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)" class="cell-edited">${val}</td>`;
       });
       tds += `
         <td style="text-align: center; white-space: nowrap; position: sticky; right: 0; z-index: 5; background: var(--card-bg);">
@@ -20201,10 +20067,10 @@ ${arrowsXml}
     } else {
       tr.innerHTML = `
         <td class="excel-row-num" style="position: sticky; left: 0; z-index: 5; background: var(--card-bg); color: #0284c7; font-weight: 900;">${rowCount + 1}</td>
-        <td contenteditable="true" data-field="srNo" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)" class="cell-edited">${nextSrNo}</td>
+        <td contenteditable="true" data-field="srNo" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)" class="cell-edited">${nextSrNo}</td>
         <td contenteditable="true" data-field="taluka" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">${defTal}</td>
-        <td contenteditable="true" data-field="village" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)" class="cell-edited">${defVil}</td>
-        <td contenteditable="true" data-field="ownerName" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)" class="cell-edited">Unnamed</td>
+        <td contenteditable="true" data-field="village" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)" class="cell-edited">${defVil}</td>
+        <td contenteditable="true" data-field="ownerName" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)" class="cell-edited">Unnamed</td>
         <td contenteditable="true" data-field="surveyDate" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">${defDate}</td>
         <td contenteditable="true" data-field="wellType" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">Dug Well</td>
         <td contenteditable="true" data-field="gatNo" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)"></td>
@@ -20218,10 +20084,10 @@ ${arrowsXml}
         <td contenteditable="true" data-field="swlWinter" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)"></td>
         <td contenteditable="true" data-field="swlSummer" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)"></td>
         <td contenteditable="true" data-field="dwl" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)"></td>
-        <td contenteditable="true" data-field="kharifHam" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">0.0000</td>
-        <td contenteditable="true" data-field="rabiHam" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">0.0000</td>
-        <td contenteditable="true" data-field="summerHam" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">0.0000</td>
-        <td contenteditable="true" data-field="totalHam" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">0.0000</td>
+        <td contenteditable="true" data-field="kharifHam" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">${getRecordYields(dummyR).kharifHam}</td>
+        <td contenteditable="true" data-field="rabiHam" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">${getRecordYields(dummyR).rabiHam}</td>
+        <td contenteditable="true" data-field="summerHam" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">${getRecordYields(dummyR).summerHam}</td>
+        <td contenteditable="true" data-field="totalHam" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">${getRecordYields(dummyR).totalHam}</td>
         <td contenteditable="true" data-field="wellStatus" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">Perennial well</td>
         <td contenteditable="true" data-field="geologistName" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)">GSDA Geologist</td>
         <td contenteditable="true" data-field="remarks" onfocus="onExcelCellFocus(this)" onblur="onExcelCellBlur(this)" oninput="onExcelCellInput(this)" onkeydown="onExcelCellKeyDown(event, this)"></td>
@@ -20303,10 +20169,10 @@ ${arrowsXml}
         rec.wellSeqNo = getVal('wellSeqNo') || rec.wellSeqNo || '';
         rec.wellType = getVal('wellType') || rec.wellType || 'Dug Well';
         rec.ownerName = getVal('ownerName') || rec.ownerName || '';
-        rec.district = getVal('district') || rec.district || 'Solapur';
-        rec.taluka = getVal('taluka') || rec.taluka || 'Mohol';
+        rec.district = getVal('district') || rec.district || 'Latur';
+        rec.taluka = getVal('taluka') || rec.taluka || 'Latur';
         rec.gpName = getVal('gpName') || rec.gpName || '';
-        rec.village = getVal('village') || rec.village || 'Konheri';
+        rec.village = getVal('village') || rec.village || 'Latur';
         rec.villageName = rec.village;
         rec.censusNo = getVal('censusNo') || rec.censusNo || '';
         rec.watershedNo = getVal('watershedNo') || rec.watershedNo || '';
@@ -20432,8 +20298,8 @@ ${arrowsXml}
         rec.totalGWAppliedHam = y.totalHam;
       } else {
         // MRSAC Format
-        rec.taluka = getVal('taluka') || rec.taluka || 'Mohol';
-        rec.village = getVal('village') || rec.village || 'Konheri';
+        rec.taluka = getVal('taluka') || rec.taluka || 'Latur';
+        rec.village = getVal('village') || rec.village || 'Latur';
         rec.villageName = rec.village;
         rec.ownerName = getVal('ownerName');
         rec.surveyDate = getVal('surveyDate');
@@ -20486,7 +20352,7 @@ ${arrowsXml}
         rec.sheet10k = rec.mapSheetNo;
       }
 
-      rec.district = 'Solapur';
+      rec.district = 'Latur';
       rec.updatedAt = nowIso;
       rec.lastModified = Date.now();
       rec.syncDevice = window.AndroidBridge ? 'mobile' : 'pc';
@@ -20499,14 +20365,14 @@ ${arrowsXml}
     });
 
     // Save to LocalStorage
-    localStorage.setItem('HYDROGEO_SURVEY_RECORDS_SLP', JSON.stringify(updatedRecords));
+    localStorage.setItem('HYDROGEO_SURVEY_RECORDS_LTR', JSON.stringify(updatedRecords));
 
     // Persist to Android Native SQLite if available
     if (window.AndroidBridge && window.AndroidBridge.persistBackup) {
       try { window.AndroidBridge.persistBackup(JSON.stringify(updatedRecords)); } catch(e) {}
     }
 
-    // Push to Solapur Room 9822114400
+    // Push to Latur Room 9822114402
     if (window.DraftCalcCloudSync && typeof window.DraftCalcCloudSync.pushAllRecords === 'function') {
       window.DraftCalcCloudSync.pushAllRecords(false);
     }
@@ -20523,7 +20389,7 @@ ${arrowsXml}
     setExcelGridDirty(false);
 
     if (showToastAlert && typeof showToast === 'function') {
-      showToast(`🎉 Saved ${updatedRecords.length} wells to database & synced to Room 9822114400!`);
+      showToast(`🎉 Saved ${updatedRecords.length} wells to database & synced to Room 9822114402!`);
     }
     return true;
   }
@@ -20533,10 +20399,10 @@ ${arrowsXml}
     if (window.isExcelGridDirty) {
       await saveLiveExcelSheet(false);
     }
-    if (typeof openMasterDataExportDestinationModal === 'function') {
-      openMasterDataExportDestinationModal();
-    } else if (typeof exportToExcel === 'function') {
+    if (typeof exportToExcel === 'function') {
       await exportToExcel(false, 'mobile');
+    } else if (typeof openMasterDataExportDestinationModal === 'function') {
+      openMasterDataExportDestinationModal();
     } else {
       if (typeof showToast === 'function') showToast("⚠️ Master Excel export is initializing...");
     }
@@ -20645,7 +20511,11 @@ ${arrowsXml}
         for (let i = 0; i < records.length; i++) {
           const r = records[i];
           const { isPWS, cells } = buildRecordCellMap(r);
-          const baseTemplate = isPWS ? (templatePWS || wb.worksheets[0]) : (templateIrr || wb.worksheets[0]);
+          const baseTemplate = (isPWS ? (templatePWS || templateIrr) : (templateIrr || templatePWS)) || (wb.worksheets && wb.worksheets[0]);
+          if (!baseTemplate) {
+            showToast("⚠️ Master template sheet not found in workbook.");
+            return;
+          }
           const baseName = `Well_${r.srNo || (i + 1)}`.substring(0, 25);
           let sheetName = baseName;
           let dup = 1;
@@ -23148,24 +23018,23 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
         typeCode = rawType.substring(0, 4).toUpperCase();
       }
 
-      let rawKey = '';
       if (census && lat && lon) {
-        rawKey = `${census}${lat}${lon}${typeCode}`;
-      } else if (lat && lon) {
-        rawKey = `VIL${lat}${lon}${typeCode}`;
-      } else if (r.smartWellId && !r.smartWellId.includes('-')) {
-        rawKey = String(r.smartWellId);
-      } else {
-        rawKey = `${(r.village || 'WELL').substring(0, 6)}_${r.srNo || '1'}_${typeCode}`;
+        return `${census}${lat}${lon}${typeCode}`;
       }
-      return rawKey.replace(/[\.\$#\[\]\/\s]/g, '_');
+      if (lat && lon) {
+        return `VIL${lat}${lon}${typeCode}`;
+      }
+      if (r.smartWellId && !r.smartWellId.includes('-')) {
+        return String(r.smartWellId);
+      }
+      return `${(r.village || 'WELL').substring(0, 6)}_${r.srNo || '1'}_${typeCode}`;
     }
     window.makeTechnicalWellId = makeTechnicalWellId;
 
     function makeUniqueSurveyKey(r) {
       if (!r) return '';
-      let k = (r.smartWellId && !r.smartWellId.includes('-')) ? String(r.smartWellId) : makeTechnicalWellId(r);
-      return k.replace(/[\.\$#\[\]\/\s]/g, '_');
+      if (r.smartWellId && !r.smartWellId.includes('-')) return String(r.smartWellId);
+      return makeTechnicalWellId(r);
     }
     window.makeUniqueSurveyKey = makeUniqueSurveyKey;
 
@@ -24465,24 +24334,9 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     // SURVEYOR UX: 3-STEP WIZARD, VOICE-TO-TEXT & GPS PROXIMITY ENGINE
     // ============================================================================
 
-    // 1. Voice-to-Text for Lithology & Remarks (Native Android & Web Speech API)
-    window.onNativeSpeechResult = function(targetId, spoken) {
-      const target = document.getElementById(targetId);
-      if (!target) return;
-      const current = target.value ? target.value.trim() : '';
-      target.value = current ? `${current}, ${spoken}` : spoken;
-      if (typeof showToast === 'function') showToast(`✅ Voice Recorded: "${spoken}"`, 3500);
-    };
-
+    // 1. Voice-to-Text for Lithology & Remarks (Web Speech API)
     let activeVoiceRecognition = null;
     function startVoiceInput(targetId) {
-      // Priority 1: Native Android Voice Recognizer (100% reliable, zero permission denial)
-      if (window.AndroidBridge && typeof window.AndroidBridge.startVoiceRecognition === 'function') {
-        window.AndroidBridge.startVoiceRecognition(targetId);
-        return;
-      }
-
-      // Priority 2: Web Speech API fallback for Desktop/Chrome
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
         alert("Speech recognition is not supported in this browser. Please use Google Chrome or the Android App.");
@@ -24618,84 +24472,6 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
         filterGeo.appendChild(opt);
       });
     }
-
-    // -------------------------------------------------------------
-    // Well Diameter Draggable & Preset Chips Synchronization
-    // -------------------------------------------------------------
-    function onFormDiameterSlider(val) {
-      const d = parseFloat(val);
-      if (isNaN(d)) return;
-      const valStr = d.toFixed(1);
-      const badge = document.getElementById('dispFormDiaBadge');
-      if (badge) badge.innerText = valStr + ' m';
-      const slider = document.getElementById('formSliderDia');
-      if (slider && parseFloat(slider.value) !== d) slider.value = d;
-
-      const diaTop = document.getElementById('diaTop');
-      const diaBottom = document.getElementById('diaBottom');
-      const diaEffective = document.getElementById('diaEffective');
-      if (diaTop) diaTop.value = valStr;
-      if (diaBottom) diaBottom.value = valStr;
-      if (diaEffective) diaEffective.value = valStr;
-
-      document.querySelectorAll('.btn-dia-chip').forEach(btn => {
-        const textVal = parseFloat(btn.textContent);
-        const isActive = Math.abs(textVal - d) < 0.1;
-        btn.classList.toggle('active', isActive);
-        btn.style.background = isActive ? 'var(--primary)' : 'var(--card-bg)';
-        btn.style.color = isActive ? '#fff' : 'var(--text-main)';
-        btn.style.borderColor = isActive ? 'var(--primary)' : 'var(--border-color)';
-      });
-
-      if (typeof recalculateAll === 'function') recalculateAll();
-      syncToStratumIframe();
-    }
-
-    function onFormDiameterManual() {
-      const dt = parseFloat(document.getElementById('diaTop')?.value);
-      const db = parseFloat(document.getElementById('diaBottom')?.value);
-      if (!isNaN(dt) && !isNaN(db) && db > 0) {
-        const eff = (dt + db) / 2.0;
-        const effEl = document.getElementById('diaEffective');
-        if (effEl && (!effEl.value || Math.abs(parseFloat(effEl.value) - eff) > 0.05)) {
-          effEl.value = eff.toFixed(2);
-        }
-      } else if (!isNaN(dt) && dt > 0) {
-        const effEl = document.getElementById('diaEffective');
-        if (effEl && !effEl.value) {
-          effEl.value = dt.toFixed(2);
-        }
-      }
-      if (typeof recalculateAll === 'function') recalculateAll();
-    }
-
-    // -------------------------------------------------------------
-    // Pump HP Quick Selector Chips
-    // -------------------------------------------------------------
-    function setFormPumpHp(val) {
-      const hpEl = document.getElementById('pumpHP');
-      if (hpEl) {
-        hpEl.value = String(val);
-        if (typeof onPumpHPChange === 'function') onPumpHPChange();
-      }
-      document.querySelectorAll('.btn-hp-chip').forEach(btn => {
-        const isActive = btn.getAttribute('data-hp') === String(val);
-        btn.classList.toggle('active', isActive);
-        btn.style.background = isActive ? 'var(--primary)' : 'var(--card-bg)';
-        btn.style.color = isActive ? '#fff' : 'var(--text-main)';
-        btn.style.borderColor = isActive ? 'var(--primary)' : 'var(--border-color)';
-      });
-      if (typeof recalculateAll === 'function') recalculateAll();
-    }
-
-    // Stratum Cross-Section Helpers
-    function syncToStratumIframe() {
-      if (typeof updateStratigraphicColumn === 'function') updateStratigraphicColumn();
-    }
-    function onStratumIframeSync() {}
-    function openInteractiveStratumModal() {}
-    function closeInteractiveStratumModal() {}
-    function syncAndCloseStratumModal() {}
 </script>
 
   <!-- EXCEL FIND & REPLACE MODAL (CTRL+H) -->
