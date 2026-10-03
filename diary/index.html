@@ -8,6 +8,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="xlsx.full.min.js"></script>
+  <script>
+    if (typeof XLSX === 'undefined') {
+      document.write('<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+    }
+  </script>
   <style>
     :root {
       --primary: #1e3a8a;
@@ -176,12 +182,21 @@
     .chk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 4px; }
     .chk-item { background: #f8fafc; border: 1px solid #cbd5e1; padding: 5px; border-radius: 6px; font-size: 0.72rem; display: flex; align-items: center; gap: 4px; }
 
-    /* Print Preview 1-Page A4 Styles (Full A4 Page Height) */
+    /* Print Preview 1-Page A4 Styles (Exact 1 Single Page Guaranteed on Mobile & PC) */
     @media print {
-      body { background: white !important; padding: 0 !important; color: black !important; }
+      html, body {
+        background: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        color: black !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 297mm !important;
+        overflow: hidden !important;
+      }
       header, .controls, .summary-strip, .bottom-nav, .no-print, .desktop-nav, #printMobileHelpBanner { display: none !important; }
       .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-      #view-print { display: block !important; }
+      #view-print { display: block !important; margin: 0 !important; padding: 0 !important; }
       .print-preview-wrapper { overflow: visible !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
       .print-sheet {
         padding: 0 !important;
@@ -189,14 +204,36 @@
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
-        height: 288mm !important;
-        min-height: 288mm !important;
-        max-height: 288mm !important;
+        height: 284mm !important;
+        min-height: 284mm !important;
+        max-height: 284mm !important;
         box-shadow: none !important;
         margin: 0 !important;
+        overflow: hidden !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+      }
+      .print-table {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      .print-table th, .print-table td {
+        height: 5.0mm !important;
+        padding: 0.5px 1.5px !important;
+        font-size: 7.0pt !important;
+        line-height: 1.1 !important;
+      }
+      .print-table th {
+        height: 5.2mm !important;
+        font-size: 7.2pt !important;
+      }
+      .print-sig-officer {
+        margin-top: 32px !important;
       }
       #mPrSubmissionDate { border: none !important; background: transparent !important; }
-      @page { size: A4 portrait; margin: 3.5mm 4mm; }
+      @page { size: A4 portrait; margin: 2mm 3mm; }
     }
 
     .print-preview-wrapper {
@@ -537,11 +574,11 @@
             <table class="print-table" style="margin: 0; text-align: left;">
               <tbody id="prSummaryBody"></tbody>
             </table>
-            <!-- Officer Signature right under summary (pushed down from table) -->
-            <div style="text-align: center; font-weight: bold; margin-top: 24px; padding-top: 2px;">
+            <!-- Officer Signature right under summary (pushed down from table to align with 1:10K Mapsheet Survey row) -->
+            <div class="print-sig-officer" style="text-align: center; font-weight: bold; margin-top: 55px; padding-top: 2px;">
               <p id="prSigOfficerName">(विनायक नवनाथ निंबाळकर)</p>
               <p id="prSigOfficerDesig">सहाय्यक भूवैज्ञानिक</p>
-              <p id="prSigOffice">ग्रामीण पाणी पुरवठा, जिल्हा परिषद , लातूर</p>
+              <p id="prSigOffice">भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर</p>
             </div>
           </div>
         </div>
@@ -794,20 +831,16 @@
         </div>
       </div>
 
-      <div class="form-group" style="background: #fffbeb; padding: 6px; border-radius: 6px; margin-bottom: 10px;">
-        <label style="color: #92400e;">क्षेत्रीय प्रगती योजना:</label>
+      <div class="form-group" style="background: #fffbeb; padding: 8px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #fde68a;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label style="color: #92400e; font-weight: bold; margin-bottom: 0;">क्षेत्रीय प्रगती योजना:</label>
+          <div style="display: flex; gap: 4px;">
+            <button type="button" class="btn btn-sm btn-green" onclick="addNewSchemePrompt()" style="padding: 2px 8px; font-size: 0.68rem;" title="नवीन योजना जोडा"><i class="fa-solid fa-plus"></i> योजना जोडा</button>
+            <button type="button" class="btn btn-sm" onclick="removeSelectedSchemePrompt()" style="padding: 2px 8px; font-size: 0.68rem; background: #ef4444; color: white;" title="निवडलेली योजना हटवा"><i class="fa-solid fa-trash"></i> योजना हटवा</button>
+          </div>
+        </div>
         <select id="mScheme" style="margin-bottom: 6px;">
           <option value="">- योजना नाही -</option>
-          <option value="स्थानिक भूजल सर्वेक्षण">स्थानिक भूजल सर्वेक्षण</option>
-          <option value="अटल भूजल योजना /जलयुक्त शिवार अभियान">अटल भूजल / जलयुक्त शिवार</option>
-          <option value="निरीक्षण विहीरींची वाचने">निरीक्षण विहीरींची वाचने</option>
-          <option value="वाळू/खाणपट्टा सर्वेक्षण">वाळू/खाणपट्टा सर्वेक्षण</option>
-          <option value="भूजल मूल्यांकन माहिती">भूजल मूल्यांकन माहिती</option>
-          <option value="प्रयोगशाळा">प्रयोगशाळा</option>
-          <option value="न.पा.पु.सर्वेक्षण">न.पा.पु.सर्वेक्षण</option>
-          <option value="टांचाई अंतर्गत सर्वेक्षण">टांचाई अंतर्गत सर्वेक्षण</option>
-          <option value="1:10K Mapsheet Survey">1:10K Mapsheet Survey</option>
-          <option value="इतर योजना सर्वेक्षण">इतर योजना सर्वेक्षण</option>
         </select>
         <div class="form-row">
           <div><label>गावे:</label><input type="number" id="mVillages" min="0" placeholder="1"></div>
@@ -1031,6 +1064,9 @@
           appData = JSON.parse(saved);
         } catch(e) {}
       }
+      if (!appData.schemes || !Array.isArray(appData.schemes) || appData.schemes.length === 0) {
+        appData.schemes = [...STANDARD_SCHEMES];
+      }
       populateMonthsDropdown();
       ensureMonthExists(appData.currentMonthKey);
       setupProfileAutoSync();
@@ -1143,7 +1179,8 @@
           });
         }
 
-        const field_progress = STANDARD_SCHEMES.map(s => ({ scheme: s, villages: "-", cases: "-" }));
+        const curSchemes = (appData.schemes && appData.schemes.length > 0) ? appData.schemes : STANDARD_SCHEMES;
+        const field_progress = curSchemes.map(s => ({ scheme: s, villages: "-", cases: "-" }));
         appData.months[key] = { entries, field_progress };
         persist();
       }
@@ -1414,6 +1451,78 @@
       document.getElementById('mSumBore').textContent = bore;
     }
 
+    function populateSchemeDropdown(selectedVal) {
+      const sel = document.getElementById('mScheme');
+      if (!sel) return;
+      const list = (appData.schemes && appData.schemes.length > 0) ? appData.schemes : STANDARD_SCHEMES;
+      sel.innerHTML = '<option value="">- योजना नाही -</option>';
+      list.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = s;
+        if (s === selectedVal) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      if (selectedVal && !list.includes(selectedVal)) {
+        const customOpt = document.createElement('option');
+        customOpt.value = selectedVal;
+        customOpt.textContent = selectedVal;
+        customOpt.selected = true;
+        sel.appendChild(customOpt);
+      }
+    }
+
+    function addNewSchemePrompt() {
+      const name = prompt('नवीन क्षेत्रीय प्रगती योजनेचे नाव प्रविष्ट करा:');
+      if (name && name.trim()) {
+        const cleanName = name.trim();
+        if (!appData.schemes || !Array.isArray(appData.schemes)) {
+          appData.schemes = [...STANDARD_SCHEMES];
+        }
+        if (!appData.schemes.includes(cleanName)) {
+          appData.schemes.push(cleanName);
+          const mData = appData.months[appData.currentMonthKey];
+          if (mData && mData.field_progress) {
+            if (!mData.field_progress.some(f => f.scheme === cleanName)) {
+              mData.field_progress.push({ scheme: cleanName, villages: "-", cases: "-" });
+            }
+          }
+          persist();
+          populateSchemeDropdown(cleanName);
+          renderSummaryView();
+          renderPrintView();
+          alert(`नवीन योजना "${cleanName}" जोडली गेली!`);
+        } else {
+          populateSchemeDropdown(cleanName);
+          alert(`"${cleanName}" ही योजना आधीच यादीत आहे.`);
+        }
+      }
+    }
+
+    function removeSelectedSchemePrompt() {
+      const sel = document.getElementById('mScheme');
+      const val = sel ? sel.value : '';
+      if (!val) {
+        alert('कृपया प्रथम हटवण्यासाठी योजना निवडा.');
+        return;
+      }
+      if (confirm(`तुम्हाला "${val}" ही योजना यादीतून हटवायची आहे का?`)) {
+        if (!appData.schemes || !Array.isArray(appData.schemes)) {
+          appData.schemes = [...STANDARD_SCHEMES];
+        }
+        appData.schemes = appData.schemes.filter(s => s !== val);
+        const mData = appData.months[appData.currentMonthKey];
+        if (mData && mData.field_progress) {
+          mData.field_progress = mData.field_progress.filter(f => f.scheme !== val);
+        }
+        persist();
+        populateSchemeDropdown('');
+        renderSummaryView();
+        renderPrintView();
+        alert(`"${val}" ही योजना हटवली गेली!`);
+      }
+    }
+
     // Modal Editing
     function openEditModal(idx) {
       const mData = appData.months[appData.currentMonthKey];
@@ -1441,7 +1550,7 @@
       document.getElementById('mChkTraining').checked = (e.training == '1');
       document.getElementById('mWells').value = e.wells || '';
       document.getElementById('mBore').value = e.borewells || '';
-      document.getElementById('mScheme').value = e.scheme || '';
+      populateSchemeDropdown(e.scheme || '');
       document.getElementById('mVillages').value = e.villages || '';
       document.getElementById('mCases').value = e.cases || '';
       mobileRenderQuickRoutes();
@@ -1471,7 +1580,7 @@
       document.getElementById('mChkTraining').checked = false;
       document.getElementById('mWells').value = "";
       document.getElementById('mBore').value = "";
-      document.getElementById('mScheme').value = "";
+      populateSchemeDropdown('');
       document.getElementById('mVillages').value = "";
       document.getElementById('mCases').value = "";
       mobileRenderQuickRoutes();
@@ -1529,6 +1638,19 @@
       renderActiveView();
     }
 
+    function getDefaultSubmissionDate(monthKey) {
+      const parts = (monthKey || '2026-01').split('-');
+      let y = parseInt(parts[0], 10) || 2026;
+      let m = parseInt(parts[1], 10) || 1;
+      m += 1;
+      if (m > 12) {
+        m = 1;
+        y += 1;
+      }
+      const mm = m < 10 ? '0' + m : '' + m;
+      return `05/${mm}/${y}`;
+    }
+
     function onMobileSubDateChange(val) {
       const mData = appData.months[appData.currentMonthKey];
       if (mData) {
@@ -1538,8 +1660,9 @@
     }
 
     function promptMobileSubmissionDate() {
-      const currentVal = document.getElementById('mPrSubmissionDate').value || '31/07/2026';
-      const newVal = prompt('सादर दिनांक प्रविष्ट करा (उदा. 31/07/2026):', currentVal);
+      const defaultVal = getDefaultSubmissionDate(appData.currentMonthKey);
+      const currentVal = document.getElementById('mPrSubmissionDate').value || defaultVal;
+      const newVal = prompt(`सादर दिनांक प्रविष्ट करा (उदा. ${defaultVal}):`, currentVal);
       if (newVal && newVal.trim()) {
         document.getElementById('mPrSubmissionDate').value = newVal.trim();
         onMobileSubDateChange(newVal.trim());
@@ -1585,11 +1708,11 @@
 
       document.getElementById('prSigOfficerName').textContent = `(${prof.name})`;
       document.getElementById('prSigOfficerDesig').textContent = prof.designation;
-      document.getElementById('prSigOffice').textContent = prof.department;
+      document.getElementById('prSigOffice').textContent = prof.department || "भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर";
 
       let co = (prof.controlling_officer || '').trim();
       if (!co) {
-        co = `वरिष्ठ भूवैज्ञानिक, ${prof.department || ''}`.trim();
+        co = `वरिष्ठ भूवैज्ञानिक, ${prof.department || 'भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर'}`.trim();
       }
       if (!co.startsWith('मा.') && !co.startsWith('मा ')) {
         co = 'मा. ' + co;
@@ -1598,22 +1721,14 @@
       document.getElementById('prBottomOfficerName').textContent = `(${prof.name})`;
       document.getElementById('prBottomDesigCity').textContent = `${prof.designation}, ${activeHq}`;
       const bOff = document.getElementById('prBottomOffice');
-      if (bOff) bOff.textContent = prof.department;
+      if (bOff) bOff.textContent = prof.department || "भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर";
 
       const subDateEl = document.getElementById('mPrSubmissionDate');
       if (subDateEl) {
-        if (mData.submission_date) {
-          subDateEl.value = mData.submission_date;
-        } else if (mData.entries && mData.entries.length > 0) {
-          const lastE = mData.entries[mData.entries.length - 1];
-          if (lastE && lastE.date) {
-            const parts = lastE.date.split('-');
-            if (parts.length === 3) {
-              subDateEl.value = `${parts[2]}/${parts[1]}/${parts[0]}`;
-              mData.submission_date = subDateEl.value;
-            }
-          }
+        if (!mData.submission_date) {
+          mData.submission_date = getDefaultSubmissionDate(appData.currentMonthKey);
         }
+        subDateEl.value = mData.submission_date;
       }
 
       const tbody = document.getElementById('prTableBody');
@@ -1810,79 +1925,294 @@
     }
 
     async function mobileShareExcel() {
-      try {
-        const res = await fetch('/api/download-excel');
-        if (res.ok) {
-          const blob = await res.blob();
-          const fileName = `GSDA_Diary_${appData.currentMonthKey}.xlsx`;
-          const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-          if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            await navigator.share({
-              files: [file],
-              title: `GSDA दैनंदिनी ${appData.currentMonthKey}`,
-              text: `माहे ${appData.currentMonthKey} ची अधिकृत दैनंदिनी (Excel)`
-            });
-            return;
-          }
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = fileName;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          alert('Excel फाईल (.xlsx) डाउनलोड झाली!');
-          return;
-        }
-      } catch (e) {
-        console.warn('Backend download-excel unavailable, generating client-side Excel (.xls):', e);
-      }
       generateClientSideExcel();
     }
 
     function generateClientSideExcel() {
+      if (typeof XLSX === 'undefined') {
+        alert('Excel जनरेटर लोड होत आहे, कृपया २ सेकंद थांबा किंवा इंटरनेट कनेक्शन तपासा.');
+        return;
+      }
       const curM = appData.months[appData.currentMonthKey] || {};
       const entries = curM.entries || [];
       const prof = appData.profile || {};
-      const p = (appData.currentMonthKey || '').split('-');
-      const mName = MARATHI_MONTHS[parseInt(p[1]) - 1] || appData.currentMonthKey;
+      const p = (appData.currentMonthKey || '2026-01').split('-');
+      const year = p[0] || '2026';
+      const monthNum = parseInt(p[1], 10) || 1;
+      const mName = MARATHI_MONTHS[monthNum - 1] || appData.currentMonthKey;
+      const activeHq = getActiveHQ() || 'सोलापूर';
+      const subDate = curM.submission_date || getDefaultSubmissionDate(appData.currentMonthKey);
 
-      let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>माहे_${mName}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:Worksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
-<body>
-<table border="1">
-  <tr><th colspan="10" style="font-size:14pt;font-weight:bold;text-align:center;background:#dbeafe;">महाराष्ट्र शासन - भूजल सर्वेक्षण आणि विकास यंत्रणा</th></tr>
-  <tr><th colspan="10" style="font-size:12pt;font-weight:bold;text-align:center;">दैनिक दैनंदिनी (Daily Diary)</th></tr>
-  <tr><td colspan="5"><strong>अधिकारी:</strong> ${prof.name || ''} (${prof.designation || ''})</td><td colspan="5"><strong>माहे:</strong> ${mName} ${p[0] || ''} | <strong>मुख्यालय:</strong> ${prof.headquarters || ''}</td></tr>
-  <tr style="background:#e2e8f0;font-weight:bold;text-align:center;">
-    <th>दिनांक</th><th>प्रवासाचे साधन</th><th>कोठून</th><th>वेळ</th><th>कोठे</th><th>वेळ</th><th>कि.मी.</th><th>भाडे रु.</th><th>कामाचे तपशील</th><th>शेरा</th>
-  </tr>`;
+      // Rows 1 to 55 (18 Columns A to R)
+      const rows = [];
 
-      entries.forEach(e => {
-        html += `<tr>
-          <td style="text-align:center;">${e.date || ''}</td>
-          <td>${e.travel_mode || ''}</td>
-          <td>${e.from_loc || ''}</td>
-          <td style="text-align:center;">${e.from_time || ''}</td>
-          <td>${e.to_loc || ''}</td>
-          <td style="text-align:center;">${e.to_time || ''}</td>
-          <td style="text-align:center;">${e.distance_km || ''}</td>
-          <td style="text-align:center;">${e.travel_fare || ''}</td>
-          <td>${e.work_detail || ''}</td>
-          <td></td>
-        </tr>`;
-      });
+      // Row 1 (Index 0): Title
+      const r1 = new Array(18).fill('');
+      r1[0] = `माहे ${mName} ${year} ची दैनंदिनी`;
+      rows.push(r1);
 
-      html += `</table></body></html>`;
+      // Row 2 (Index 1): Officer Meta
+      const r2 = new Array(18).fill('');
+      r2[0] = `नाव-${prof.name || ''}  पदनाम- ${prof.designation || ''}  लेखाशीर्ष- ${prof.budget_head || ''}  वेतन:${prof.salary || ''}`;
+      rows.push(r2);
 
-      const blob = new Blob(["\uFEFF" + html], { type: 'application/vnd.ms-excel;charset=utf-8' });
-      const fileName = `GSDA_Diary_${appData.currentMonthKey}.xls`;
+      // Row 3 (Index 2): Headers (Cols A to R)
+      rows.push([
+        "अ.क्र.",
+        "दिनांक",
+        "कोठून",
+        "वेळ",
+        "कोठे",
+        "वेळ",
+        "प्रवासाचे साधन",
+        "प्रवासाचे अंतर कि. मी.",
+        "प्रवास भाडे रुपये",
+        "कामाचे तपशील / प्रवासाचे कारण",
+        "एकूण",
+        "सुट्टी",
+        "रजा",
+        "दौरा",
+        "बैठक",
+        "प्रशिक्षण",
+        "विहिर",
+        "विंधण विहिर"
+      ]);
+
+      // Daily Entries (Rows 4 to 34 - 31 Days)
+      let totKm = 0, totFare = 0, totHol = 0, totLeave = 0, totTour = 0, totMeet = 0, totTrain = 0, totWells = 0, totBore = 0;
+      for (let i = 0; i < 31; i++) {
+        const e = entries[i];
+        if (e) {
+          const dParts = e.date ? e.date.split('-') : [];
+          const dStr = dParts.length === 3 ? `${dParts[2]}/${dParts[1]}/${dParts[0]}` : (e.date || '');
+          const fromVal = isHeadquartersLocation(e.from_loc) ? activeHq : (e.from_loc || activeHq);
+          const kmVal = e.distance_km && !isNaN(e.distance_km) && Number(e.distance_km) > 0 ? Number(e.distance_km) : (e.distance_km || '-');
+          const fareVal = e.travel_fare && !isNaN(e.travel_fare) && Number(e.travel_fare) > 0 ? Number(e.travel_fare) : (e.travel_fare || '-');
+
+          if (typeof kmVal === 'number') totKm += kmVal;
+          if (typeof fareVal === 'number') totFare += fareVal;
+
+          const isHol = e.holiday == '1' ? 1 : '';
+          const isLeave = e.leave == '1' ? 1 : '';
+          const isTour = e.tour == '1' ? 1 : '';
+          const isMeet = e.meeting == '1' ? 1 : '';
+          const isTrain = e.training == '1' ? 1 : '';
+          const wVal = e.wells && Number(e.wells) > 0 ? Number(e.wells) : '';
+          const bVal = e.borewells && Number(e.borewells) > 0 ? Number(e.borewells) : '';
+
+          if (isHol) totHol++;
+          if (isLeave) totLeave++;
+          if (isTour) totTour++;
+          if (isMeet) totMeet++;
+          if (isTrain) totTrain++;
+          if (wVal) totWells += wVal;
+          if (bVal) totBore += bVal;
+
+          rows.push([
+            i + 1,
+            dStr,
+            fromVal,
+            e.from_time || '-',
+            e.to_loc || '-',
+            e.to_time || '-',
+            e.travel_mode || '-',
+            kmVal,
+            fareVal,
+            e.work_detail || '',
+            1,
+            isHol,
+            isLeave,
+            isTour,
+            isMeet,
+            isTrain,
+            wVal,
+            bVal
+          ]);
+        } else {
+          rows.push([i + 1, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+        }
+      }
+
+      // Row 35 (Index 34): Totals Row
+      const numDays = entries.length > 0 ? entries.length : 31;
+      const rTot = new Array(18).fill('');
+      rTot[0] = "क्षे्त्रिय प्रगती ";
+      rTot[4] = "गावे";
+      rTot[5] = "प्रकरणे";
+      rTot[6] = "मासिक गोषवारा ";
+      rTot[7] = totKm || 0;
+      rTot[8] = totFare || 0;
+      rTot[10] = numDays;
+      rTot[11] = totHol;
+      rTot[12] = totLeave;
+      rTot[13] = totTour;
+      rTot[14] = totMeet;
+      rTot[15] = totTrain;
+      rTot[16] = totWells || '';
+      rTot[17] = totBore || '';
+      rows.push(rTot);
+
+      // Rows 36 to 45 (Indices 35 to 44): Field progress & Monthly Summary
+      const standardSchemes = [
+        "स्थानिक भूजल सर्वेक्षण",
+        "अटल भूजल योजना /जलयुक्त शिवार अभियान",
+        "निरीक्षण विहीरींची वाचने",
+        "वाळू/खाणपट्टा सर्वेक्षण",
+        "भूजल मूल्यांकन माहिती",
+        "प्रयोगशाळा",
+        "न.पा.पु.सर्वेक्षण",
+        "टांचाई अंतर्गत सर्वेक्षण",
+        "1:10K Mapsheet Survey",
+        "इतर योजना सर्वेक्षण"
+      ];
+      const fpList = curM.field_progress || [];
+      const officeDays = Math.max(0, numDays - (totHol + totLeave + totTour + totTrain));
+
+      const sumLabels = [
+        ["महिन्याचे एकूण दिवस", numDays],
+        ["कार्यलयीन कामकाजाचे दिवस ", officeDays],
+        ["सर्वेक्षणास्तव व इतर कारणास्तव फिरतीचे दिवस ", totTour],
+        ["शासकीय सुट्टीचे दिवस", totHol],
+        ["प्रशिक्षण / कार्यशाळा दिवस", totTrain],
+        ["रजेचे दिवस", totLeave]
+      ];
+
+      const activeSchemes = (appData.schemes && appData.schemes.length > 0) ? appData.schemes : standardSchemes;
+      for (let sIdx = 0; sIdx < 10; sIdx++) {
+        const rowArr = new Array(18).fill('');
+        const sName = activeSchemes[sIdx] || standardSchemes[sIdx] || '';
+        const curFp = fpList.find(f => f.scheme === sName) || fpList[sIdx] || {};
+        rowArr[0] = sName;
+        rowArr[4] = curFp.villages || '-';
+        rowArr[5] = curFp.cases || '-';
+
+        if (sIdx < sumLabels.length) {
+          rowArr[6] = sumLabels[sIdx][0];
+          rowArr[9] = sumLabels[sIdx][1];
+        }
+
+        // Align Officer Signature at 1:10K Mapsheet Survey (row index 43, 44)
+        if (sIdx === 8) { // 1:10K Mapsheet Survey line
+          rowArr[6] = `(${prof.name || ''})`;
+        } else if (sIdx === 9) { // 10th row
+          rowArr[6] = `  ${prof.designation || ''}  `;
+        }
+        rows.push(rowArr);
+      }
+
+      // Row 46 (Index 45): Department under summary
+      const r46 = new Array(18).fill('');
+      r46[6] = prof.department || 'भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर';
+      rows.push(r46);
+
+      // Row 47 (Index 46): प्रति and HQ
+      const r47 = new Array(18).fill('');
+      r47[0] = "प्रति";
+      r47[6] = ` ${activeHq}`;
+      rows.push(r47);
+
+      // Row 48 (Index 47): Submission office line
+      let co = (prof.controlling_officer || '').trim();
+      if (!co) co = `वरिष्ठ भूवैज्ञानिक, ${prof.department || 'भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर'}`;
+      if (!co.startsWith('मा.') && !co.startsWith('मा ')) co = 'मा. ' + co;
+      const subLine = `${co} यांना माहितीस्तव व मंजूरीस्तव सविनय सादर.`;
+      const r48 = new Array(18).fill('');
+      r48[0] = subLine;
+      rows.push(r48);
+
+      // Rows 49 to 54 (Indices 48 to 53): Bottom Signature & Date
+      const r49 = new Array(18).fill('');
+      r49[6] = "आपला विश्वासु  ";
+      rows.push(r49);
+
+      const r50 = new Array(18).fill('');
+      rows.push(r50);
+
+      const r51 = new Array(18).fill('');
+      r51[0] = `दिनांक: ${subDate}`;
+      r51[6] = `(${prof.name || ''})`;
+      rows.push(r51);
+
+      const r52 = new Array(18).fill('');
+      r52[0] = `${activeHq}  `;
+      r52[6] = `  ${prof.designation || ''}  `;
+      rows.push(r52);
+
+      const r53 = new Array(18).fill('');
+      r53[6] = prof.department || 'भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर';
+      rows.push(r53);
+
+      const r54 = new Array(18).fill('');
+      r54[6] = ` ${activeHq}`;
+      rows.push(r54);
+
+      // Row 55: Empty boundary row
+      rows.push(new Array(18).fill(''));
+
+      // Create SheetJS Workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+
+      // Exact Column widths A to R
+      ws['!cols'] = [
+        { wch: 10 }, // A (अ.क्र.)
+        { wch: 12 }, // B (दिनांक)
+        { wch: 12 }, // C (कोठून)
+        { wch: 7 },  // D (वेळ)
+        { wch: 22 }, // E (कोठे)
+        { wch: 7 },  // F (वेळ)
+        { wch: 14 }, // G (साधन / गोषवारा)
+        { wch: 10 }, // H (कि.मी.)
+        { wch: 9 },  // I (भाडे)
+        { wch: 28 }, // J (कामाचे तपशील)
+        { wch: 6 },  // K (एकूण)
+        { wch: 6 },  // L (सुट्टी)
+        { wch: 6 },  // M (रजा)
+        { wch: 6 },  // N (दौरा)
+        { wch: 6 },  // O (बैठक)
+        { wch: 8 },  // P (प्रशिक्षण)
+        { wch: 6 },  // Q (विहिर)
+        { wch: 10 }  // R (विंधण विहिर)
+      ];
+
+      // Merges
+      ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } },
+        { s: { r: 47, c: 0 }, e: { r: 47, c: 9 } },
+        { s: { r: 50, c: 0 }, e: { r: 50, c: 3 } }
+      ];
+
+      const sheetTitle = `माहे_${mName}`.replace(/[\/\?\*\[\]]/g, '_');
+      XLSX.utils.book_append_sheet(wb, ws, sheetTitle);
+
+      const fileName = `GSDA_Diary_${appData.currentMonthKey}.xlsx`;
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      // Native Web Share with file on mobile if supported
+      try {
+        const file = new File([blob], fileName, { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({
+            files: [file],
+            title: fileName,
+            text: `माहे ${mName} ची अधिकृत दैनंदिनी (Excel)`
+          });
+          return;
+        }
+      } catch (err) {
+        console.log('Native share skipped:', err);
+      }
+
+      // Browser file download
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = fileName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      alert(`Excel फाईल (${fileName}) यशस्वीरित्या तयार होऊन डाउनलोड झाली!`);
+      alert(`अधिकृत Excel फाईल (${fileName}) सर्व K ते R कॉलम व १ ते ५५ ओळींसह तयार झाली आहे!`);
     }
 
     function mobileShareWhatsApp() {
