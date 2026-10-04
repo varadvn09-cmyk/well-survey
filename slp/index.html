@@ -4333,7 +4333,7 @@ window.DraftCalcCloudSync = (function() {
                 <input type="text" id="designation" name="designation" readonly onclick="openFirstTimeSetupModal()" placeholder="Tap to set Designation" style="cursor: pointer; background: var(--card-subtle);" />
               </div>
               <div class="field-group" style="grid-column: span 2;"><label>Well ID (Census+Lat+Lon+Type)</label><input type="text" id="metaWellId" name="smartWellId" readonly style="font-family: monospace; font-weight: 800; color: #0284c7; background: var(--card-subtle); letter-spacing: 0.5px;" placeholder="Auto Generated (Census + Lat + Lon + Type)" /></div>
-              <div class="field-group"><label>Project / Assignment</label><input type="text" id="projectAssignment" name="projectAssignment" value="1.10K" /></div>
+              <div class="field-group"><label>Project / Assignment</label><input type="text" id="projectAssignment" name="projectAssignment" value="1:10K" /></div>
             </div>
           </div>
 
@@ -8056,6 +8056,66 @@ window.DraftCalcCloudSync = (function() {
       const dd = document.getElementById('displayGeoDesig');
       if (dd) dd.innerText = desig || 'Tap to set profile';
     }
+
+    function getProfileDefaults() {
+      let name = '', desig = '';
+      try {
+        const prof = JSON.parse(localStorage.getItem('HYDROGEO_PROFILE') || '{}');
+        name = (prof.name || '').trim();
+        desig = (prof.desig || '').trim();
+      } catch(e) {}
+      if (!name) name = (document.getElementById('globalGeoName')?.value || document.getElementById('geologistName')?.value || '').trim() || 'Geologist';
+      if (!desig) desig = (document.getElementById('globalDesig')?.value || document.getElementById('designation')?.value || '').trim() || 'Junior Geologist';
+      const proj = (document.getElementById('projectAssignment')?.value || '').trim() || '1:10K';
+      return { name, desig, proj };
+    }
+    window.getProfileDefaults = getProfileDefaults;
+
+    function normalizeDateToIso(val) {
+      if (val === null || val === undefined) return '';
+      if (val instanceof Date) {
+        if (isNaN(val.getTime())) return '';
+        const y = val.getFullYear();
+        const m = String(val.getMonth() + 1).padStart(2, '0');
+        const d = String(val.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      if (typeof val === 'number') {
+        if (val > 1000) {
+          const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+          const days = val > 60 ? val - 1 : val;
+          const dateObj = new Date(excelEpoch.getTime() + Math.round(days * 86400000));
+          const y = dateObj.getUTCFullYear();
+          const m = String(dateObj.getUTCMonth() + 1).padStart(2, '0');
+          const d = String(dateObj.getUTCDate()).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
+        return String(val).trim();
+      }
+      let str = String(val).trim();
+      if (!str) return '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+      const dmy = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})/);
+      if (dmy) {
+        return `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`;
+      }
+      const dmy2 = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2})$/);
+      if (dmy2) {
+        const yr = Number(dmy2[3]) > 50 ? '19' + dmy2[3] : '20' + dmy2[3];
+        return `${yr}-${dmy2[2].padStart(2, '0')}-${dmy2[1].padStart(2, '0')}`;
+      }
+      const ymd = str.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})/);
+      if (ymd) {
+        return `${ymd[1]}-${ymd[2].padStart(2, '0')}-${ymd[3].padStart(2, '0')}`;
+      }
+      const parsed = Date.parse(str);
+      if (!isNaN(parsed)) {
+        const d = new Date(parsed);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      }
+      return str;
+    }
+    window.normalizeDateToIso = normalizeDateToIso;
 
     function saveCloudSetup() {
         if (!document.getElementById('cloudSyncUrl')) return;
@@ -17071,10 +17131,21 @@ ${arrowsXml}
         try {
           const cPerf = buildRecordCellMap(entry);
           if (cPerf) {
-            const kVal = cPerf.kharifHamPerf > 0 ? cPerf.kharifHamPerf : (cPerf.kharifHamCrop || 0);
-            const rVal = cPerf.rabiHamPerf > 0 ? cPerf.rabiHamPerf : (cPerf.rabiHamCrop || 0);
-            const sVal = cPerf.summerHamPerf > 0 ? cPerf.summerHamPerf : (cPerf.summerHamCrop || 0);
-            const tVal = cPerf.perfTotalHam > 0 ? cPerf.perfTotalHam : (cPerf.totalHamCrop || (kVal + rVal + sVal));
+            const isPwsRec = (entry.surveyCategory === 'PWS') || (entry.ownerName && entry.ownerName.toUpperCase().includes('PWS'));
+            const hasCrop = (cPerf.totalHamCrop > 0) || (cPerf.kharifHamCrop > 0 || cPerf.rabiHamCrop > 0 || cPerf.summerHamCrop > 0);
+            
+            let kVal, rVal, sVal, tVal;
+            if (!isPwsRec && hasCrop) {
+              kVal = cPerf.kharifHamCrop || 0;
+              rVal = cPerf.rabiHamCrop || 0;
+              sVal = cPerf.summerHamCrop || 0;
+              tVal = cPerf.totalHamCrop || (kVal + rVal + sVal);
+            } else {
+              kVal = cPerf.kharifHamPerf || 0;
+              rVal = cPerf.rabiHamPerf || 0;
+              sVal = cPerf.summerHamPerf || 0;
+              tVal = cPerf.perfTotalHam || (kVal + rVal + sVal);
+            }
             entry.kharifHam = kVal.toFixed(4);
             entry.rabiHam = rVal.toFixed(4);
             entry.summerHam = sVal.toFixed(4);
@@ -17177,14 +17248,15 @@ ${arrowsXml}
       const recCategory = r.surveyCategory || ((r.ownerName && r.ownerName.toUpperCase().includes('PWS')) ? 'PWS' : 'Irrigation');
       selectSurveyGateCategory(recCategory);
 
+      const pDef = (typeof getProfileDefaults === 'function') ? getProfileDefaults() : { name: '', desig: '', proj: '1:10K' };
       document.getElementById('srNo').value = r.srNo || '';
-      document.getElementById('surveyDate').value = r.surveyDate || '';
+      document.getElementById('surveyDate').value = (typeof normalizeDateToIso === 'function' ? normalizeDateToIso(r.surveyDate) : r.surveyDate) || '';
       document.getElementById('surveyTime').value = r.surveyTime || '';
-      document.getElementById('geologistName').value = r.geologistName || '';
-      document.getElementById('designation').value = r.designation || '';
+      document.getElementById('geologistName').value = r.geologistName || pDef.name;
+      document.getElementById('designation').value = r.designation || pDef.desig;
       const fMetaId = document.getElementById('metaWellId');
-      if (fMetaId) fMetaId.value = r.smartWellId || (typeof makeUniqueSurveyKey === 'function' ? makeUniqueSurveyKey(r) : '');
-      document.getElementById('projectAssignment').value = r.projectAssignment || '';
+      if (fMetaId) fMetaId.value = r.smartWellId || (typeof makeTechnicalWellId === 'function' ? makeTechnicalWellId(r) : (typeof makeUniqueSurveyKey === 'function' ? makeUniqueSurveyKey(r) : ''));
+      document.getElementById('projectAssignment').value = r.projectAssignment || pDef.proj;
       document.getElementById('gatNo').value = r.gatNo || '';
       document.getElementById('gpsCoords').value = r.gpsCoords || '';
       document.getElementById('altitudeGL').value = r.altitudeGL || '';
@@ -17635,6 +17707,10 @@ ${arrowsXml}
 
       let kharifHam = 0, rabiHam = 0, summerHam = 0;
       let kharifDaysSum = 0, rabiDaysSum = 0, summerDaysSum = 0, grandDays = 0;
+      let kharifFloodSum = 0, kharifSpSum = 0, kharifDripSum = 0, kharifHamSum = 0, kharifAreaSum = 0, kharifDaysCropSum = 0;
+      let rabiFloodSum = 0, rabiSpSum = 0, rabiDripSum = 0, rabiHamSum = 0, rabiAreaSum = 0, rabiDaysCropSum = 0;
+      let summerFloodSum = 0, summerSpSum = 0, summerDripSum = 0, summerHamSum = 0, summerAreaSum = 0, summerDaysCropSum = 0;
+      let grandHam = 0;
 
       const p1Area = { flood: num(r.perennialFloodHa1), drip: num(r.perennialDripHa1), sp: num(r.perennialSprinklerHa1) };
       const p2Area = { flood: num(r.perennialFloodHa2), drip: num(r.perennialDripHa2), sp: num(r.perennialSprinklerHa2) };
@@ -17757,6 +17833,47 @@ ${arrowsXml}
       const perfTotalM3 = kharifM3 + rabi1M3 + rabi2M3 + summerM3;
       const perfTotalHam = kharifHamPerf + rabi1HamPerf + rabi2HamPerf + summerHamPerf;
 
+            // On-The-Fly Groundwater Hydraulics Calculation (Ensures Print is 100% complete)
+      const dWell = num(r.depthWell);
+      let swlW = num(r.swlWinter);
+      let swlS = num(r.swlSummer);
+      if (dWell > 0) {
+        if (swlW > dWell) swlW = dWell;
+        if (swlS > dWell) swlS = dWell;
+      }
+      const fluctuation = Math.max(0, swlS - swlW);
+      const effDia = num(r.diaEffective || r.diaTop);
+
+      // Winter
+      const qtyW = discharge * durW;
+      let pwlW = num(r.pwlWinter);
+      const recupW = num(r.recupWinter);
+      if (pwlW === 0 && durW > 0 && recupW > 0 && effDia > 0) {
+        const denomW = (durW + recupW) * 0.786 * effDia * effDia;
+        pwlW = ((recupW * qtyW) / denomW) + swlW;
+        if (dWell > 0 && pwlW > dWell) pwlW = dWell;
+      } else if (pwlW === 0 && num(r.ddWinter) > 0) {
+        pwlW = swlW + num(r.ddWinter);
+      }
+      const ddW = num(r.ddWinter) || Math.max(0, pwlW - swlW);
+      const storageW = num(r.volStorageWinter) || (0.786 * effDia * effDia * ddW);
+      const inflowW = num(r.inflowRateWinter) || (durW > 0 ? Math.max(0, (qtyW - storageW) / durW) : 0);
+
+      // Summer
+      const qtyS = discharge * durS;
+      let pwlS = num(r.pwlSummer);
+      const recupS = num(r.recupSummer);
+      if (pwlS === 0 && durS > 0 && recupS > 0 && effDia > 0) {
+        const denomS = (durS + recupS) * 0.786 * effDia * effDia;
+        pwlS = ((recupS * qtyS) / denomS) + swlS;
+        if (dWell > 0 && pwlS > dWell) pwlS = dWell;
+      } else if (pwlS === 0 && num(r.ddSummer) > 0) {
+        pwlS = swlS + num(r.ddSummer);
+      }
+      const ddS = num(r.ddSummer) || Math.max(0, pwlS - swlS);
+      const storageS = num(r.volStorageSummer) || (0.786 * effDia * effDia * ddS);
+      const inflowS = num(r.inflowRateSummer) || (durS > 0 ? Math.max(0, (qtyS - storageS) / durS) : 0);
+
       const cNameClean = (r.canalName || '').trim();
       const effDischarge = r.pumpDischarge || getDefaultPumpDischarge(r.pumpHP) || '';
       const cells = {};
@@ -17849,23 +17966,30 @@ ${arrowsXml}
         cells['B48'] = 'Depth to groundwater level (DWL)';
         cells['G48'] = r.dwl || '';
 
-        cells['H49'] = r.swlWinter || '';
-        cells['H50'] = r.pwlWinter || '';
-        cells['H51'] = r.ddWinter || '';
-        cells['H52'] = r.pumpDurationWinter || '';
-        cells['H53'] = r.qtyPumpedWinter || '';
-        cells['H54'] = r.volStorageWinter || '';
-        cells['H55'] = r.inflowRateWinter || '';
-        cells['H56'] = r.recupWinter || '';
+        cells['J44'] = r.pumpSettingWinter || (dWell > 0 ? dWell.toFixed(2) : '');
+        cells['O44'] = r.pumpSettingSummer || (dWell > 0 ? dWell.toFixed(2) : '');
+        cells['J45'] = r.pumpInletWinter || (dWell > 0 ? dWell.toFixed(2) : '');
+        cells['O45'] = r.pumpInletSummer || (dWell > 0 ? dWell.toFixed(2) : '');
 
-        cells['L49'] = r.swlSummer || '';
-        cells['L50'] = r.pwlSummer || '';
-        cells['N51'] = r.ddSummer || '';
-        cells['N52'] = r.pumpDurationSummer || '';
-        cells['N53'] = r.qtyPumpedSummer || '';
-        cells['N54'] = r.volStorageSummer || '';
-        cells['N55'] = r.inflowRateSummer || '';
-        cells['N56'] = r.recupSummer || '';
+        cells['H49'] = r.swlWinter || (swlW > 0 ? swlW.toFixed(2) : '');
+        cells['H50'] = r.pwlWinter || (pwlW > 0 ? pwlW.toFixed(2) : '');
+        cells['H51'] = r.ddWinter || (ddW > 0 ? ddW.toFixed(2) : '');
+        cells['H52'] = r.pumpDurationWinter || (durW > 0 ? durW.toFixed(1) : '');
+        cells['H53'] = r.qtyPumpedWinter || (qtyW > 0 ? qtyW.toFixed(2) : '');
+        cells['H54'] = r.volStorageWinter || (storageW > 0 ? storageW.toFixed(2) : '');
+        cells['H55'] = r.inflowRateWinter || (inflowW > 0 ? inflowW.toFixed(2) : '');
+        cells['H56'] = r.recupWinter || (recupW > 0 ? recupW.toFixed(1) : '');
+
+        cells['L49'] = r.swlSummer || (swlS > 0 ? swlS.toFixed(2) : '');
+        cells['L50'] = r.pwlSummer || (pwlS > 0 ? pwlS.toFixed(2) : '');
+        cells['N51'] = r.ddSummer || (ddS > 0 ? ddS.toFixed(2) : '');
+        cells['N52'] = r.pumpDurationSummer || (durS > 0 ? durS.toFixed(1) : '');
+        cells['N53'] = r.qtyPumpedSummer || (qtyS > 0 ? qtyS.toFixed(2) : '');
+        cells['N54'] = r.volStorageSummer || (storageS > 0 ? storageS.toFixed(2) : '');
+        cells['N55'] = r.inflowRateSummer || (inflowS > 0 ? inflowS.toFixed(2) : '');
+        cells['N56'] = r.recupSummer || (recupS > 0 ? recupS.toFixed(1) : '');
+
+        cells['Q49'] = r.annualFluctuation || (fluctuation > 0 ? fluctuation.toFixed(2) : '');
 
         cells['Q49'] = r.annualFluctuation || '';
 
@@ -17972,25 +18096,30 @@ ${arrowsXml}
         cells['B31'] = 'Depth to groundwater level (DWL)';
         cells['G31'] = r.dwl || '';
 
-        cells['H32'] = r.swlWinter || '';
-        cells['H33'] = r.pwlWinter || '';
-        cells['H34'] = r.ddWinter || '';
-        cells['H35'] = r.pumpDurationWinter || '';
-        cells['H36'] = r.qtyPumpedWinter || '';
-        cells['H37'] = r.volStorageWinter || '';
-        cells['H38'] = r.inflowRateWinter || '';
-        cells['H39'] = r.recupWinter || '';
+        cells['J27'] = r.pumpSettingWinter || (dWell > 0 ? dWell.toFixed(2) : '');
+        cells['O27'] = r.pumpSettingSummer || (dWell > 0 ? dWell.toFixed(2) : '');
+        cells['J28'] = r.pumpInletWinter || (dWell > 0 ? dWell.toFixed(2) : '');
+        cells['O28'] = r.pumpInletSummer || (dWell > 0 ? dWell.toFixed(2) : '');
 
-        cells['L32'] = r.swlSummer || '';
-        cells['L33'] = r.pwlSummer || '';
-        cells['N34'] = r.ddSummer || '';
-        cells['N35'] = r.pumpDurationSummer || '';
-        cells['N36'] = r.qtyPumpedSummer || '';
-        cells['N37'] = r.volStorageSummer || '';
-        cells['N38'] = r.inflowRateSummer || '';
-        cells['N39'] = r.recupSummer || '';
+        cells['H32'] = r.swlWinter || (swlW > 0 ? swlW.toFixed(2) : '');
+        cells['H33'] = r.pwlWinter || (pwlW > 0 ? pwlW.toFixed(2) : '');
+        cells['H34'] = r.ddWinter || (ddW > 0 ? ddW.toFixed(2) : '');
+        cells['H35'] = r.pumpDurationWinter || (durW > 0 ? durW.toFixed(1) : '');
+        cells['H36'] = r.qtyPumpedWinter || (qtyW > 0 ? qtyW.toFixed(2) : '');
+        cells['H37'] = r.volStorageWinter || (storageW > 0 ? storageW.toFixed(2) : '');
+        cells['H38'] = r.inflowRateWinter || (inflowW > 0 ? inflowW.toFixed(2) : '');
+        cells['H39'] = r.recupWinter || (recupW > 0 ? recupW.toFixed(1) : '');
 
-        cells['Q32'] = r.annualFluctuation || '';
+        cells['L32'] = r.swlSummer || (swlS > 0 ? swlS.toFixed(2) : '');
+        cells['L33'] = r.pwlSummer || (pwlS > 0 ? pwlS.toFixed(2) : '');
+        cells['N34'] = r.ddSummer || (ddS > 0 ? ddS.toFixed(2) : '');
+        cells['N35'] = r.pumpDurationSummer || (durS > 0 ? durS.toFixed(1) : '');
+        cells['N36'] = r.qtyPumpedSummer || (qtyS > 0 ? qtyS.toFixed(2) : '');
+        cells['N37'] = r.volStorageSummer || (storageS > 0 ? storageS.toFixed(2) : '');
+        cells['N38'] = r.inflowRateSummer || (inflowS > 0 ? inflowS.toFixed(2) : '');
+        cells['N39'] = r.recupSummer || (recupS > 0 ? recupS.toFixed(1) : '');
+
+        cells['Q32'] = r.annualFluctuation || (fluctuation > 0 ? fluctuation.toFixed(2) : '');
 
         // Performance
         cells['G43'] = effDischarge;
@@ -18023,9 +18152,9 @@ ${arrowsXml}
 
         // Cropping
         cells['G49'] = r.cultivableLand || '';
-        let kharifFloodSum = 0, kharifSpSum = 0, kharifDripSum = 0, kharifHamSum = 0, kharifAreaSum = 0, kharifDaysCropSum = 0;
-        let rabiFloodSum = 0, rabiSpSum = 0, rabiDripSum = 0, rabiHamSum = 0, rabiAreaSum = 0, rabiDaysCropSum = 0;
-        let summerFloodSum = 0, summerSpSum = 0, summerDripSum = 0, summerHamSum = 0, summerAreaSum = 0, summerDaysCropSum = 0;
+        kharifFloodSum = 0; kharifSpSum = 0; kharifDripSum = 0; kharifHamSum = 0; kharifAreaSum = 0; kharifDaysCropSum = 0;
+        rabiFloodSum = 0; rabiSpSum = 0; rabiDripSum = 0; rabiHamSum = 0; rabiAreaSum = 0; rabiDaysCropSum = 0;
+        summerFloodSum = 0; summerSpSum = 0; summerDripSum = 0; summerHamSum = 0; summerAreaSum = 0; summerDaysCropSum = 0;
         kharifDaysSum = 0; rabiDaysSum = 0; summerDaysSum = 0;
 
         cropList.forEach(c => {
@@ -18119,7 +18248,7 @@ ${arrowsXml}
         cells['P72'] = totalCropDaysP72;
 
         const grandFlood = kharifFloodSum + rabiFloodSum + summerFloodSum;
-        const grandHam = kharifHamSum + rabiHamSum + summerHamSum;
+        grandHam = kharifHamSum + rabiHamSum + summerHamSum;
         grandDays = kharifDaysSum + rabiDaysSum + summerDaysSum;
         cells['L73'] = grandFlood > 0 ? Number(grandFlood.toFixed(4)) : '';
         cells['O73'] = grandHam > 0 ? Number(grandHam.toFixed(4)) : '';
@@ -19071,6 +19200,7 @@ ${arrowsXml}
     if (typeof buildRecordCellMap === 'function') {
       try {
         const c = buildRecordCellMap(r);
+        const isPwsRec = c.isPWS || (r.surveyCategory === 'PWS') || (r.ownerName && r.ownerName.toUpperCase().includes('PWS'));
         const kCrop = (c.kharifHamCrop !== undefined) ? c.kharifHamCrop : (c.cells && c.cells['O59'] ? Number(c.cells['O59']) : 0);
         const rCrop = (c.rabiHamCrop !== undefined) ? c.rabiHamCrop : (c.cells && c.cells['O66'] ? Number(c.cells['O66']) : 0);
         const sCrop = (c.summerHamCrop !== undefined) ? c.summerHamCrop : (c.cells && c.cells['O72'] ? Number(c.cells['O72']) : 0);
@@ -19081,10 +19211,23 @@ ${arrowsXml}
         const sPerf = c.summerHamPerf || 0;
         const tPerf = c.perfTotalHam || (kPerf + rPerf + sPerf);
 
-        if (kDraft === 0) kDraft = kPerf > 0 ? kPerf : kCrop;
-        if (rDraft === 0) rDraft = rPerf > 0 ? rPerf : rCrop;
-        if (sDraft === 0) sDraft = sPerf > 0 ? sPerf : sCrop;
-        if (tDraft === 0) tDraft = tPerf > 0 ? tPerf : (tCrop > 0 ? tCrop : (kDraft + rDraft + sDraft));
+        const hasCrop = (tCrop > 0 || kCrop > 0 || rCrop > 0 || sCrop > 0);
+
+        if (!isPwsRec && hasCrop) {
+          return {
+            kharifHam: kCrop.toFixed(4),
+            rabiHam: rCrop.toFixed(4),
+            summerHam: sCrop.toFixed(4),
+            totalHam: tCrop.toFixed(4)
+          };
+        } else if (tPerf > 0 || kPerf > 0 || rPerf > 0 || sPerf > 0) {
+          return {
+            kharifHam: kPerf.toFixed(4),
+            rabiHam: rPerf.toFixed(4),
+            summerHam: sPerf.toFixed(4),
+            totalHam: tPerf.toFixed(4)
+          };
+        }
       } catch(e) {}
     }
 
@@ -19147,10 +19290,12 @@ ${arrowsXml}
 
   const CALC_AVAILABLE_COLUMNS = [
     { id: "srNo", label: "Sr.No.", w: "70px", get: (r, seqNo, wInfo, defaultDistrict) => r.srNo || seqNo || '' },
-    { id: "surveyDate", label: "Date", w: "95px", get: (r, seqNo, wInfo, defaultDistrict) => r.surveyDate || '' },
+    { id: "surveyDate", label: "Date", w: "95px", get: (r, seqNo, wInfo, defaultDistrict) => (typeof normalizeDateToIso === 'function' ? normalizeDateToIso(r.surveyDate) : r.surveyDate) || '' },
     { id: "surveyTime", label: "Time", w: "75px", get: (r, seqNo, wInfo, defaultDistrict) => r.surveyTime || '' },
-    { id: "geologistName", label: "Geologist Name", w: "120px", get: (r, seqNo, wInfo, defaultDistrict) => r.geologistName || '' },
-    { id: "mapSheetNo", label: "Mapsheet No.", w: "95px", get: (r, seqNo, wInfo, defaultDistrict) => r.mapSheetNo || r.sheet10k || '' },
+    { id: "geologistName", label: "Geologist Name", w: "120px", get: (r, seqNo, wInfo, defaultDistrict) => r.geologistName || (typeof getProfileDefaults === 'function' ? getProfileDefaults().name : '') },
+    { id: "designation", label: "Designation", w: "115px", get: (r, seqNo, wInfo, defaultDistrict) => r.designation || (typeof getProfileDefaults === 'function' ? getProfileDefaults().desig : '') },
+    { id: "projectAssignment", label: "Project / Assignment", w: "130px", get: (r, seqNo, wInfo, defaultDistrict) => r.projectAssignment || (typeof getProfileDefaults === 'function' ? getProfileDefaults().proj : '1:10K') },
+    { id: "mapSheetNo", label: "Mapsheet No.", w: "95px", get: (r, seqNo, wInfo, defaultDistrict) => r.mapSheetNo || '' },
     { id: "wellSeqNo", label: "Well No.", w: "75px", get: (r, seqNo, wInfo, defaultDistrict) => r.wellSeqNo || '' },
     { id: "wellType", label: "Type of Well", w: "90px", get: (r, seqNo, wInfo, defaultDistrict) => r.wellType || 'Dug Well' },
     { id: "ownerName", label: "Well Owner", w: "130px", get: (r, seqNo, wInfo, defaultDistrict) => r.ownerName || '' },
@@ -19159,7 +19304,7 @@ ${arrowsXml}
     { id: "gpName", label: "Gp Name", w: "100px", get: (r, seqNo, wInfo, defaultDistrict) => r.gpName || '' },
     { id: "village", label: "Village", w: "110px", get: (r, seqNo, wInfo, defaultDistrict) => r.village || r.villageName || '' },
     { id: "censusNo", label: "Census No.", w: "85px", get: (r, seqNo, wInfo, defaultDistrict) => r.censusNo || '' },
-    { id: "sheet10k", label: "Toposheet No.", w: "95px", get: (r, seqNo, wInfo, defaultDistrict) => r.sheet10k || r.mapSheetNo || '' },
+    { id: "sheet10k", label: "Toposheet No.", w: "95px", get: (r, seqNo, wInfo, defaultDistrict) => r.sheet10k || '' },
     { id: "watershedNo", label: "Mini Watershed", w: "95px", get: (r, seqNo, wInfo, defaultDistrict) => r.watershedNo || '' },
     { id: "population", label: "Population", w: "85px", get: (r, seqNo, wInfo, defaultDistrict) => r.population || '' },
     { id: "gpsCoords", label: "GPS Coords", w: "130px", get: (r, seqNo, wInfo, defaultDistrict) => r.gpsCoords || '' },
@@ -20130,7 +20275,12 @@ ${arrowsXml}
       colValues.forEach((val, cIdx) => {
         const targetCell = rowCells[startColIdx + cIdx];
         if (targetCell) {
-          targetCell.innerText = val.trim();
+          let cellText = val.trim();
+          if (targetCell.dataset.field === 'surveyDate') {
+            const norm = (typeof normalizeDateToIso === 'function') ? normalizeDateToIso(cellText) : cellText;
+            if (norm) cellText = norm;
+          }
+          targetCell.innerText = cellText;
           targetCell.classList.add('cell-edited');
         }
       });
@@ -20166,9 +20316,13 @@ ${arrowsXml}
     tr.dataset.srNo = nextSrNo;
     tr.dataset.isNew = 'true';
 
+    const pDefaults = (typeof getProfileDefaults === 'function') ? getProfileDefaults() : { name: 'Geologist', desig: 'Junior Geologist', proj: '1:10K' };
     const dummyR = {
       srNo: nextSrNo,
       surveyDate: defDate,
+      geologistName: pDefaults.name,
+      designation: pDefaults.desig,
+      projectAssignment: pDefaults.proj,
       village: defVil,
       taluka: defTal,
       district: 'Solapur',
@@ -20294,12 +20448,17 @@ ${arrowsXml}
       const rec = { ...existing };
       rec.srNo = srNo;
 
+      const profDef = (typeof getProfileDefaults === 'function') ? getProfileDefaults() : { name: 'Geologist', desig: 'Junior Geologist', proj: '1:10K' };
+
       if (sheetMode === 'calc') {
-        rec.surveyDate = getVal('surveyDate') || rec.surveyDate || '';
+        const rawDate = getVal('surveyDate') || rec.surveyDate || '';
+        rec.surveyDate = (typeof normalizeDateToIso === 'function' ? normalizeDateToIso(rawDate) : rawDate) || rawDate;
         rec.surveyTime = getVal('surveyTime') || rec.surveyTime || '';
-        rec.geologistName = getVal('geologistName') || rec.geologistName || '';
+        rec.geologistName = getVal('geologistName') || rec.geologistName || profDef.name;
+        rec.designation = getVal('designation') || rec.designation || profDef.desig;
+        rec.projectAssignment = getVal('projectAssignment') || rec.projectAssignment || profDef.proj;
         rec.mapSheetNo = getVal('mapSheetNo') || rec.mapSheetNo || '';
-        rec.sheet10k = rec.mapSheetNo;
+        rec.sheet10k = getVal('sheet10k') || rec.sheet10k || '';
         rec.wellSeqNo = getVal('wellSeqNo') || rec.wellSeqNo || '';
         rec.wellType = getVal('wellType') || rec.wellType || 'Dug Well';
         rec.ownerName = getVal('ownerName') || rec.ownerName || '';
@@ -20480,10 +20639,14 @@ ${arrowsXml}
         rec.totalGWAppliedHam = totalH;
 
         rec.wellStatus = getVal('wellStatus');
-        rec.geologistName = getVal('geologistName');
+        rec.geologistName = getVal('geologistName') || rec.geologistName || profDef.name;
+        rec.designation = rec.designation || profDef.desig;
+        rec.projectAssignment = rec.projectAssignment || profDef.proj;
         rec.remarks = getVal('remarks');
-        rec.mapSheetNo = getVal('mapSheetNo');
-        rec.sheet10k = rec.mapSheetNo;
+        rec.mapSheetNo = getVal('mapSheetNo') || rec.mapSheetNo || '';
+        rec.sheet10k = getVal('sheet10k') || rec.sheet10k || '';
+        const rawMDate = getVal('surveyDate') || rec.surveyDate || '';
+        rec.surveyDate = (typeof normalizeDateToIso === 'function' ? normalizeDateToIso(rawMDate) : rawMDate) || rawMDate;
       }
 
       rec.district = 'Solapur';
@@ -20491,9 +20654,145 @@ ${arrowsXml}
       rec.lastModified = Date.now();
       rec.syncDevice = window.AndroidBridge ? 'mobile' : 'pc';
 
-      if (!rec.smartWellId || rec.smartWellId.includes('-')) {
-        rec.smartWellId = (typeof makeTechnicalWellId === 'function') ? makeTechnicalWellId(rec) : '';
+      // Complete Hydrogeological & Crop Calculation Engine (Single-Click Batch Update)
+      const numF = (v) => parseFloat(v) || 0;
+
+      // 1. Groundwater & Pumping Hydraulics Engine (Batch Update for all wells)
+      const dWell = numF(rec.depthWell);
+      let swlW = numF(rec.swlWinter);
+      let swlS = numF(rec.swlSummer);
+      if (dWell > 0) {
+        if (swlW > dWell) swlW = dWell;
+        if (swlS > dWell) swlS = dWell;
+        rec.pumpSettingWinter = rec.pumpSettingWinter || dWell.toFixed(2);
+        rec.pumpInletWinter = rec.pumpInletWinter || dWell.toFixed(2);
+        rec.pumpSettingSummer = rec.pumpSettingSummer || dWell.toFixed(2);
+        rec.pumpInletSummer = rec.pumpInletSummer || dWell.toFixed(2);
       }
+
+      const fluctuation = Math.max(0, swlS - swlW);
+      rec.annualFluctuation = fluctuation > 0 ? fluctuation.toFixed(2) : (rec.annualFluctuation || '');
+
+      let hpVal = rec.pumpHP;
+      if (hpVal && typeof hpVal === 'string') {
+        const m = hpVal.match(/[0-9.]+/);
+        if (m) hpVal = m[0];
+      }
+      const discharge = numF(rec.pumpDischarge || (typeof getDefaultPumpDischarge === 'function' ? getDefaultPumpDischarge(hpVal) : 20.0)) || 20.0;
+      rec.pumpDischarge = String(discharge);
+
+      const effDia = numF(rec.diaEffective || rec.diaTop);
+
+      // Winter Hydraulics
+      const durW = numF(rec.pumpDurationWinter);
+      const recupW = numF(rec.recupWinter);
+      const qtyW = discharge * durW;
+      rec.qtyPumpedWinter = qtyW > 0 ? qtyW.toFixed(2) : (rec.qtyPumpedWinter || '');
+
+      let pwlW = numF(rec.pwlWinter);
+      if (durW > 0 && recupW > 0 && effDia > 0) {
+        const denomW = (durW + recupW) * 0.786 * effDia * effDia;
+        pwlW = ((recupW * qtyW) / denomW) + swlW;
+        if (dWell > 0 && pwlW > dWell) pwlW = dWell;
+        rec.pwlWinter = pwlW.toFixed(2);
+      } else if (pwlW === 0 && numF(rec.ddWinter) > 0) {
+        pwlW = swlW + numF(rec.ddWinter);
+        rec.pwlWinter = pwlW.toFixed(2);
+      }
+      const ddW = numF(rec.ddWinter) || Math.max(0, pwlW - swlW);
+      rec.ddWinter = ddW > 0 ? ddW.toFixed(2) : (rec.ddWinter || '');
+      const storageW = numF(rec.volStorageWinter) || (0.786 * effDia * effDia * ddW);
+      rec.volStorageWinter = storageW > 0 ? storageW.toFixed(2) : (rec.volStorageWinter || '');
+      const inflowW = numF(rec.inflowRateWinter) || (durW > 0 ? Math.max(0, (qtyW - storageW) / durW) : 0);
+      rec.inflowRateWinter = inflowW > 0 ? inflowW.toFixed(2) : (rec.inflowRateWinter || '');
+
+      // Summer Hydraulics
+      const durS = numF(rec.pumpDurationSummer);
+      const recupS = numF(rec.recupSummer);
+      const qtyS = discharge * durS;
+      rec.qtyPumpedSummer = qtyS > 0 ? qtyS.toFixed(2) : (rec.qtyPumpedSummer || '');
+
+      let pwlS = numF(rec.pwlSummer);
+      if (durS > 0 && recupS > 0 && effDia > 0) {
+        const denomS = (durS + recupS) * 0.786 * effDia * effDia;
+        pwlS = ((recupS * qtyS) / denomS) + swlS;
+        if (dWell > 0 && pwlS > dWell) pwlS = dWell;
+        rec.pwlSummer = pwlS.toFixed(2);
+      } else if (pwlS === 0 && numF(rec.ddSummer) > 0) {
+        pwlS = swlS + numF(rec.ddSummer);
+        rec.pwlSummer = pwlS.toFixed(2);
+      }
+      const ddS = numF(rec.ddSummer) || Math.max(0, pwlS - swlS);
+      rec.ddSummer = ddS > 0 ? ddS.toFixed(2) : (rec.ddSummer || '');
+      const storageS = numF(rec.volStorageSummer) || (0.786 * effDia * effDia * ddS);
+      rec.volStorageSummer = storageS > 0 ? storageS.toFixed(2) : (rec.volStorageSummer || '');
+      const inflowS = numF(rec.inflowRateSummer) || (durS > 0 ? Math.max(0, (qtyS - storageS) / durS) : 0);
+      rec.inflowRateSummer = inflowS > 0 ? inflowS.toFixed(2) : (rec.inflowRateSummer || '');
+      const p1Area = numF(rec.perennialFloodHa1) + numF(rec.perennialSprinklerHa1) + numF(rec.perennialDripHa1);
+      const p2Area = numF(rec.perennialFloodHa2) + numF(rec.perennialSprinklerHa2) + numF(rec.perennialDripHa2);
+      const kharifCropArea = numF(rec.kharifFloodHa1) + numF(rec.kharifSprinklerHa1) + numF(rec.kharifDripHa1) +
+                             numF(rec.kharifFloodHa2) + numF(rec.kharifSprinklerHa2) + numF(rec.kharifDripHa2) +
+                             numF(rec.kharifFloodHa3) + numF(rec.kharifSprinklerHa3) + numF(rec.kharifDripHa3);
+      const rabiCropArea = numF(rec.rabiFloodHa1) + numF(rec.rabiSprinklerHa1) + numF(rec.rabiDripHa1) +
+                           numF(rec.rabiFloodHa2) + numF(rec.rabiSprinklerHa2) + numF(rec.rabiDripHa2) +
+                           numF(rec.rabiFloodHa3) + numF(rec.rabiSprinklerHa3) + numF(rec.rabiDripHa3);
+      const summerCropArea = numF(rec.summerFloodHa1) + numF(rec.summerSprinklerHa1) + numF(rec.summerDripHa1) +
+                             numF(rec.summerFloodHa2) + numF(rec.summerSprinklerHa2) + numF(rec.summerDripHa2);
+      rec.totalKharifHa = (p1Area + p2Area + kharifCropArea).toFixed(2);
+      rec.totalRabiHa = (p1Area + p2Area + rabiCropArea).toFixed(2);
+      rec.totalSummerHa = (p1Area + p2Area + summerCropArea).toFixed(2);
+      rec.totalCroppedHa = (parseFloat(rec.totalKharifHa) + parseFloat(rec.totalRabiHa) + parseFloat(rec.totalSummerHa)).toFixed(2);
+
+      if (rec.pumpHP && !rec.pumpDischarge && typeof getDefaultPumpDischarge === 'function') {
+        rec.pumpDischarge = getDefaultPumpDischarge(rec.pumpHP);
+      }
+
+      rec.surveyCategory = rec.surveyCategory || ((rec.ownerName && rec.ownerName.toUpperCase().includes('PWS')) ? 'PWS' : 'Irrigation');
+
+      if (rec.gpsCoords && rec.gpsCoords.includes(',')) {
+        const parts = rec.gpsCoords.split(',');
+        rec.lat = parts[0].trim();
+        rec.lon = parts[1].trim();
+      } else if (rec.lat && rec.lon && !rec.gpsCoords) {
+        rec.gpsCoords = `${rec.lat}, ${rec.lon}`;
+      }
+
+      if (typeof buildRecordCellMap === 'function') {
+        try {
+          const cPerf = buildRecordCellMap(rec);
+          if (cPerf) {
+            const isPwsRec = (rec.surveyCategory === 'PWS') || (rec.ownerName && rec.ownerName.toUpperCase().includes('PWS'));
+            const hasCrop = (cPerf.totalHamCrop > 0) || (cPerf.kharifHamCrop > 0 || cPerf.rabiHamCrop > 0 || cPerf.summerHamCrop > 0);
+            
+            let kVal, rVal, sVal, tVal;
+            if (!isPwsRec && hasCrop) {
+              kVal = cPerf.kharifHamCrop || 0;
+              rVal = cPerf.rabiHamCrop || 0;
+              sVal = cPerf.summerHamCrop || 0;
+              tVal = cPerf.totalHamCrop || (kVal + rVal + sVal);
+            } else {
+              kVal = cPerf.kharifHamPerf || 0;
+              rVal = cPerf.rabiHamPerf || 0;
+              sVal = cPerf.summerHamPerf || 0;
+              tVal = cPerf.perfTotalHam || (kVal + rVal + sVal);
+            }
+            rec.kharifHam = kVal.toFixed(4);
+            rec.rabiHam = rVal.toFixed(4);
+            rec.summerHam = sVal.toFixed(4);
+            rec.totalHam = tVal.toFixed(4);
+            rec.pdfAnnualDraftHam = tVal.toFixed(4);
+            rec.annualDraftHam = tVal.toFixed(4);
+            rec.totalGWAppliedHam = tVal.toFixed(4);
+
+            rec.kharifDays = cPerf.kharifDaysPerf !== undefined ? String(cPerf.kharifDaysPerf) : '';
+            rec.rabiDays = cPerf.rabiDaysPerf !== undefined ? String(cPerf.rabiDaysPerf) : '';
+            rec.summerDays = cPerf.summerDaysPerf !== undefined ? String(cPerf.summerDaysPerf) : '';
+            rec.totalOperatingDays = cPerf.totalDaysPerf !== undefined ? String(cPerf.totalDaysPerf) : (isPwsRec ? '320' : '0');
+          }
+        } catch(e) {}
+      }
+
+      rec.smartWellId = (typeof makeTechnicalWellId === 'function') ? makeTechnicalWellId(rec) : (rec.smartWellId || '');
 
       updatedRecords.push(rec);
     });
@@ -21173,7 +21472,7 @@ ${arrowsXml}
         seqSrNo !== undefined ? seqSrNo : (Number(r.srNo) || 1), // 1: Sr.No.
         r.surveyDate || '',                            // 2: Date
         r.surveyTime || '',                            // 3: Time
-        r.geologistName || '',                         // 4: Geologist Name
+        r.geologistName || ((typeof getProfileDefaults === 'function') ? getProfileDefaults().name : ''), // 4: Geologist Name
         r.mapSheetNo || '',                            // 5: Mapsheetno
         r.wellSeqNo || '',                             // 6: well no
         r.wellType || '',                              // 7: Type of well
@@ -21351,7 +21650,7 @@ ${arrowsXml}
       { id: 'geologistName', label: 'Surveyed by', default: true, get: (r) => r.geologistName || '' },
       { id: 'remarks', label: 'Remark', default: true, get: (r) => r.remarks || '' },
       { id: 'toposheetNo', label: 'Toposheet No.', default: false, get: (r) => r.sheet10k || '' },
-      { id: 'mapSheetNo', label: '10K Sheet No.', default: true, get: (r) => r.mapSheetNo || r.sheet10k || '' }
+      { id: 'mapSheetNo', label: '10K Sheet No.', default: true, get: (r) => r.mapSheetNo || '' }
     ];
 
     function getActiveMrsacColumns() {
@@ -21481,12 +21780,12 @@ ${arrowsXml}
         seqSrNo !== undefined ? seqSrNo : (Number(r.srNo) || ''), // 1: Sr. No. (Clean sequential 1 to N)
         smartWellId,                                             // 2: Smart Hydro-Geo ID (Census+Lat+Lon+Type)
         r.surveyCategory || 'Irrigation',                        // 3: Survey Category
-        r.surveyDate || '',                                      // 3: Date
-        r.surveyTime || '',                                      // 4: Time
-        r.geologistName || '',                                   // 5: Geologist Name
-        r.designation || '',                                     // 6: Designation
-        r.projectAssignment || '',                               // 7: Project Assignment
-        r.wellSeqNo || '',                                       // 8: Well Seq No
+        r.surveyDate || '',                                      // 4: Date
+        r.surveyTime || '',                                      // 5: Time
+        r.geologistName || ((typeof getProfileDefaults === 'function') ? getProfileDefaults().name : ''), // 6: Geologist Name
+        r.designation || ((typeof getProfileDefaults === 'function') ? getProfileDefaults().desig : ''), // 7: Designation
+        r.projectAssignment || ((typeof getProfileDefaults === 'function') ? getProfileDefaults().proj : '1:10K'), // 8: Project Assignment
+        r.wellSeqNo || '',                                       // 9: Well Seq No
         r.wellType || '',                                        // 9: Well Type
         r.ownerName || '',                                       // 10: Well Owner
         r.district || 'Solapur',                                 // 11: District Name
@@ -21541,8 +21840,8 @@ ${arrowsXml}
         r.inflowRateSummer || '',                                // 60: Summer Inflow Rate (m3/hr)
         r.recupSummer || '',                                     // 61: Summer T req recuperation (hrs)
         r.annualFluctuation || '',                               // 62: Annual Fluctuation (m)
-        r.reservoirType || '',                                   // 63: Project Irri(PT/Minor)
-        r.reservoirName || '',                                   // 64: Reservoir Name
+        r.reservoirName || '',                                   // 64: Project Irri(PT/Minor)
+        r.reservoirType || '',                                   // 65: Reservoir Type
         r.reservoirDistDir || '',                                // 65: Reservoir Distance & Direction
         (r.canalName || '').trim(),                              // 66: Canal
         r.canalDistDir || '',                                    // 67: Canal Distance & Direction
@@ -21624,10 +21923,10 @@ ${arrowsXml}
 
     const IRR_FORMULA_MAP = {
       'C3': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 4, FALSE), "")',
-      'L3': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 6, FALSE), "")',
+      'L3': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 7, FALSE), "")',
       'C4': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 2, FALSE), "")',
       'H4': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 3, FALSE), "")',
-      'P4': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 7, FALSE), "")',
+      'P4': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 8, FALSE), "")',
       'C6': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 6, FALSE), "")',
       'H6': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 7, FALSE), "")',
       'O6': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 18, FALSE), "")',
@@ -21641,8 +21940,8 @@ ${arrowsXml}
       'C10': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 14, FALSE), "")',
       'H10': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 5, FALSE), "")',
       'O10': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 20, FALSE), "")',
-      'C11': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 21, FALSE), "")',
-      'H11': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 22, FALSE), "")',
+      'C11': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 22, FALSE), "")',
+      'H11': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 23, FALSE), "")',
       'C12': 'INT(C11)',
       'D12': 'INT((C11-INT(C11))*60)',
       'E12': '((C11-INT(C11))*60-INT((C11-INT(C11))*60))*60',
@@ -21652,67 +21951,67 @@ ${arrowsXml}
       'O12': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 19, FALSE), "")',
       'G13': 'O8&C11&H11&H6',
       'F15': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 64, FALSE), "")',
-      'O15': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 39, FALSE), "")',
+      'O15': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 65, FALSE), "")',
       'F16': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 40, FALSE), "")',
       'O16': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 41, FALSE), "")',
       'F17': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 42, FALSE), "")',
-      'O17': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 68, FALSE), "")',
+      'O17': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 69, FALSE), "")',
       'H19': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 21, FALSE), "")',
       'P19': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 22, FALSE), "")',
       'I20': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 23, FALSE), "")',
-      'M20': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 27, FALSE), "")',
+      'M20': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 28, FALSE), "")',
       'Q20': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 24, FALSE), "")',
       'H21': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 27, FALSE), "")',
       'P21': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 26, FALSE), "")',
-      'G22': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 31, FALSE), "")',
+      'G22': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 32, FALSE), "")',
       'P22': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 28, FALSE), "")',
       'F23': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 25, FALSE), "")',
-      'P23': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 34, FALSE), "")',
+      'P23': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 35, FALSE), "")',
       'G26': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 32, FALSE), "")',
       'P26': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 33, FALSE), "")',
       'D27': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 34, FALSE), "")',
-      'J27': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 38, FALSE), "")',
-      'O27': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 39, FALSE), "")',
-      'J28': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 40, FALSE), "")',
-      'O28': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 41, FALSE), "")',
-      'G30': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
-      'O30': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
+      'J27': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 39, FALSE), "")',
+      'O27': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 40, FALSE), "")',
+      'J28': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 41, FALSE), "")',
+      'O28': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
+      'G30': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
+      'O30': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 44, FALSE), "")',
       'G31': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 29, FALSE), "")',
       'H32': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 30, FALSE), "")',
-      'H33': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 49, FALSE), "")',
-      'H34': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 50, FALSE), "")',
+      'H33': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 50, FALSE), "")',
+      'H34': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 51, FALSE), "")',
       'H35': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 35, FALSE), "")',
-      'H36': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 51, FALSE), "")',
-      'H37': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 52, FALSE), "")',
-      'H38': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 53, FALSE), "")',
+      'H36': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 52, FALSE), "")',
+      'H37': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 53, FALSE), "")',
+      'H38': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 54, FALSE), "")',
       'H39': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 37, FALSE), "")',
       'L32': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 31, FALSE), "")',
-      'L33': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 56, FALSE), "")',
-      'N34': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 57, FALSE), "")',
+      'L33': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 57, FALSE), "")',
+      'N34': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 58, FALSE), "")',
       'N35': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 36, FALSE), "")',
-      'N36': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 58, FALSE), "")',
-      'N37': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 59, FALSE), "")',
-      'N38': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 60, FALSE), "")',
+      'N36': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 59, FALSE), "")',
+      'N37': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 60, FALSE), "")',
+      'N38': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 61, FALSE), "")',
       'N39': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 38, FALSE), "")',
-      'Q32': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 62, FALSE), "")',
-      'G43': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
-      'H43': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 44, FALSE), "")',
-      'J43': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 75, FALSE), "")',
+      'Q32': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 63, FALSE), "")',
+      'G43': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
+      'H43': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 45, FALSE), "")',
+      'J43': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 76, FALSE), "")',
       'L43': 'ROUND(G43*H43*J43, 2)',
       'N43': 'ROUND(L43/10000, 4)',
-      'G44': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
+      'G44': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
       'H44': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 35, FALSE), "")',
-      'J44': 'ROUND(IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 76, FALSE)/2, 0), 0)',
+      'J44': 'ROUND(IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 77, FALSE)/2, 0), 0)',
       'L44': 'ROUND(G44*H44*J44, 2)',
       'N44': 'ROUND(L44/10000, 4)',
-      'G45': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
+      'G45': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
       'H45': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 35, FALSE), "")',
-      'J45': 'ROUND(IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 76, FALSE)/2, 0), 0)',
+      'J45': 'ROUND(IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 77, FALSE)/2, 0), 0)',
       'L45': 'ROUND(G45*H45*J45, 2)',
       'N45': 'ROUND(L45/10000, 4)',
-      'G46': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
+      'G46': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
       'H46': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 36, FALSE), "")',
-      'J46': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 77, FALSE), "")',
+      'J46': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 78, FALSE), "")',
       'L46': 'ROUND(G46*H46*J46, 2)',
       'N46': 'ROUND(L46/10000, 4)',
       'J47': 'SUM(J43:J46)',
@@ -21903,17 +22202,17 @@ ${arrowsXml}
       'A84': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 92, FALSE), "")',
       'C84': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 91, FALSE), "")',
       'C86': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 93, FALSE), "")',
-      'A91': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 93, FALSE), "")',
+      'A91': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 94, FALSE), "")',
       'D97': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 96, FALSE), "")',
       'D99': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 4, FALSE), "")'
     };
 
     const PWS_FORMULA_MAP = {
       'C3': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 4, FALSE), "")',
-      'L3': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 6, FALSE), "")',
+      'L3': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 7, FALSE), "")',
       'C4': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 2, FALSE), "")',
       'H4': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 3, FALSE), "")',
-      'P4': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 7, FALSE), "")',
+      'P4': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 8, FALSE), "")',
       'C6': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 6, FALSE), "")',
       'H6': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 7, FALSE), "")',
       'O6': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 18, FALSE), "")',
@@ -21925,8 +22224,8 @@ ${arrowsXml}
       'C9': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 14, FALSE), "")',
       'H9': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 5, FALSE), "")',
       'O9': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 20, FALSE), "")',
-      'C10': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 21, FALSE), "")',
-      'H10': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 22, FALSE), "")',
+      'C10': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 22, FALSE), "")',
+      'H10': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 23, FALSE), "")',
       'O10': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 19, FALSE), "")',
       'C11': 'INT(C10)',
       'D11': 'INT((C10-INT(C10))*60)',
@@ -21940,67 +22239,67 @@ ${arrowsXml}
       'H19': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 10, FALSE), "")',
       'O19': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 9, FALSE), "")',
       'G22': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 16, FALSE), "")',
-      'G23': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 70, FALSE), "")',
-      'O22': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 71, FALSE), "")',
-      'O23': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 72, FALSE), "")',
-      'K21': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 73, FALSE), "")',
+      'G23': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 71, FALSE), "")',
+      'O22': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 72, FALSE), "")',
+      'O23': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 73, FALSE), "")',
+      'K21': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 74, FALSE), "")',
       'F14': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 64, FALSE), "")',
-      'O14': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 39, FALSE), "")',
+      'O14': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 65, FALSE), "")',
       'F15': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 40, FALSE), "")',
       'O15': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 41, FALSE), "")',
       'F16': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 42, FALSE), "")',
-      'O16': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 68, FALSE), "")',
+      'O16': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 69, FALSE), "")',
       'H36': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 21, FALSE), "")',
       'P36': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 22, FALSE), "")',
       'I37': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 23, FALSE), "")',
-      'M37': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 27, FALSE), "")',
+      'M37': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 28, FALSE), "")',
       'Q37': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 24, FALSE), "")',
       'H38': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 27, FALSE), "")',
       'P38': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 26, FALSE), "")',
-      'G39': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 31, FALSE), "")',
+      'G39': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 32, FALSE), "")',
       'P39': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 28, FALSE), "")',
       'F40': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 25, FALSE), "")',
-      'P40': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 34, FALSE), "")',
+      'P40': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 35, FALSE), "")',
       'G43': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 32, FALSE), "")',
       'P43': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 33, FALSE), "")',
       'D44': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 34, FALSE), "")',
-      'J44': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 38, FALSE), "")',
-      'O44': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 39, FALSE), "")',
-      'J45': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 40, FALSE), "")',
-      'O45': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 41, FALSE), "")',
-      'G47': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
-      'O47': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
+      'J44': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 39, FALSE), "")',
+      'O44': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 40, FALSE), "")',
+      'J45': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 41, FALSE), "")',
+      'O45': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
+      'G47': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
+      'O47': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 44, FALSE), "")',
       'G48': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 29, FALSE), "")',
       'H49': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 30, FALSE), "")',
-      'H50': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 49, FALSE), "")',
-      'H51': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 50, FALSE), "")',
+      'H50': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 50, FALSE), "")',
+      'H51': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 51, FALSE), "")',
       'H52': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 35, FALSE), "")',
-      'H53': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 51, FALSE), "")',
-      'H54': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 52, FALSE), "")',
-      'H55': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 53, FALSE), "")',
+      'H53': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 52, FALSE), "")',
+      'H54': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 53, FALSE), "")',
+      'H55': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 54, FALSE), "")',
       'H56': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 37, FALSE), "")',
       'L49': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 31, FALSE), "")',
-      'L50': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 56, FALSE), "")',
-      'N51': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 57, FALSE), "")',
+      'L50': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 57, FALSE), "")',
+      'N51': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 58, FALSE), "")',
       'N52': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 36, FALSE), "")',
-      'N53': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 58, FALSE), "")',
-      'N54': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 59, FALSE), "")',
-      'N55': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 60, FALSE), "")',
+      'N53': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 59, FALSE), "")',
+      'N54': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 60, FALSE), "")',
+      'N55': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 61, FALSE), "")',
       'N56': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 38, FALSE), "")',
-      'Q49': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 62, FALSE), "")',
-      'G60': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
-      'H60': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 44, FALSE), "")',
+      'Q49': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 63, FALSE), "")',
+      'G60': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
+      'H60': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 45, FALSE), "")',
       'L60': 'ROUND(G60*H60*J60, 2)',
       'N60': 'ROUND(L60/10000, 4)',
-      'G61': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
+      'G61': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
       'H61': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 35, FALSE), "")',
       'L61': 'ROUND(G61*H61*J61, 2)',
       'N61': 'ROUND(L61/10000, 4)',
-      'G62': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
+      'G62': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
       'H62': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 35, FALSE), "")',
       'L62': 'ROUND(G62*H62*J62, 2)',
       'N62': 'ROUND(L62/10000, 4)',
-      'G63': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 42, FALSE), "")',
+      'G63': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 43, FALSE), "")',
       'H63': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 36, FALSE), "")',
       'L63': 'ROUND(G63*H63*J63, 2)',
       'N63': 'ROUND(L63/10000, 4)',
@@ -22016,7 +22315,7 @@ ${arrowsXml}
       'A75': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 92, FALSE), "")',
       'C75': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 91, FALSE), "")',
       'C77': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 93, FALSE), "")',
-      'A82': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 93, FALSE), "")',
+      'A82': 'IFERROR(VLOOKUP($S$1, \'All Collected Data\'!$A$2:$CR$500, 94, FALSE), "")',
       'D88': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 96, FALSE), "")',
       'D90': 'IFERROR(VLOOKUP($S$1, calc!$A$2:$CR$500, 4, FALSE), "")'
     };
@@ -22182,7 +22481,15 @@ ${arrowsXml}
 
         records.forEach((r, idx) => {
           const seqNo = idx + 1;
-          const { isPWS, cells, kharifHamPerf, rabiHamPerf, summerHamPerf, perfTotalHam, kharifDaysPerf, rabiDaysPerf, summerDaysPerf, totalDaysPerf } = buildRecordCellMap(r);
+          const { isPWS, cells, kharifHamCrop, rabiHamCrop, summerHamCrop, totalHamCrop, kharifHamPerf, rabiHamPerf, summerHamPerf, perfTotalHam, kharifDaysPerf, rabiDaysPerf, summerDaysPerf, totalDaysPerf } = buildRecordCellMap(r);
+
+          const isPwsRec = isPWS || (r.surveyCategory === 'PWS') || (r.ownerName && r.ownerName.toUpperCase().includes('PWS'));
+          const hasCrop = (totalHamCrop > 0) || (kharifHamCrop > 0 || rabiHamCrop > 0 || summerHamCrop > 0);
+
+          const kYield = (!isPwsRec && hasCrop) ? kharifHamCrop : (kharifHamPerf > 0 ? kharifHamPerf : kharifHamCrop);
+          const rYield = (!isPwsRec && hasCrop) ? rabiHamCrop : (rabiHamPerf > 0 ? rabiHamPerf : rabiHamCrop);
+          const sYield = (!isPwsRec && hasCrop) ? summerHamCrop : (summerHamPerf > 0 ? summerHamPerf : summerHamCrop);
+          const tYield = (!isPwsRec && hasCrop) ? totalHamCrop : (perfTotalHam > 0 ? perfTotalHam : (kYield + rYield + sYield));
 
           if (wsCalc) {
             wsCalc.addRow(buildCalcRow96(r, seqNo));
@@ -22193,7 +22500,7 @@ ${arrowsXml}
           }
 
           if (wsMrsac) {
-            wsMrsac.addRow(buildMrsacRow25(r, kharifHamPerf, rabiHamPerf, summerHamPerf, perfTotalHam));
+            wsMrsac.addRow(buildMrsacRow25(r, kYield, rYield, sYield, tYield));
           }
         });
 
