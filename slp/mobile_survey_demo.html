@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>HydroGeo Mobile - Field Survey & Stratum Demo</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Mobile App Shell & Smooth Scrolling */
+    html, body {
+      overscroll-behavior-y: none;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    
+    .drag-handle {
+      touch-action: none;
+      cursor: ns-resize;
+      transition: background-color 0.15s ease;
+    }
+    .drag-handle:active, .drag-handle.active-dragging {
+      background-color: #f59e0b !important;
+      height: 9px !important;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.9);
+      z-index: 40 !important;
+    }
+
+    /* Geological Layer Base Colors */
+    .stratum-soil { background-color: #3b2010; color: #fef08a; }
+    .stratum-weathered-high { background-color: #854d0e; color: #fef08a; }
+    .stratum-weathered-mod { background-color: #a16207; color: #fef9c3; }
+    .stratum-fractured { background-color: #334155; color: #e2e8f0; }
+    .stratum-redbole { background-color: #991b1b; color: #ffffff; }
+    .stratum-vesicular { background-color: #475569; color: #ffffff; }
+    .stratum-dyke { background-color: #3b0764; color: #f3e8ff; border-left: 4px solid #c084fc; }
+    .stratum-hardbasalt { background-color: #0f172a; color: #94a3b8; }
+    
+    /* Dedicated Dynamic Aquifer Zone Highlight */
+    .is-aquifer-zone {
+      background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%) !important;
+      color: #ffffff !important;
+      box-shadow: inset 0 0 16px rgba(14, 165, 233, 0.6);
+      border-left: 5px solid #38bdf8 !important;
+    }
+
+    /* SVG Pattern Overlay Layer */
+    .hatch-pattern-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.28;
+    }
+
+    /* Hide scrollbar for tabs */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased min-h-screen pb-20 select-none">
+
+  <!-- ========================================================================= -->
+  <!-- SVG PATTERN DEFINITIONS FOR STANDARD GEOLOGICAL LITHOLOGY HATCHING        -->
+  <!-- ========================================================================= -->
+  <svg class="hidden" width="0" height="0">
+    <defs>
+      <!-- 1. Black Soil (Stippled Dots) -->
+      <pattern id="pat-soil" width="12" height="12" patternUnits="userSpaceOnUse">
+        <circle cx="3" cy="3" r="1.2" fill="#fef08a"/>
+        <circle cx="9" cy="9" r="1.2" fill="#fef08a"/>
+        <circle cx="9" cy="3" r="0.8" fill="#fef08a"/>
+        <circle cx="3" cy="9" r="0.8" fill="#fef08a"/>
+      </pattern>
+
+      <!-- 2. Highly Weathered Basalt (Crumbly Gravel / Angular Clasts) -->
+      <pattern id="pat-weathered-high" width="16" height="16" patternUnits="userSpaceOnUse">
+        <polygon points="2,2 5,1 4,5" fill="#fef08a"/>
+        <polygon points="10,8 14,7 12,12" fill="#fef08a"/>
+        <circle cx="12" cy="3" r="1.5" fill="#fef08a"/>
+        <circle cx="4" cy="12" r="1.5" fill="#fef08a"/>
+      </pattern>
+
+      <!-- 3. Moderately Weathered Basalt (Micro-fractured Joints) -->
+      <pattern id="pat-weathered-mod" width="20" height="20" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="5" x2="20" y2="5" stroke="#fef9c3" stroke-width="1" stroke-dasharray="6,4"/>
+        <line x1="0" y1="15" x2="20" y2="15" stroke="#fef9c3" stroke-width="1" stroke-dasharray="6,4"/>
+        <line x1="6" y1="5" x2="6" y2="15" stroke="#fef9c3" stroke-width="1"/>
+        <line x1="16" y1="15" x2="16" y2="20" stroke="#fef9c3" stroke-width="1"/>
+      </pattern>
+
+      <!-- 4. Jointed / Fractured Basalt (Rectangular Blocky Joints) -->
+      <pattern id="pat-fractured" width="24" height="16" patternUnits="userSpaceOnUse">
+        <line x1="0" y1="8" x2="24" y2="8" stroke="#ffffff" stroke-width="1.2"/>
+        <line x1="0" y1="16" x2="24" y2="16" stroke="#ffffff" stroke-width="1.2"/>
+        <line x1="12" y1="0" x2="12" y2="8" stroke="#ffffff" stroke-width="1.2"/>
+        <line x1="6" y1="8" x2="6" y2="16" stroke="#ffffff" stroke-width="1.2"/>
+        <line x1="18" y1="8" x2="18" y2="16" stroke="#ffffff" stroke-width="1.2"/>
+      </pattern>
+
+      <!-- 5. Vesicular Basalt (Round/Elliptical Gas Cavity Holes) -->
+      <pattern id="pat-vesicular" width="20" height="20" patternUnits="userSpaceOnUse">
+        <ellipse cx="6" cy="6" rx="3" ry="2" fill="none" stroke="#ffffff" stroke-width="1.2"/>
+        <ellipse cx="15" cy="14" rx="2.5" ry="3.5" fill="none" stroke="#ffffff" stroke-width="1.2"/>
+        <circle cx="16" cy="5" r="1.5" fill="#ffffff"/>
+        <circle cx="4" cy="15" r="1.2" fill="#ffffff"/>
+      </pattern>
+
+      <!-- 6. Red Bole / Clay Bed (Dense 45-degree Cross-Hatching) -->
+      <pattern id="pat-redbole" width="10" height="10" patternUnits="userSpaceOnUse">
+        <path d="M 0 10 L 10 0 M 0 0 L 10 10" stroke="#fecaca" stroke-width="1"/>
+      </pattern>
+
+      <!-- 7. Intrusive Dyke (Steep 60-degree Igneous Contact Stripes) -->
+      <pattern id="pat-dyke" width="16" height="16" patternUnits="userSpaceOnUse">
+        <path d="M 0 16 L 16 0 M -4 4 L 4 -4 M 12 20 L 20 12" stroke="#e9d5ff" stroke-width="2.5"/>
+      </pattern>
+
+      <!-- 8. Hard Compact Basalt (Dense Crystalline Grid) -->
+      <pattern id="pat-hardbasalt" width="14" height="14" patternUnits="userSpaceOnUse">
+        <circle cx="7" cy="7" r="1" fill="#94a3b8"/>
+        <path d="M 0 7 L 14 7 M 7 0 L 7 14" stroke="#475569" stroke-width="0.75"/>
+      </pattern>
+
+      <!-- 9. Masonry Steining Wall (Coursed Rubble Stone Pattern) -->
+      <pattern id="pat-steining" width="20" height="12" patternUnits="userSpaceOnUse">
+        <rect width="20" height="12" fill="#78350f" fill-opacity="0.25"/>
+        <line x1="0" y1="6" x2="20" y2="6" stroke="#f59e0b" stroke-width="1.2"/>
+        <line x1="0" y1="12" x2="20" y2="12" stroke="#f59e0b" stroke-width="1.2"/>
+        <line x1="8" y1="0" x2="8" y2="6" stroke="#f59e0b" stroke-width="1.2"/>
+        <line x1="16" y1="6" x2="16" y2="12" stroke="#f59e0b" stroke-width="1.2"/>
+      </pattern>
+    </defs>
+  </svg>
+
+  <!-- ========================================================================= -->
+  <!-- MOBILE STATUS BAR (SIMULATED NATIVE SYSTEM BAR)                            -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 px-3 pt-2 pb-1.5 shadow-md">
+    <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
+      <div class="flex items-center gap-1.5 font-bold text-white">
+        <span>12:45</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+      </div>
+      <div class="flex items-center gap-1.5 text-[10px]">
+        <span>GPS: ±2m</span>
+        <span>•</span>
+        <span>5G</span>
+        <span class="text-emerald-400 font-bold">98%</span>
+      </div>
+    </div>
+
+    <!-- App Header & Gat Info -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-xs shadow">
+          💧
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-xs font-black text-white tracking-wide">HydroGeo Mobile Pro</h1>
+            <span class="text-[8px] uppercase font-black px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+              Field Ready
+            </span>
+          </div>
+          <div class="text-[10px] text-slate-400 font-mono">
+            Gat #142/2 • Solapur Taluka • Well #W-04
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex items-center gap-1">
+        <button type="button" onclick="resetToStandard5Layers()" class="bg-slate-800 hover:bg-slate-700 text-[10px] font-bold px-2 py-1 rounded border border-slate-700">
+          ↺ Reset
+        </button>
+        <a href="fullscreen_stratum_swl_demo.html" class="bg-sky-600 hover:bg-sky-700 text-white text-[10px] font-bold px-2 py-1 rounded shadow">
+          💻 Fullscreen
+        </a>
+      </div>
+    </div>
+
+    <!-- Sticky Jump Navigation Chips -->
+    <div class="flex items-center gap-1.5 mt-2 overflow-x-auto no-scrollbar pb-1 text-[11px] font-mono font-bold">
+      <a href="#secGraphicVisual" class="px-2.5 py-1 rounded-lg bg-sky-950 text-sky-300 border border-sky-800 whitespace-nowrap active:bg-sky-900">
+        📊 Well & Strata
+      </a>
+      <a href="#secSteiningDia" class="px-2.5 py-1 rounded-lg bg-amber-950 text-amber-300 border border-amber-800 whitespace-nowrap active:bg-amber-900">
+        🧱 Steining & HP
+      </a>
+      <a href="#secWaterLevels" class="px-2.5 py-1 rounded-lg bg-cyan-950 text-cyan-300 border border-cyan-800 whitespace-nowrap active:bg-cyan-900">
+        📏 Water Levels
+      </a>
+      <a href="#secRockLayers" class="px-2.5 py-1 rounded-lg bg-purple-950 text-purple-300 border border-purple-800 whitespace-nowrap active:bg-purple-900">
+        🪨 Rock Layers
+      </a>
+    </div>
+  </header>
+
+  <main class="p-3 max-w-md mx-auto space-y-3">
+
+    <!-- ========================================================================= -->
+    <!-- 1. DUAL SYNCHRONIZED VISUAL CANVAS (SIDE-BY-SIDE MOBILE STAGE)            -->
+    <!-- Width: Well Tube (128px) + Lithology (144px) + Ruler (32px) = 304px       -->
+    <!-- Fits 100% cleanly on any standard 360px - 412px smartphone display        -->
+    <!-- ========================================================================= -->
+    <section id="secGraphicVisual" class="bg-slate-900/90 rounded-2xl border border-slate-800 p-2.5 shadow-xl flex flex-col items-center">
+      <div class="w-full flex items-center justify-between mb-1.5 px-1">
+        <div class="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider">
+          <span class="text-sky-400">① Well Tube</span>
+          <span class="text-slate-600">⇄</span>
+          <span class="text-purple-400">② Lithology</span>
+        </div>
+        <span class="text-[9px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800/80 px-1.5 py-0.5 rounded">
+          👉 Drag Dividers (8m–50m)
+        </span>
+      </div>
+
+      <!-- Synchronized Mobile Stage (Fixed 460px height) -->
+      <div class="relative w-full h-[460px] flex items-stretch gap-1.5 justify-center select-none touch-none">
+
+        <!-- Scale Depth Ruler (0.0m to Total Depth) -->
+        <div class="w-8 flex flex-col justify-between py-3 text-[9px] font-mono font-bold text-slate-500 text-right pr-1 border-r border-slate-800">
+          <span>0.0m</span>
+          <span id="rulerMid1">4.0m</span>
+          <span id="rulerMid2">8.0m</span>
+          <span id="rulerMid3">12.0m</span>
+          <span id="rulerBottom">16.0m</span>
+        </div>
+
+        <!-- 1. THE WELL TUBE (Masonry Steining Walls, SWL, Survey DWL) -->
+        <div id="wellTubeBox" class="relative w-32 border-x-4 border-b-4 border-slate-600 rounded-b-xl bg-amber-950/20 overflow-hidden shadow-inner flex flex-col justify-between transition-all">
+          
+          <!-- Interactive Horizontal Drag Handle on Well Tube Right Edge to resize diameter (0 to 50m) -->
+          <div id="tubeDiaDragHandle" class="drag-handle-dia absolute right-0 top-0 bottom-0 w-3 hover:w-4 bg-amber-500/25 hover:bg-amber-400 cursor-ew-resize z-30 flex items-center justify-center border-l-2 border-amber-400 touch-none" title="Drag horizontally to resize Well Diameter (0m to 50m)">
+            <div class="w-1 h-8 bg-amber-400 rounded-full shadow"></div>
+          </div>
+
+          <!-- Steining Masonry Walls (Overlaid down to steiningDepth) -->
+          <div id="steiningWallLeft" class="absolute left-0 top-0 w-3 z-10 border-r border-amber-500/80 pointer-events-none" style="height: 22%;">
+            <svg class="w-full h-full"><rect width="100%" height="100%" fill="url(#pat-steining)"/></svg>
+          </div>
+          <div id="steiningWallRight" class="absolute right-0 top-0 w-3 z-10 border-l border-amber-500/80 pointer-events-none" style="height: 22%;">
+            <svg class="w-full h-full"><rect width="100%" height="100%" fill="url(#pat-steining)"/></svg>
+          </div>
+
+          <!-- Steining Base Transition Marker -->
+          <div id="steiningBaseMarker" class="absolute left-0 w-full z-15 pointer-events-none flex items-center justify-center" style="top: 22%;">
+            <div class="w-full border-b border-amber-400/80 border-dashed"></div>
+            <span class="absolute right-0.5 -top-2.5 bg-amber-950/90 text-amber-300 text-[8px] font-mono font-bold px-1 rounded border border-amber-800">
+              Lining: <span id="lblColSteining">3.5 m</span>
+            </span>
+          </div>
+
+          <!-- Top Ground Level Collar -->
+          <div class="relative z-20 bg-slate-800 px-1 py-0.5 border-b border-slate-700 flex items-center justify-between text-[9px]">
+            <span class="font-bold text-amber-400">0.0m GL</span>
+            <span id="lblTubeDiaBadge" class="bg-slate-900 text-amber-300 px-1 rounded font-mono font-bold">Dia: 5.0m</span>
+          </div>
+
+          <!-- Inflow Seepage Markers in Well Tube -->
+          <div id="tubeInflow1" class="absolute left-1 z-20 flex items-center gap-0.5 pointer-events-none text-[8px] font-mono font-bold text-sky-300 bg-sky-950/90 px-1 rounded border border-sky-600 transition-all">
+            <span>💧</span><span id="lblTubeInflow1">NE 4.5m</span>
+          </div>
+          <div id="tubeInflow2" class="absolute right-1 z-20 flex items-center gap-0.5 pointer-events-none text-[8px] font-mono font-bold text-emerald-300 bg-emerald-950/90 px-1 rounded border border-emerald-600 transition-all">
+            <span>💧</span><span id="lblTubeInflow2">W 8.5m</span>
+          </div>
+          <div id="tubeInflow3" class="absolute left-1 z-20 flex items-center gap-0.5 pointer-events-none text-[8px] font-mono font-bold text-purple-300 bg-purple-950/90 px-1 rounded border border-purple-600 transition-all">
+            <span>💧</span><span id="lblTubeInflow3">SE 12.0m</span>
+          </div>
+
+          <!-- 3 Water Level Overlays inside Well Tube -->
+          <!-- A. Winter SWL (Post-Monsoon) -->
+          <div id="tubeWinterSwlLine" class="absolute w-full z-15 border-b-2 border-dashed border-sky-400 pointer-events-none transition-all flex items-center justify-between px-1">
+            <span class="bg-sky-900/90 text-sky-200 text-[8px] font-mono font-black px-1 rounded shadow">Winter SWL</span>
+            <span id="lblColWinterSwl" class="text-[8px] font-mono font-bold text-sky-300">4.0m</span>
+          </div>
+
+          <!-- B. Survey DWL (Water Level at Time of Survey - Unconstrained Full Range) -->
+          <div id="tubeSurveyDwlLine" class="absolute w-full z-20 border-b-2 border-cyan-300 pointer-events-none transition-all flex items-center justify-between px-1 shadow-md">
+            <div class="flex items-center gap-0.5 bg-cyan-950/95 text-cyan-200 text-[8px] font-mono font-black px-1 rounded border border-cyan-500 shadow">
+              <span>📍</span><span>DWL (Survey)</span>
+            </div>
+            <span id="lblColSurveyDwl" class="text-[8px] font-mono font-black text-cyan-300 bg-cyan-950/90 px-1 rounded">6.5m</span>
+          </div>
+
+          <!-- C. Survey DWL Water Column Body -->
+          <div id="tubeSurveyWaterBody" class="absolute bottom-0 w-full bg-gradient-to-t from-blue-900/80 via-sky-800/60 to-cyan-600/40 pointer-events-none transition-all border-t border-cyan-400/50">
+            <div class="w-full text-center pt-2 text-[9px] font-mono font-black text-cyan-200 drop-shadow">
+              Standing Water Column: <span id="lblColWaterColumn">9.5m</span>
+            </div>
+          </div>
+
+          <!-- D. Summer SWL (Pre-Monsoon Critical Level) -->
+          <div id="tubeSummerSwlLine" class="absolute w-full z-15 border-b-2 border-dashed border-amber-400 pointer-events-none transition-all flex items-center justify-between px-1">
+            <span class="bg-amber-900/90 text-amber-200 text-[8px] font-mono font-black px-1 rounded shadow">Summer SWL</span>
+            <span id="lblColSummerSwl" class="text-[8px] font-mono font-bold text-amber-300">9.0m</span>
+          </div>
+
+          <!-- Bottom Well Bed -->
+          <div class="relative z-20 bg-slate-900/90 px-1 py-0.5 border-t border-slate-700 flex items-center justify-between text-[9px]">
+            <span class="font-bold text-slate-400">Bottom Bed</span>
+            <span id="lblColTotalDepth" class="font-mono font-bold text-purple-300">16.0m</span>
+          </div>
+        </div>
+
+        <!-- 2. THE GEOLOGICAL STRATIGRAPHIC ROCK COLUMN (SVG HATCHING) -->
+        <div id="stratumBox" class="relative w-36 border-4 border-slate-700 rounded-xl overflow-hidden shadow-2xl flex flex-col">
+          <!-- Dynamic Layers rendered via JavaScript -->
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 2. WELL DIAMETER, STEINING & PUMP CAPACITY CONTROLS                       -->
+    <!-- ========================================================================= -->
+    <section id="secSteiningDia" class="bg-slate-900/90 rounded-2xl border border-slate-800 p-3 shadow-xl space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm">🧱</span>
+          <h2 class="text-xs font-black uppercase text-amber-400 tracking-wider">
+            Well Geometry & Pump HP
+          </h2>
+        </div>
+        <span class="text-[10px] font-mono text-amber-300 font-bold" id="lblActivePumpHp">5 HP</span>
+      </div>
+
+      <!-- Well Diameter Draggable (0 to 50m) -->
+      <div class="space-y-1.5 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-amber-300">Well Diameter (Draggable 0 to 50m):</span>
+          <span id="lblActiveDiaText" class="font-mono font-black text-amber-300 bg-amber-950 px-2 py-0.5 rounded border border-amber-800">5.0 m</span>
+        </div>
+        <input type="range" id="sliderWellDia" min="0.5" max="50.0" step="0.25" value="5.0" oninput="setWellDia(this.value)" class="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500" />
+        <div class="flex justify-between text-[9px] text-slate-500 font-mono">
+          <span>0.5m</span>
+          <span class="text-amber-400 font-bold">👉 Drag slider or well wall (0 to 50m)</span>
+          <span>50.0m</span>
+        </div>
+        <!-- Quick Preset Chips -->
+        <div class="grid grid-cols-6 gap-1 pt-1 font-mono text-xs">
+          <button type="button" onclick="setWellDia(2.0)" id="btnDia_2_0" class="dia-btn py-1 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">2m</button>
+          <button type="button" onclick="setWellDia(3.0)" id="btnDia_3_0" class="dia-btn py-1 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">3m</button>
+          <button type="button" onclick="setWellDia(5.0)" id="btnDia_5_0" class="dia-btn active py-1 rounded text-[10px] font-black bg-amber-500 text-amber-950 border border-amber-400 shadow">5m</button>
+          <button type="button" onclick="setWellDia(10.0)" id="btnDia_10_0" class="dia-btn py-1 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">10m</button>
+          <button type="button" onclick="setWellDia(20.0)" id="btnDia_20_0" class="dia-btn py-1 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">20m</button>
+          <button type="button" onclick="setWellDia(50.0)" id="btnDia_50_0" class="dia-btn py-1 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">50m</button>
+        </div>
+      </div>
+
+      <!-- Pump HP Quick Selection Chips -->
+      <div class="space-y-1">
+        <label class="text-[11px] font-bold text-slate-300 flex items-center justify-between">
+          <span>Pump Motor Rating:</span>
+          <span class="text-[10px] font-mono text-slate-400">Agriculture Submersible</span>
+        </label>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button type="button" onclick="setPumpHp(3)" id="btnHp_3" class="pump-hp-btn py-1.5 rounded-lg border text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 transition-all">
+            3 HP
+          </button>
+          <button type="button" onclick="setPumpHp(5)" id="btnHp_5" class="pump-hp-btn py-1.5 rounded-lg border text-xs font-black bg-amber-500 text-amber-950 border-amber-400 shadow transition-all">
+            5 HP
+          </button>
+          <button type="button" onclick="setPumpHp(7.5)" id="btnHp_7_5" class="pump-hp-btn py-1.5 rounded-lg border text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 transition-all">
+            7.5 HP
+          </button>
+          <button type="button" onclick="setPumpHp(10)" id="btnHp_10" class="pump-hp-btn py-1.5 rounded-lg border text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 transition-all">
+            10 HP
+          </button>
+        </div>
+      </div>
+
+      <!-- Masonry Steining Depth Slider -->
+      <div class="space-y-1 bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-amber-300">Masonry Steining Depth:</span>
+          <span id="lblSteiningDepthText" class="font-mono font-black text-amber-300">3.50 m</span>
+        </div>
+        <input type="range" id="sliderSteiningDepth" min="0.5" max="25.0" step="0.25" value="3.5" oninput="onSteiningDepthChanged()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500" />
+        <div class="flex justify-between text-[9px] text-slate-500 font-mono">
+          <span>0.5m</span>
+          <span>Contact with hard rock</span>
+          <span>25.0m</span>
+        </div>
+      </div>
+
+      <!-- Fracture Intensity & Joint Spacing -->
+      <div class="space-y-1.5 bg-slate-950/60 p-2 rounded-xl border border-slate-800">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-cyan-300">Fracture & Joint Characteristics:</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div>
+            <label class="text-[10px] text-slate-400 block mb-0.5">Joint Spacing:</label>
+            <select id="selJointSpacing" onchange="onFractureParamChanged()" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-1.5 text-xs text-white font-bold">
+              <option value="close">Close (&lt; 5 cm)</option>
+              <option value="moderate" selected>Moderate (5 - 20 cm)</option>
+              <option value="wide">Wide (&gt; 20 cm)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-400 block mb-0.5">Joint Pattern:</label>
+            <select id="selJointPattern" onchange="onFractureParamChanged()" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-1.5 text-xs text-white font-bold">
+              <option value="sheet">Sheet Jointing</option>
+              <option value="columnar" selected>Columnar Basalt</option>
+              <option value="blocky">Blocky / Irregular</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-[10px] pt-1 border-t border-slate-800/80">
+          <span class="text-slate-400">Secondary Porosity Rating:</span>
+          <span id="lblPorosityRating" class="text-cyan-400 font-black">Moderate (Good Yield)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 4. TOTAL DEPTH & 3 WATER LEVELS (STRICT 8m–50m DEPTH RANGE)               -->
+    <!-- ========================================================================= -->
+    <section id="secWaterLevels" class="bg-slate-900/90 rounded-2xl border border-slate-800 p-3 shadow-xl space-y-3">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm">📏</span>
+          <h2 class="text-xs font-black uppercase text-cyan-300 tracking-wider">
+            Depth & Water Levels
+          </h2>
+        </div>
+        <span class="text-[9px] font-mono text-slate-400 font-bold">8.0m to 50.0m</span>
+      </div>
+
+      <!-- 1. Total Well Depth (Hard Floor 8m to 50m) -->
+      <div class="space-y-1">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-purple-300">Total Well Depth:</span>
+          <span id="lblInputTotalDepth" class="font-mono font-black text-purple-300 bg-purple-950 px-2 py-0.5 rounded border border-purple-800">16.00 m</span>
+        </div>
+        <input type="range" id="sliderTotalDepth" min="8.0" max="50.0" step="0.5" value="16.0" oninput="onTotalDepthChanged(this.value)" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500" />
+        <div class="flex justify-between text-[9px] text-slate-500 font-mono">
+          <span>8.0m (Min)</span>
+          <span>Scales All Layers</span>
+          <span>50.0m (Max)</span>
+        </div>
+      </div>
+
+      <!-- 2. Survey DWL (Water Level at Time of Survey) -->
+      <div class="space-y-1 bg-cyan-950/30 p-2 rounded-xl border border-cyan-800/60">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-black text-cyan-300 flex items-center gap-1">
+            <span>📍</span><span>DWL (Survey Water Level):</span>
+          </span>
+          <span id="lblInputSurveyDwl" class="font-mono font-black text-cyan-300 bg-cyan-950 px-2 py-0.5 rounded border border-cyan-700">6.50 m</span>
+        </div>
+        <input type="range" id="sliderSurveyDwl" min="0.0" max="16.0" step="0.25" value="6.5" oninput="onSurveyDwlChanged(this.value)" class="w-full h-2 bg-cyan-950 rounded-lg appearance-none cursor-pointer accent-cyan-400" />
+        <div class="flex justify-between text-[9px] text-cyan-400/80 font-mono">
+          <span>0.0m (Full)</span>
+          <span class="font-bold">Unconstrained (0 to Depth)</span>
+          <span id="lblSurveyDwlMax">16.0m</span>
+        </div>
+      </div>
+
+      <!-- 3. Winter SWL (Post-Monsoon) -->
+      <div class="space-y-1">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-sky-300">Winter SWL (Post-Monsoon):</span>
+          <span id="lblInputWinterSwl" class="font-mono font-black text-sky-300 bg-sky-950 px-2 py-0.5 rounded border border-sky-800">4.00 m</span>
+        </div>
+        <input type="range" id="sliderWinterSwl" min="0.5" max="16.0" step="0.25" value="4.0" oninput="onWinterSwlChanged(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-sky-400" />
+      </div>
+
+      <!-- 4. Summer SWL (Pre-Monsoon) -->
+      <div class="space-y-1">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-amber-300">Summer SWL (Pre-Monsoon):</span>
+          <span id="lblInputSummerSwl" class="font-mono font-black text-amber-300 bg-amber-950 px-2 py-0.5 rounded border border-amber-800">9.00 m</span>
+        </div>
+        <input type="range" id="sliderSummerSwl" min="0.5" max="16.0" step="0.25" value="9.0" oninput="onSummerSwlChanged(this.value)" class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-400" />
+      </div>
+
+      <!-- Inflow Water Seepage Selections -->
+      <div class="space-y-1.5 pt-2 border-t border-slate-800">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-bold text-emerald-300">Water Seepage Inflows:</span>
+          <span id="lblTotalYield" class="text-[10px] font-mono text-emerald-400 font-bold">4.5 LPS</span>
+        </div>
+
+        <!-- Inflow 1 -->
+        <div class="p-1.5 rounded-lg bg-slate-950 border border-sky-900/50 flex items-center justify-between gap-1 text-[11px]">
+          <span class="font-bold text-sky-300">Inflow 1:</span>
+          <span class="font-mono text-sky-300" id="txtInflow1Depth">4.5m</span>
+          <select id="selInflow1Dir" onchange="onInflowParamChanged(1)" class="bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-white">
+            <option value="NE" selected>NE</option><option value="E">E</option><option value="SE">SE</option><option value="S">S</option><option value="SW">SW</option><option value="W">W</option><option value="NW">NW</option><option value="N">N</option>
+          </select>
+          <input type="range" id="rngInflow1Depth" min="0.5" max="50.0" step="0.25" value="4.5" oninput="onInflowParamChanged(1)" class="w-16 h-1.5 accent-sky-500" />
+          <input type="checkbox" id="chkInflow1" checked onchange="toggleInflow(1)" class="w-4 h-4 accent-sky-500" />
+        </div>
+
+        <!-- Inflow 2 -->
+        <div class="p-1.5 rounded-lg bg-slate-950 border border-emerald-900/50 flex items-center justify-between gap-1 text-[11px]">
+          <span class="font-bold text-emerald-300">Inflow 2:</span>
+          <span class="font-mono text-emerald-300" id="txtInflow2Depth">8.5m</span>
+          <select id="selInflow2Dir" onchange="onInflowParamChanged(2)" class="bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-white">
+            <option value="NE">NE</option><option value="E">E</option><option value="SE">SE</option><option value="S">S</option><option value="SW">SW</option><option value="W" selected>W</option><option value="NW">NW</option><option value="N">N</option>
+          </select>
+          <input type="range" id="rngInflow2Depth" min="0.5" max="50.0" step="0.25" value="8.5" oninput="onInflowParamChanged(2)" class="w-16 h-1.5 accent-emerald-500" />
+          <input type="checkbox" id="chkInflow2" checked onchange="toggleInflow(2)" class="w-4 h-4 accent-emerald-500" />
+        </div>
+
+        <!-- Inflow 3 -->
+        <div class="p-1.5 rounded-lg bg-slate-950 border border-purple-900/50 flex items-center justify-between gap-1 text-[11px]">
+          <span class="font-bold text-purple-300">Inflow 3:</span>
+          <span class="font-mono text-purple-300" id="txtInflow3Depth">12.0m</span>
+          <select id="selInflow3Dir" onchange="onInflowParamChanged(3)" class="bg-slate-800 border border-slate-700 rounded px-1 py-0.5 text-[10px] text-white">
+            <option value="NE">NE</option><option value="E">E</option><option value="SE" selected>SE</option><option value="S">S</option><option value="SW">SW</option><option value="W">W</option><option value="NW">NW</option><option value="N">N</option>
+          </select>
+          <input type="range" id="rngInflow3Depth" min="0.5" max="50.0" step="0.25" value="12.0" oninput="onInflowParamChanged(3)" class="w-16 h-1.5 accent-purple-500" />
+          <input type="checkbox" id="chkInflow3" checked onchange="toggleInflow(3)" class="w-4 h-4 accent-purple-500" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- 5. ROCK STRATUM MANAGEMENT (SOIL PINNED TOP, MASSIVE BASALT PINNED BOTTOM)-->
+    <!-- ========================================================================= -->
+    <section id="secRockLayers" class="bg-slate-900/90 rounded-2xl border border-slate-800 p-3 shadow-xl space-y-2.5">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+        <div class="flex items-center gap-1.5">
+          <span class="text-sm">🪨</span>
+          <h2 class="text-xs font-black uppercase text-purple-300 tracking-wider">
+            Rock Strata Stack
+          </h2>
+        </div>
+        <span class="text-[9px] font-mono font-bold bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded border border-purple-800">
+          Soil Top • Basalt Bottom
+        </span>
+      </div>
+
+      <!-- Add New Layers Quick Toolbar -->
+      <div class="grid grid-cols-3 gap-1.5">
+        <button type="button" onclick="addLayerType('dyke')" class="bg-purple-700 hover:bg-purple-800 text-white text-[10px] font-black py-1 rounded shadow">
+          + Dyke
+        </button>
+        <button type="button" onclick="addLayerType('vesicular')" class="bg-slate-700 hover:bg-slate-800 text-white text-[10px] font-black py-1 rounded shadow">
+          + Vesicular
+        </button>
+        <button type="button" onclick="addLayerType('redbole')" class="bg-red-700 hover:bg-red-800 text-white text-[10px] font-black py-1 rounded shadow">
+          + Red Bole
+        </button>
+      </div>
+
+      <!-- Re-orderable Layers List -->
+      <div id="layerListContainer" class="space-y-1.5">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- PERSISTENT MOBILE BOTTOM NAVIGATION & LIVE STATS PILL                      -->
+  <!-- ========================================================================= -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-slate-950/95 backdrop-blur-md border-t border-slate-800 px-3 py-2 shadow-2xl">
+    <div class="max-w-md mx-auto flex items-center justify-between text-xs font-mono">
+      <div class="flex items-center gap-1.5">
+        <span class="text-amber-400">⭕</span>
+        <div>
+          <div class="text-[8px] text-slate-400 uppercase font-sans">Diameter</div>
+          <div id="mobBarDia" class="font-black text-amber-300">5.0m</div>
+        </div>
+      </div>
+      <div class="h-6 w-px bg-slate-800"></div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-yellow-400">🧱</span>
+        <div>
+          <div class="text-[8px] text-slate-400 uppercase font-sans">Steining</div>
+          <div id="mobBarSteining" class="font-black text-yellow-300">3.5m</div>
+        </div>
+      </div>
+      <div class="h-6 w-px bg-slate-800"></div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-cyan-400">📍</span>
+        <div>
+          <div class="text-[8px] text-slate-400 uppercase font-sans">DWL</div>
+          <div id="mobBarDwl" class="font-black text-cyan-300">6.5m</div>
+        </div>
+      </div>
+      <div class="h-6 w-px bg-slate-800"></div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-purple-400">⛏️</span>
+        <div>
+          <div class="text-[8px] text-slate-400 uppercase font-sans">Depth</div>
+          <div id="mobBarDepth" class="font-black text-purple-300">16.0m</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <script>
+    // =========================================================================
+    // DYNAMIC & SYNCHRONIZED HYDROGEOLOGICAL MODEL
+    // DWL = Water Level at Time of Survey (Unconstrained full range 0 to Total Depth)
+    // Soil = Locked at Top
+    // Massive Basalt = Locked at Bottom
+    // Well Diameter & Steining Lining
+    // Instant Storage & Pumping Budget
+    // SVG Hatching Patterns
+    // =========================================================================
+    let totalDepth     = 16.0; // Total Well Depth (Hard Bottom, 8m-50m)
+    let winterSwl      = 4.0;  // Winter SWL (Post-Monsoon)
+    let surveyDwl      = 6.5;  // DWL = Water Level at Time of Survey (Unconstrained)
+    let summerSwl      = 9.0;  // Summer SWL (Pre-Monsoon)
+    let wellDiameter   = 5.0;  // Well Diameter in metres
+    let currentPumpHp  = 5;    // Pump Capacity: 3, 5, 7.5, 10 HP
+    let steiningDepth  = 3.5;  // Masonry Steining Depth in metres
+    let jointSpacing   = 'moderate'; // Close, Moderate, Wide
+    let jointPattern   = 'columnar'; // Sheet, Columnar, Blocky
+
+    // Seepage Inflows
+    const inflows = {
+      1: { active: true, depth: 4.5, dir: 'NE', yield: 1.5 },
+      2: { active: true, depth: 8.5, dir: 'W',  yield: 2.0 },
+      3: { active: true, depth: 12.0, dir: 'SE', yield: 1.0 }
+    };
+
+    // Stratigraphic Rock Layers: Top Soil locked at top, Massive Basalt locked at bottom
+    let layers = [
+      { id: 'soil', name: 'Black Soil', css: 'stratum-soil', pat: 'pat-soil', thickness: 1.5, isAquifer: false, isLockedTop: true },
+      { id: 'weathered_high', name: 'Highly Weathered Basalt', css: 'stratum-weathered-high', pat: 'pat-weathered-high', thickness: 2.5, isAquifer: false },
+      { id: 'weathered_mod', name: 'Moderately Weathered Basalt', css: 'stratum-weathered-mod', pat: 'pat-weathered-mod', thickness: 3.5, isAquifer: true },
+      { id: 'fractured', name: 'Jointed / Fractured Basalt', css: 'stratum-fractured', pat: 'pat-fractured', thickness: 4.5, isAquifer: false },
+      { id: 'hardbasalt', name: 'Massive Basalt (Hard Compact)', css: 'stratum-hardbasalt', pat: 'pat-hardbasalt', thickness: 4.0, isAquifer: false, isLockedBottom: true }
+    ];
+
+    // =========================================================================
+    // PERSISTENT METRICS BAR (DIAMETER, STEINING, DWL, TOTAL DEPTH)
+    // =========================================================================
+    function updatePumpingBudget() {
+      updateMetricsBar();
+    }
+
+    function updateMetricsBar() {
+      const mobDia = document.getElementById('mobBarDia');
+      if (mobDia) mobDia.innerText = `${wellDiameter.toFixed(1)}m`;
+      const mobSt = document.getElementById('mobBarSteining');
+      if (mobSt) mobSt.innerText = `${steiningDepth.toFixed(1)}m`;
+      const mobDwl = document.getElementById('mobBarDwl');
+      if (mobDwl) mobDwl.innerText = `${surveyDwl.toFixed(1)}m`;
+      const mobDepth = document.getElementById('mobBarDepth');
+      if (mobDepth) mobDepth.innerText = `${totalDepth.toFixed(1)}m`;
+
+      if (window.parent && window.parent !== window && typeof window.parent.onStratumIframeSync === 'function') {
+        window.parent.onStratumIframeSync({
+          dia: wellDiameter,
+          depth: totalDepth,
+          dwl: surveyDwl,
+          steining: steiningDepth
+        });
+      }
+    }
+
+    // =========================================================================
+    // WELL DIAMETER DRAGGABLE (0 TO 50M) & STEINING LINING CONTROLS
+    // =========================================================================
+    function setWellDia(dia) {
+      wellDiameter = Math.max(0.5, Math.min(50.0, parseFloat(dia) || 5.0));
+      const txt = document.getElementById('lblActiveDiaText');
+      if (txt) txt.innerText = `${wellDiameter.toFixed(1)} m`;
+      const badge = document.getElementById('lblTubeDiaBadge');
+      if (badge) badge.innerText = `Dia: ${wellDiameter.toFixed(1)}m`;
+
+      const slider = document.getElementById('sliderWellDia');
+      if (slider && parseFloat(slider.value) !== wellDiameter) slider.value = wellDiameter;
+
+      // Dynamically scale well tube width between 100px and 170px to visually reflect diameter
+      const tubeBox = document.getElementById('wellTubeBox');
+      if (tubeBox) {
+        const visualWidth = Math.round(100 + Math.min(70, ((wellDiameter - 0.5) / 49.5) * 70));
+        tubeBox.style.width = `${visualWidth}px`;
+      }
+
+      [2.0, 3.0, 5.0, 10.0, 20.0, 50.0].forEach(val => {
+        const key = val.toString().replace('.', '_');
+        const btn = document.getElementById(`btnDia_${key}`);
+        if (btn) {
+          if (Math.abs(val - wellDiameter) < 0.1) {
+            btn.className = 'dia-btn active py-1 rounded text-[10px] font-black bg-amber-500 text-amber-950 border border-amber-400 shadow';
+          } else {
+            btn.className = 'dia-btn py-1 rounded text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700';
+          }
+        }
+      });
+      updateMetricsBar();
+    }
+
+    function initDiameterDragListener() {
+      const handle = document.getElementById('tubeDiaDragHandle');
+      if (!handle) return;
+
+      const onDragStart = (e) => {
+        e.preventDefault();
+        handle.classList.add('bg-amber-400');
+        const startX = e.touches ? e.touches[0].clientX : e.clientX;
+        const startDia = wellDiameter;
+
+        const onDragMove = (evt) => {
+          evt.preventDefault();
+          const curX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+          const deltaX = curX - startX;
+          const newDia = Math.max(0.5, Math.min(50.0, startDia + (deltaX / 3.0)));
+          setWellDia(Number(newDia.toFixed(1)));
+        };
+
+        const onDragEnd = () => {
+          handle.classList.remove('bg-amber-400');
+          window.removeEventListener('mousemove', onDragMove);
+          window.removeEventListener('mouseup', onDragEnd);
+          window.removeEventListener('touchmove', onDragMove);
+          window.removeEventListener('touchend', onDragEnd);
+        };
+
+        window.addEventListener('mousemove', onDragMove);
+        window.addEventListener('mouseup', onDragEnd);
+        window.addEventListener('touchmove', onDragMove, { passive: false });
+        window.addEventListener('touchend', onDragEnd);
+      };
+
+      handle.addEventListener('mousedown', onDragStart);
+      handle.addEventListener('touchstart', onDragStart, { passive: false });
+    }
+
+    function onSteiningDepthChanged() {
+      steiningDepth = parseFloat(document.getElementById('sliderSteiningDepth').value) || 3.5;
+      document.getElementById('lblSteiningDepthText').innerText = steiningDepth.toFixed(2) + ' m';
+      document.getElementById('lblColSteining').innerText = steiningDepth.toFixed(1) + ' m';
+
+      const pct = Math.min(95, Math.max(2, (steiningDepth / totalDepth) * 100));
+      document.getElementById('steiningWallLeft').style.height = `${pct}%`;
+      document.getElementById('steiningWallRight').style.height = `${pct}%`;
+      document.getElementById('steiningBaseMarker').style.top = `${pct}%`;
+    }
+
+    function onFractureParamChanged() {
+      jointSpacing = document.getElementById('selJointSpacing').value;
+      jointPattern = document.getElementById('selJointPattern').value;
+
+      const ratingEl = document.getElementById('lblPorosityRating');
+      if (jointSpacing === 'close') {
+        ratingEl.innerText = 'High (High Transmissivity)';
+        ratingEl.className = 'text-emerald-400 font-black';
+      } else if (jointSpacing === 'moderate') {
+        ratingEl.innerText = 'Moderate (Good Yield)';
+        ratingEl.className = 'text-cyan-400 font-black';
+      } else {
+        ratingEl.innerText = 'Low (Widely Spaced Joints)';
+        ratingEl.className = 'text-amber-400 font-black';
+      }
+    }
+
+    function setPumpHp(hp) {
+      currentPumpHp = hp;
+      document.getElementById('lblActivePumpHp').innerText = `${hp} HP`;
+
+      [3, 5, 7.5, 10].forEach(val => {
+        const key = val.toString().replace('.', '_');
+        const btn = document.getElementById(`btnHp_${key}`);
+        if (btn) {
+          if (val === hp) {
+            btn.className = 'pump-hp-btn py-1.5 rounded-lg border text-xs font-black transition-all bg-amber-500 text-amber-950 border-amber-400 shadow';
+          } else {
+            btn.className = 'pump-hp-btn py-1.5 rounded-lg border text-xs font-bold transition-all bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700';
+          }
+        }
+      });
+      updatePumpingBudget();
+    }
+
+    function resetToStandard5Layers() {
+      totalDepth = 16.0;
+      winterSwl = 4.0;
+      surveyDwl = 6.5;
+      summerSwl = 9.0;
+      layers = [
+        { id: 'soil', name: 'Black Soil', css: 'stratum-soil', pat: 'pat-soil', thickness: 1.5, isAquifer: false, isLockedTop: true },
+        { id: 'weathered_high', name: 'Highly Weathered Basalt', css: 'stratum-weathered-high', pat: 'pat-weathered-high', thickness: 2.5, isAquifer: false },
+        { id: 'weathered_mod', name: 'Moderately Weathered Basalt', css: 'stratum-weathered-mod', pat: 'pat-weathered-mod', thickness: 3.5, isAquifer: true },
+        { id: 'fractured', name: 'Jointed / Fractured Basalt', css: 'stratum-fractured', pat: 'pat-fractured', thickness: 4.5, isAquifer: false },
+        { id: 'hardbasalt', name: 'Massive Basalt (Hard Compact)', css: 'stratum-hardbasalt', pat: 'pat-hardbasalt', thickness: 4.0, isAquifer: false, isLockedBottom: true }
+      ];
+      renderStratumHTML();
+      update3LevelRuler();
+      updatePumpingBudget();
+    }
+
+    function addLayerType(type) {
+      const insertIdx = Math.max(1, layers.length - 1);
+
+      if (type === 'dyke') {
+        const dykeLayer = {
+          id: 'dyke_' + Date.now(),
+          name: 'Intrusive Dyke / Contact Zone',
+          css: 'stratum-dyke',
+          pat: 'pat-dyke',
+          thickness: 2.0,
+          isAquifer: false
+        };
+        layers.splice(insertIdx, 0, dykeLayer);
+      } else if (type === 'vesicular') {
+        const vesicularLayer = {
+          id: 'vesicular_' + Date.now(),
+          name: 'Vesicular Basalt',
+          css: 'stratum-vesicular',
+          pat: 'pat-vesicular',
+          thickness: 2.5,
+          isAquifer: true
+        };
+        layers.splice(insertIdx, 0, vesicularLayer);
+      } else if (type === 'redbole') {
+        const redboleLayer = {
+          id: 'redbole_' + Date.now(),
+          name: 'Red Bole (Intertrappean Bed)',
+          css: 'stratum-redbole',
+          pat: 'pat-redbole',
+          thickness: 1.2,
+          isAquifer: false
+        };
+        layers.splice(insertIdx, 0, redboleLayer);
+      }
+
+      totalDepth = Number(layers.reduce((sum, l) => sum + l.thickness, 0).toFixed(1));
+      renderStratumHTML();
+      update3LevelRuler();
+      updatePumpingBudget();
+    }
+
+    function removeLayer(idx) {
+      if (idx === 0 || idx === layers.length - 1) return;
+      layers.splice(idx, 1);
+      totalDepth = Number(layers.reduce((sum, l) => sum + l.thickness, 0).toFixed(1));
+      renderStratumHTML();
+      update3LevelRuler();
+      updatePumpingBudget();
+    }
+
+    function moveLayerUp(idx) {
+      if (idx <= 1 || idx >= layers.length - 1) return;
+      const temp = layers[idx];
+      layers[idx] = layers[idx - 1];
+      layers[idx - 1] = temp;
+      renderStratumHTML();
+    }
+
+    function moveLayerDown(idx) {
+      if (idx >= layers.length - 2 || idx === 0) return;
+      const temp = layers[idx];
+      layers[idx] = layers[idx + 1];
+      layers[idx + 1] = temp;
+      renderStratumHTML();
+    }
+
+    function setAquiferLayer(idx) {
+      layers.forEach((l, i) => {
+        l.isAquifer = (i === idx);
+      });
+      renderStratumHTML();
+    }
+
+    function scaleLayersToTotalDepth(newTotal) {
+      const currentSum = layers.reduce((acc, l) => acc + l.thickness, 0);
+      if (currentSum <= 0) return;
+      const scale = newTotal / currentSum;
+      layers.forEach(l => {
+        l.thickness = Number((l.thickness * scale).toFixed(2));
+      });
+      const adjustedSum = layers.reduce((acc, l) => acc + l.thickness, 0);
+      const diff = Number((newTotal - adjustedSum).toFixed(2));
+      layers[layers.length - 1].thickness = Number((layers[layers.length - 1].thickness + diff).toFixed(2));
+    }
+
+    function onTotalDepthChanged(val) {
+      const parsed = parseFloat(val);
+      if (isNaN(parsed) || parsed < 8.0 || parsed > 50.0) return;
+      totalDepth = parsed;
+      scaleLayersToTotalDepth(totalDepth);
+
+      if (winterSwl > totalDepth) winterSwl = totalDepth * 0.4;
+      if (summerSwl > totalDepth) summerSwl = totalDepth * 0.75;
+      if (surveyDwl > totalDepth) surveyDwl = totalDepth * 0.6;
+
+      renderStratumHTML();
+      update3LevelRuler();
+      onSteiningDepthChanged();
+      updatePumpingBudget();
+    }
+
+    function onWinterSwlChanged(val) {
+      winterSwl = parseFloat(val);
+      update3LevelRuler();
+      updatePumpingBudget();
+    }
+
+    function onSummerSwlChanged(val) {
+      summerSwl = parseFloat(val);
+      update3LevelRuler();
+      updatePumpingBudget();
+    }
+
+    function onSurveyDwlChanged(val) {
+      surveyDwl = parseFloat(val);
+      update3LevelRuler();
+      updatePumpingBudget();
+    }
+
+    function update3LevelRuler() {
+      document.getElementById('rulerMid1').innerText = (totalDepth * 0.25).toFixed(1) + 'm';
+      document.getElementById('rulerMid2').innerText = (totalDepth * 0.50).toFixed(1) + 'm';
+      document.getElementById('rulerMid3').innerText = (totalDepth * 0.75).toFixed(1) + 'm';
+      document.getElementById('rulerBottom').innerText = totalDepth.toFixed(1) + 'm';
+
+      const sTot = document.getElementById('sliderTotalDepth');
+      if (sTot) sTot.value = totalDepth;
+      document.getElementById('lblInputTotalDepth').innerText = totalDepth.toFixed(2) + ' m';
+      document.getElementById('lblColTotalDepth').innerText = totalDepth.toFixed(1) + 'm';
+
+      const sW = document.getElementById('sliderWinterSwl');
+      if (sW) { sW.max = totalDepth; sW.value = winterSwl; }
+      document.getElementById('lblInputWinterSwl').innerText = winterSwl.toFixed(2) + ' m';
+      document.getElementById('lblColWinterSwl').innerText = winterSwl.toFixed(1) + 'm';
+
+      const sS = document.getElementById('sliderSummerSwl');
+      if (sS) { sS.max = totalDepth; sS.value = summerSwl; }
+      document.getElementById('lblInputSummerSwl').innerText = summerSwl.toFixed(2) + ' m';
+      document.getElementById('lblColSummerSwl').innerText = summerSwl.toFixed(1) + 'm';
+
+      const sD = document.getElementById('sliderSurveyDwl');
+      if (sD) { sD.max = totalDepth; sD.value = surveyDwl; }
+      document.getElementById('lblInputSurveyDwl').innerText = surveyDwl.toFixed(2) + ' m';
+      document.getElementById('lblColSurveyDwl').innerText = surveyDwl.toFixed(1) + 'm';
+      document.getElementById('lblSurveyDwlMax').innerText = totalDepth.toFixed(1) + 'm';
+
+      const waterCol = Math.max(0, totalDepth - surveyDwl);
+      document.getElementById('lblColWaterColumn').innerText = waterCol.toFixed(1) + 'm';
+
+      const pctW = (winterSwl / totalDepth) * 100;
+      const pctS = (summerSwl / totalDepth) * 100;
+      const pctD = (surveyDwl / totalDepth) * 100;
+      const pctWaterCol = 100 - pctD;
+
+      document.getElementById('tubeWinterSwlLine').style.top = `${pctW}%`;
+      document.getElementById('tubeSummerSwlLine').style.top = `${pctS}%`;
+      document.getElementById('tubeSurveyDwlLine').style.top = `${pctD}%`;
+      document.getElementById('tubeSurveyWaterBody').style.height = `${pctWaterCol}%`;
+
+      updateInflowOverlays();
+    }
+
+    function renderStratumHTML() {
+      const box = document.getElementById('stratumBox');
+      const list = document.getElementById('layerListContainer');
+      box.innerHTML = '';
+
+      let runningDepth = 0;
+      layers.forEach((l, idx) => {
+        const topM = runningDepth;
+        runningDepth += l.thickness;
+        const botM = runningDepth;
+        const heightPct = (l.thickness / totalDepth) * 100;
+
+        const layerDiv = document.createElement('div');
+        layerDiv.className = `relative flex items-center justify-between px-1.5 transition-all overflow-hidden ${l.css} ${l.isAquifer ? 'is-aquifer-zone' : ''}`;
+        layerDiv.style.height = `${heightPct}%`;
+        layerDiv.id = `visLayer_${l.id}`;
+
+        const patSvg = l.pat ? `
+          <div class="hatch-pattern-overlay">
+            <svg width="100%" height="100%">
+              <rect width="100%" height="100%" fill="url(#${l.pat})"/>
+            </svg>
+          </div>
+        ` : '';
+
+        layerDiv.innerHTML = `
+          ${patSvg}
+          <div class="relative z-10 flex flex-col justify-center leading-tight overflow-hidden">
+            <div class="flex items-center gap-1">
+              <span class="font-black text-[9px] truncate drop-shadow">${l.name}</span>
+              ${l.isAquifer ? '<span class="text-[7px] bg-blue-500 text-white font-black px-1 rounded uppercase">Aquifer</span>' : ''}
+            </div>
+            <span class="text-[8px] opacity-80 font-mono">${topM.toFixed(1)}m – ${botM.toFixed(1)}m (${l.thickness.toFixed(1)}m)</span>
+          </div>
+
+          ${idx < layers.length - 1 ? `
+            <div id="divider_${idx}" class="drag-handle absolute bottom-0 left-0 w-full h-[6px] bg-white/30 border-y border-white/50 z-30" title="Drag to adjust boundary"></div>
+          ` : ''}
+        `;
+
+        box.appendChild(layerDiv);
+      });
+
+      renderLayerControlsList();
+      initDividerDragListeners();
+    }
+
+    function renderLayerControlsList() {
+      const list = document.getElementById('layerListContainer');
+      let cur = 0;
+
+      list.innerHTML = layers.map((l, idx) => {
+        const top = cur;
+        cur += l.thickness;
+        const bot = cur;
+        const thick = l.thickness.toFixed(1);
+        const span = `${top.toFixed(1)}m–${bot.toFixed(1)}m`;
+        const isTopSoil = (idx === 0);
+        const isBottomBasalt = (idx === layers.length - 1);
+
+        return `
+          <div class="flex items-center justify-between p-1.5 rounded-lg border text-xs ${l.isAquifer ? 'bg-blue-950/80 border-blue-600' : 'bg-slate-900 border-slate-800'}">
+            <div class="flex items-center gap-1.5 overflow-hidden">
+              <span class="w-3 h-3 rounded-full flex-shrink-0 ${l.css} border border-white/30"></span>
+              <div class="overflow-hidden">
+                <div class="flex items-center gap-1">
+                  <span class="font-bold truncate text-[10px] ${l.isAquifer ? 'text-blue-300 font-black' : 'text-slate-300'}">${l.name}</span>
+                  ${isTopSoil ? '<span class="text-[7px] bg-amber-900/80 text-amber-200 px-1 rounded">Top</span>' : ''}
+                  ${isBottomBasalt ? '<span class="text-[7px] bg-slate-800 text-slate-300 px-1 rounded">Bottom</span>' : ''}
+                </div>
+                <span class="text-[8px] text-slate-500 font-mono">${thick}m (${span})</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button type="button" onclick="setAquiferLayer(${idx})" class="px-1.5 py-0.5 rounded text-[9px] font-black transition-all ${l.isAquifer ? 'bg-blue-600 text-white' : 'bg-slate-800 hover:bg-blue-950 text-slate-400 hover:text-blue-400 border border-slate-700'}">
+                ${l.isAquifer ? '💧 Aquifer' : 'Set Aquifer'}
+              </button>
+              
+              ${isTopSoil ? `
+                <span class="text-[8px] font-mono text-amber-400/90 px-1.5 py-0.5 bg-amber-950/60 rounded border border-amber-900">🔒 Pinned</span>
+              ` : isBottomBasalt ? `
+                <span class="text-[8px] font-mono text-slate-400 px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700">🔒 Pinned</span>
+              ` : `
+                <button type="button" onclick="moveLayerUp(${idx})" ${idx === 1 ? 'disabled' : ''} class="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-[10px] disabled:opacity-20 flex items-center justify-center" title="${idx === 1 ? 'Cannot move above Soil' : 'Move Up'}">▲</button>
+                <button type="button" onclick="moveLayerDown(${idx})" ${idx === layers.length - 2 ? 'disabled' : ''} class="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-[10px] disabled:opacity-20 flex items-center justify-center" title="${idx === layers.length - 2 ? 'Cannot move below Massive Basalt' : 'Move Down'}">▼</button>
+                <button type="button" onclick="removeLayer(${idx})" class="w-5 h-5 rounded bg-red-950/70 hover:bg-red-900 text-red-400 font-black text-[10px] flex items-center justify-center ml-0.5" title="Remove Layer">✕</button>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function initDividerDragListeners() {
+      const box = document.getElementById('stratumBox');
+
+      layers.forEach((layer, idx) => {
+        const divEl = document.getElementById(`divider_${idx}`);
+        if (!divEl) return;
+
+        const onDragStart = (e) => {
+          e.preventDefault();
+          divEl.classList.add('active-dragging');
+          const rect = box.getBoundingClientRect();
+          const boxTop = rect.top;
+          const boxHeight = rect.height;
+
+          let cumulativeDepths = [];
+          let cur = 0;
+          layers.forEach(l => {
+            cur += l.thickness;
+            cumulativeDepths.push(cur);
+          });
+
+          const onDragMove = (evt) => {
+            evt.preventDefault();
+            const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+            const relY = Math.max(0, Math.min(boxHeight, clientY - boxTop));
+            const frac = relY / boxHeight;
+            const targetDepth = Number((frac * totalDepth).toFixed(1));
+
+            const prevBoundary = (idx > 0) ? cumulativeDepths[idx - 1] + 0.3 : 0.3;
+            const nextBoundary = (idx < layers.length - 2) ? cumulativeDepths[idx + 1] - 0.3 : totalDepth - 0.3;
+
+            const clampedDepth = Math.max(prevBoundary, Math.min(nextBoundary, targetDepth));
+            const oldLayerTop = (idx === 0) ? 0 : cumulativeDepths[idx - 1];
+            const newCurThickness = Number((clampedDepth - oldLayerTop).toFixed(1));
+            const oldNextBottom = cumulativeDepths[idx + 1] || totalDepth;
+            const newNextThickness = Number((oldNextBottom - clampedDepth).toFixed(1));
+
+            if (newCurThickness >= 0.3 && newNextThickness >= 0.3) {
+              layers[idx].thickness = newCurThickness;
+              layers[idx + 1].thickness = newNextThickness;
+              renderStratumHTML();
+            }
+          };
+
+          const onDragEnd = () => {
+            divEl.classList.remove('active-dragging');
+            window.removeEventListener('mousemove', onDragMove);
+            window.removeEventListener('mouseup', onDragEnd);
+            window.removeEventListener('touchmove', onDragMove);
+            window.removeEventListener('touchend', onDragEnd);
+            updatePumpingBudget();
+          };
+
+          window.addEventListener('mousemove', onDragMove);
+          window.addEventListener('mouseup', onDragEnd);
+          window.addEventListener('touchmove', onDragMove, { passive: false });
+          window.addEventListener('touchend', onDragEnd);
+        };
+
+        divEl.addEventListener('mousedown', onDragStart);
+        divEl.addEventListener('touchstart', onDragStart, { passive: false });
+      });
+    }
+
+    function updateInflowOverlays() {
+      let totalQ = 0;
+      [1, 2, 3].forEach(id => {
+        const inf = inflows[id];
+        const tubeEl = document.getElementById(`tubeInflow${id}`);
+        const textEl = document.getElementById(`txtInflow${id}Depth`);
+        const labelEl = document.getElementById(`lblTubeInflow${id}`);
+
+        if (textEl) textEl.innerText = `${inf.depth.toFixed(1)}m`;
+        if (labelEl) labelEl.innerText = `${inf.dir} ${inf.depth.toFixed(1)}m`;
+
+        if (tubeEl) {
+          if (inf.active) {
+            tubeEl.style.display = 'flex';
+            const pct = Math.min(96, Math.max(2, (inf.depth / totalDepth) * 100));
+            tubeEl.style.top = `${pct}%`;
+            totalQ += inf.yield;
+          } else {
+            tubeEl.style.display = 'none';
+          }
+        }
+      });
+
+      const yld = document.getElementById('lblTotalYield');
+      if (yld) yld.innerText = `${totalQ.toFixed(1)} LPS`;
+      updatePumpingBudget();
+    }
+
+    function toggleInflow(id) {
+      inflows[id].active = document.getElementById(`chkInflow${id}`).checked;
+      updateInflowOverlays();
+    }
+
+    function onInflowParamChanged(id) {
+      inflows[id].depth = parseFloat(document.getElementById(`rngInflow${id}Depth`).value) || 4.0;
+      inflows[id].dir = document.getElementById(`selInflow${id}Dir`).value || 'NE';
+      updateInflowOverlays();
+    }
+
+    // Init on load
+    renderStratumHTML();
+    update3LevelRuler();
+    setWellDia(5.0);
+    setPumpHp(5);
+    onSteiningDepthChanged();
+    onFractureParamChanged();
+    initDiameterDragListener();
+  </script>
+</body>
+</html>
