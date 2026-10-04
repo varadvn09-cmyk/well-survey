@@ -17178,8 +17178,8 @@ ${arrowsXml}
       document.getElementById('pumpInletWinter').value = r.pumpInletWinter || '';
       document.getElementById('swlWinter').value = r.swlWinter || '';
       document.getElementById('pwlWinter').value = r.pwlWinter || '';
-      const rabiVal = r.pumpRabi1HrsInput || r.pumpRabi2HrsInput || r.pumpDurationWinter || '4.0';
-      const summerVal = r.pumpSummerHrsInput || r.pumpDurationSummer || '6.0';
+      const rabiVal = (r.pumpDurationWinter !== undefined && r.pumpDurationWinter !== null && r.pumpDurationWinter !== '') ? r.pumpDurationWinter : (r.pumpRabi1HrsInput || r.pumpRabi2HrsInput || '');
+      const summerVal = (r.pumpDurationSummer !== undefined && r.pumpDurationSummer !== null && r.pumpDurationSummer !== '') ? r.pumpDurationSummer : (r.pumpSummerHrsInput || '');
       document.getElementById('pumpDurationWinter').value = rabiVal;
       document.getElementById('volStorageWinter').value = r.volStorageWinter || '';
       document.getElementById('recupWinter').value = r.recupWinter || '';
@@ -17572,8 +17572,10 @@ ${arrowsXml}
       }
       const discharge = num(r.pumpDischarge || getDefaultPumpDischarge(hpVal)) || 20.0;
       const pumpKharifHrs = num(r.pumpKharifHrsInput) || 3.0;
-      const durW = num(r.pumpDurationWinter || r.winterPumpingHrs) || 4.0;
-      const durS = num(r.pumpDurationSummer || r.summerPumpingHrs) || 6.0;
+      const durW = num(r.pumpDurationWinter || r.winterPumpingHrs);
+      const durS = num(r.pumpDurationSummer || r.summerPumpingHrs);
+      const cropDurW = durW > 0 ? durW : 4.0;
+      const cropDurS = durS > 0 ? durS : 6.0;
 
       let kharifHam = 0, rabiHam = 0, summerHam = 0;
       let kharifDaysSum = 0, rabiDaysSum = 0, summerDaysSum = 0, grandDays = 0;
@@ -17638,7 +17640,7 @@ ${arrowsXml}
         item.waterings = waterings;
         item.depth = depth;
 
-        let pHrs = item.season === 'Kharif' ? pumpKharifHrs : item.season === 'Rabi' ? durW : durS;
+        let pHrs = item.season === 'Kharif' ? pumpKharifHrs : item.season === 'Rabi' ? cropDurW : cropDurS;
         if (pHrs <= 0) pHrs = 3.0;
         const capM3 = discharge * pHrs;
 
@@ -17651,8 +17653,8 @@ ${arrowsXml}
       });
 
       let kharifDays = (discharge * pumpKharifHrs) > 0 ? (kharifHam * 10000) / (discharge * pumpKharifHrs) : 0;
-      let rabiDays = (discharge * durW) > 0 ? (rabiHam * 10000) / (discharge * durW) : 0;
-      let summerDays = (discharge * durS) > 0 ? (summerHam * 10000) / (discharge * durS) : 0;
+      let rabiDays = (discharge * cropDurW) > 0 ? (rabiHam * 10000) / (discharge * cropDurW) : 0;
+      let summerDays = (discharge * cropDurS) > 0 ? (summerHam * 10000) / (discharge * cropDurS) : 0;
       let rabi1Days = rabiDays / 2, rabi2Days = rabiDays / 2;
 
       if (isPWS) {
@@ -17690,13 +17692,13 @@ ${arrowsXml}
       const kharifM3 = discharge * pumpKharifHrs * kharifDaysRounded;
       const kharifHamPerf = kharifM3 / 10000;
 
-      const rabi1M3 = discharge * durW * rabi1DaysRounded;
+      const rabi1M3 = discharge * cropDurW * rabi1DaysRounded;
       const rabi1HamPerf = rabi1M3 / 10000;
 
-      const rabi2M3 = discharge * durW * rabi2DaysRounded;
+      const rabi2M3 = discharge * cropDurW * rabi2DaysRounded;
       const rabi2HamPerf = rabi2M3 / 10000;
 
-      const summerM3 = discharge * durS * summerDaysRounded;
+      const summerM3 = discharge * cropDurS * summerDaysRounded;
       const summerHamPerf = summerM3 / 10000;
 
       const perfTotalDays = kharifDaysRounded + rabi1DaysRounded + rabi2DaysRounded + summerDaysRounded;
@@ -17714,35 +17716,39 @@ ${arrowsXml}
       const fluctuation = Math.max(0, swlS - swlW);
       const effDia = num(r.diaEffective || r.diaTop);
 
-      // Winter
-      const qtyW = discharge * durW;
-      let pwlW = num(r.pwlWinter);
-      const recupW = num(r.recupWinter);
-      if (pwlW === 0 && durW > 0 && recupW > 0 && effDia > 0) {
+      // Winter Hydraulics Check (Dry well or 0 pumping duration means no pumping)
+      const isWinterDry = dWell > 0 && swlW >= dWell;
+      const isWinterPumped = durW > 0 && !isWinterDry;
+      const qtyW = isWinterPumped ? (discharge * durW) : 0;
+      let pwlW = isWinterPumped ? num(r.pwlWinter) : 0;
+      const recupW = isWinterPumped ? num(r.recupWinter) : 0;
+      if (isWinterPumped && pwlW === 0 && recupW > 0 && effDia > 0) {
         const denomW = (durW + recupW) * 0.786 * effDia * effDia;
         pwlW = ((recupW * qtyW) / denomW) + swlW;
         if (dWell > 0 && pwlW > dWell) pwlW = dWell;
-      } else if (pwlW === 0 && num(r.ddWinter) > 0) {
+      } else if (isWinterPumped && pwlW === 0 && num(r.ddWinter) > 0) {
         pwlW = swlW + num(r.ddWinter);
       }
-      const ddW = num(r.ddWinter) || Math.max(0, pwlW - swlW);
-      const storageW = num(r.volStorageWinter) || (0.786 * effDia * effDia * ddW);
-      const inflowW = num(r.inflowRateWinter) || (durW > 0 ? Math.max(0, (qtyW - storageW) / durW) : 0);
+      const ddW = isWinterPumped ? (num(r.ddWinter) || Math.max(0, pwlW - swlW)) : 0;
+      const storageW = isWinterPumped ? (num(r.volStorageWinter) || (0.786 * effDia * effDia * ddW)) : 0;
+      const inflowW = isWinterPumped ? (num(r.inflowRateWinter) || (durW > 0 ? Math.max(0, (qtyW - storageW) / durW) : 0)) : 0;
 
-      // Summer
-      const qtyS = discharge * durS;
-      let pwlS = num(r.pwlSummer);
-      const recupS = num(r.recupSummer);
-      if (pwlS === 0 && durS > 0 && recupS > 0 && effDia > 0) {
+      // Summer Hydraulics Check (Dry well or 0 pumping duration means no pumping)
+      const isSummerDry = dWell > 0 && swlS >= dWell;
+      const isSummerPumped = durS > 0 && !isSummerDry;
+      const qtyS = isSummerPumped ? (discharge * durS) : 0;
+      let pwlS = isSummerPumped ? num(r.pwlSummer) : 0;
+      const recupS = isSummerPumped ? num(r.recupSummer) : 0;
+      if (isSummerPumped && pwlS === 0 && recupS > 0 && effDia > 0) {
         const denomS = (durS + recupS) * 0.786 * effDia * effDia;
         pwlS = ((recupS * qtyS) / denomS) + swlS;
         if (dWell > 0 && pwlS > dWell) pwlS = dWell;
-      } else if (pwlS === 0 && num(r.ddSummer) > 0) {
+      } else if (isSummerPumped && pwlS === 0 && num(r.ddSummer) > 0) {
         pwlS = swlS + num(r.ddSummer);
       }
-      const ddS = num(r.ddSummer) || Math.max(0, pwlS - swlS);
-      const storageS = num(r.volStorageSummer) || (0.786 * effDia * effDia * ddS);
-      const inflowS = num(r.inflowRateSummer) || (durS > 0 ? Math.max(0, (qtyS - storageS) / durS) : 0);
+      const ddS = isSummerPumped ? (num(r.ddSummer) || Math.max(0, pwlS - swlS)) : 0;
+      const storageS = isSummerPumped ? (num(r.volStorageSummer) || (0.786 * effDia * effDia * ddS)) : 0;
+      const inflowS = isSummerPumped ? (num(r.inflowRateSummer) || (durS > 0 ? Math.max(0, (qtyS - storageS) / durS) : 0)) : 0;
 
       const cNameClean = (r.canalName || '').trim();
       const effDischarge = r.pumpDischarge || getDefaultPumpDischarge(r.pumpHP) || '';
@@ -17842,22 +17848,22 @@ ${arrowsXml}
         cells['O45'] = r.pumpInletSummer || (dWell > 0 ? dWell.toFixed(2) : '');
 
         cells['H49'] = r.swlWinter || (swlW > 0 ? swlW.toFixed(2) : '');
-        cells['H50'] = r.pwlWinter || (pwlW > 0 ? pwlW.toFixed(2) : '');
-        cells['H51'] = r.ddWinter || (ddW > 0 ? ddW.toFixed(2) : '');
-        cells['H52'] = r.pumpDurationWinter || (durW > 0 ? durW.toFixed(1) : '');
-        cells['H53'] = r.qtyPumpedWinter || (qtyW > 0 ? qtyW.toFixed(2) : '');
-        cells['H54'] = r.volStorageWinter || (storageW > 0 ? storageW.toFixed(2) : '');
-        cells['H55'] = r.inflowRateWinter || (inflowW > 0 ? inflowW.toFixed(2) : '');
-        cells['H56'] = r.recupWinter || (recupW > 0 ? recupW.toFixed(1) : '');
+        cells['H50'] = isWinterPumped ? (r.pwlWinter || (pwlW > 0 ? pwlW.toFixed(2) : '')) : '';
+        cells['H51'] = isWinterPumped ? (r.ddWinter || (ddW > 0 ? ddW.toFixed(2) : '')) : '';
+        cells['H52'] = isWinterPumped ? (r.pumpDurationWinter || (durW > 0 ? durW.toFixed(1) : '')) : '';
+        cells['H53'] = isWinterPumped ? (r.qtyPumpedWinter || (qtyW > 0 ? qtyW.toFixed(2) : '')) : '';
+        cells['H54'] = isWinterPumped ? (r.volStorageWinter || (storageW > 0 ? storageW.toFixed(2) : '')) : '';
+        cells['H55'] = isWinterPumped ? (r.inflowRateWinter || (inflowW > 0 ? inflowW.toFixed(2) : '')) : '';
+        cells['H56'] = isWinterPumped ? (r.recupWinter || (recupW > 0 ? recupW.toFixed(1) : '')) : '';
 
         cells['L49'] = r.swlSummer || (swlS > 0 ? swlS.toFixed(2) : '');
-        cells['L50'] = r.pwlSummer || (pwlS > 0 ? pwlS.toFixed(2) : '');
-        cells['N51'] = r.ddSummer || (ddS > 0 ? ddS.toFixed(2) : '');
-        cells['N52'] = r.pumpDurationSummer || (durS > 0 ? durS.toFixed(1) : '');
-        cells['N53'] = r.qtyPumpedSummer || (qtyS > 0 ? qtyS.toFixed(2) : '');
-        cells['N54'] = r.volStorageSummer || (storageS > 0 ? storageS.toFixed(2) : '');
-        cells['N55'] = r.inflowRateSummer || (inflowS > 0 ? inflowS.toFixed(2) : '');
-        cells['N56'] = r.recupSummer || (recupS > 0 ? recupS.toFixed(1) : '');
+        cells['L50'] = isSummerPumped ? (r.pwlSummer || (pwlS > 0 ? pwlS.toFixed(2) : '')) : '';
+        cells['N51'] = isSummerPumped ? (r.ddSummer || (ddS > 0 ? ddS.toFixed(2) : '')) : '';
+        cells['N52'] = isSummerPumped ? (r.pumpDurationSummer || (durS > 0 ? durS.toFixed(1) : '')) : '';
+        cells['N53'] = isSummerPumped ? (r.qtyPumpedSummer || (qtyS > 0 ? qtyS.toFixed(2) : '')) : '';
+        cells['N54'] = isSummerPumped ? (r.volStorageSummer || (storageS > 0 ? storageS.toFixed(2) : '')) : '';
+        cells['N55'] = isSummerPumped ? (r.inflowRateSummer || (inflowS > 0 ? inflowS.toFixed(2) : '')) : '';
+        cells['N56'] = isSummerPumped ? (r.recupSummer || (recupS > 0 ? recupS.toFixed(1) : '')) : '';
 
         cells['Q49'] = r.annualFluctuation || (fluctuation > 0 ? fluctuation.toFixed(2) : '');
 
@@ -17972,22 +17978,22 @@ ${arrowsXml}
         cells['O28'] = r.pumpInletSummer || (dWell > 0 ? dWell.toFixed(2) : '');
 
         cells['H32'] = r.swlWinter || (swlW > 0 ? swlW.toFixed(2) : '');
-        cells['H33'] = r.pwlWinter || (pwlW > 0 ? pwlW.toFixed(2) : '');
-        cells['H34'] = r.ddWinter || (ddW > 0 ? ddW.toFixed(2) : '');
-        cells['H35'] = r.pumpDurationWinter || (durW > 0 ? durW.toFixed(1) : '');
-        cells['H36'] = r.qtyPumpedWinter || (qtyW > 0 ? qtyW.toFixed(2) : '');
-        cells['H37'] = r.volStorageWinter || (storageW > 0 ? storageW.toFixed(2) : '');
-        cells['H38'] = r.inflowRateWinter || (inflowW > 0 ? inflowW.toFixed(2) : '');
-        cells['H39'] = r.recupWinter || (recupW > 0 ? recupW.toFixed(1) : '');
+        cells['H33'] = isWinterPumped ? (r.pwlWinter || (pwlW > 0 ? pwlW.toFixed(2) : '')) : '';
+        cells['H34'] = isWinterPumped ? (r.ddWinter || (ddW > 0 ? ddW.toFixed(2) : '')) : '';
+        cells['H35'] = isWinterPumped ? (r.pumpDurationWinter || (durW > 0 ? durW.toFixed(1) : '')) : '';
+        cells['H36'] = isWinterPumped ? (r.qtyPumpedWinter || (qtyW > 0 ? qtyW.toFixed(2) : '')) : '';
+        cells['H37'] = isWinterPumped ? (r.volStorageWinter || (storageW > 0 ? storageW.toFixed(2) : '')) : '';
+        cells['H38'] = isWinterPumped ? (r.inflowRateWinter || (inflowW > 0 ? inflowW.toFixed(2) : '')) : '';
+        cells['H39'] = isWinterPumped ? (r.recupWinter || (recupW > 0 ? recupW.toFixed(1) : '')) : '';
 
         cells['L32'] = r.swlSummer || (swlS > 0 ? swlS.toFixed(2) : '');
-        cells['L33'] = r.pwlSummer || (pwlS > 0 ? pwlS.toFixed(2) : '');
-        cells['N34'] = r.ddSummer || (ddS > 0 ? ddS.toFixed(2) : '');
-        cells['N35'] = r.pumpDurationSummer || (durS > 0 ? durS.toFixed(1) : '');
-        cells['N36'] = r.qtyPumpedSummer || (qtyS > 0 ? qtyS.toFixed(2) : '');
-        cells['N37'] = r.volStorageSummer || (storageS > 0 ? storageS.toFixed(2) : '');
-        cells['N38'] = r.inflowRateSummer || (inflowS > 0 ? inflowS.toFixed(2) : '');
-        cells['N39'] = r.recupSummer || (recupS > 0 ? recupS.toFixed(1) : '');
+        cells['L33'] = isSummerPumped ? (r.pwlSummer || (pwlS > 0 ? pwlS.toFixed(2) : '')) : '';
+        cells['N34'] = isSummerPumped ? (r.ddSummer || (ddS > 0 ? ddS.toFixed(2) : '')) : '';
+        cells['N35'] = isSummerPumped ? (r.pumpDurationSummer || (durS > 0 ? durS.toFixed(1) : '')) : '';
+        cells['N36'] = isSummerPumped ? (r.qtyPumpedSummer || (qtyS > 0 ? qtyS.toFixed(2) : '')) : '';
+        cells['N37'] = isSummerPumped ? (r.volStorageSummer || (storageS > 0 ? storageS.toFixed(2) : '')) : '';
+        cells['N38'] = isSummerPumped ? (r.inflowRateSummer || (inflowS > 0 ? inflowS.toFixed(2) : '')) : '';
+        cells['N39'] = isSummerPumped ? (r.recupSummer || (recupS > 0 ? recupS.toFixed(1) : '')) : '';
 
         cells['Q32'] = r.annualFluctuation || (fluctuation > 0 ? fluctuation.toFixed(2) : '');
 
@@ -20558,51 +20564,59 @@ ${arrowsXml}
 
       const effDia = numF(rec.diaEffective || rec.diaTop);
 
-      // Winter Hydraulics
+      // Winter Hydraulics Check (Dry well or 0 pumping duration means no pumping)
       const durW = numF(rec.pumpDurationWinter);
       const recupW = numF(rec.recupWinter);
-      const qtyW = discharge * durW;
-      rec.qtyPumpedWinter = qtyW > 0 ? qtyW.toFixed(2) : (rec.qtyPumpedWinter || '');
+      const isWinterDry = dWell > 0 && swlW >= dWell;
+      const isWinterPumped = durW > 0 && !isWinterDry;
+      const qtyW = isWinterPumped ? (discharge * durW) : 0;
+      rec.qtyPumpedWinter = isWinterPumped && qtyW > 0 ? qtyW.toFixed(2) : '';
 
-      let pwlW = numF(rec.pwlWinter);
-      if (durW > 0 && recupW > 0 && effDia > 0) {
+      let pwlW = isWinterPumped ? numF(rec.pwlWinter) : 0;
+      if (isWinterPumped && pwlW === 0 && recupW > 0 && effDia > 0) {
         const denomW = (durW + recupW) * 0.786 * effDia * effDia;
         pwlW = ((recupW * qtyW) / denomW) + swlW;
         if (dWell > 0 && pwlW > dWell) pwlW = dWell;
         rec.pwlWinter = pwlW.toFixed(2);
-      } else if (pwlW === 0 && numF(rec.ddWinter) > 0) {
+      } else if (isWinterPumped && pwlW === 0 && numF(rec.ddWinter) > 0) {
         pwlW = swlW + numF(rec.ddWinter);
         rec.pwlWinter = pwlW.toFixed(2);
+      } else if (!isWinterPumped) {
+        rec.pwlWinter = '';
       }
-      const ddW = numF(rec.ddWinter) || Math.max(0, pwlW - swlW);
-      rec.ddWinter = ddW > 0 ? ddW.toFixed(2) : (rec.ddWinter || '');
-      const storageW = numF(rec.volStorageWinter) || (0.786 * effDia * effDia * ddW);
-      rec.volStorageWinter = storageW > 0 ? storageW.toFixed(2) : (rec.volStorageWinter || '');
-      const inflowW = numF(rec.inflowRateWinter) || (durW > 0 ? Math.max(0, (qtyW - storageW) / durW) : 0);
-      rec.inflowRateWinter = inflowW > 0 ? inflowW.toFixed(2) : (rec.inflowRateWinter || '');
+      const ddW = isWinterPumped ? (numF(rec.ddWinter) || Math.max(0, pwlW - swlW)) : 0;
+      rec.ddWinter = isWinterPumped && ddW > 0 ? ddW.toFixed(2) : '';
+      const storageW = isWinterPumped ? (numF(rec.volStorageWinter) || (0.786 * effDia * effDia * ddW)) : 0;
+      rec.volStorageWinter = isWinterPumped && storageW > 0 ? storageW.toFixed(2) : '';
+      const inflowW = isWinterPumped && durW > 0 ? Math.max(0, (qtyW - storageW) / durW) : 0;
+      rec.inflowRateWinter = isWinterPumped && inflowW > 0 ? inflowW.toFixed(2) : '';
 
-      // Summer Hydraulics
+      // Summer Hydraulics Check (Dry well or 0 pumping duration means no pumping)
       const durS = numF(rec.pumpDurationSummer);
       const recupS = numF(rec.recupSummer);
-      const qtyS = discharge * durS;
-      rec.qtyPumpedSummer = qtyS > 0 ? qtyS.toFixed(2) : (rec.qtyPumpedSummer || '');
+      const isSummerDry = dWell > 0 && swlS >= dWell;
+      const isSummerPumped = durS > 0 && !isSummerDry;
+      const qtyS = isSummerPumped ? (discharge * durS) : 0;
+      rec.qtyPumpedSummer = isSummerPumped && qtyS > 0 ? qtyS.toFixed(2) : '';
 
-      let pwlS = numF(rec.pwlSummer);
-      if (durS > 0 && recupS > 0 && effDia > 0) {
+      let pwlS = isSummerPumped ? numF(rec.pwlSummer) : 0;
+      if (isSummerPumped && pwlS === 0 && recupS > 0 && effDia > 0) {
         const denomS = (durS + recupS) * 0.786 * effDia * effDia;
         pwlS = ((recupS * qtyS) / denomS) + swlS;
         if (dWell > 0 && pwlS > dWell) pwlS = dWell;
         rec.pwlSummer = pwlS.toFixed(2);
-      } else if (pwlS === 0 && numF(rec.ddSummer) > 0) {
+      } else if (isSummerPumped && pwlS === 0 && numF(rec.ddSummer) > 0) {
         pwlS = swlS + numF(rec.ddSummer);
         rec.pwlSummer = pwlS.toFixed(2);
+      } else if (!isSummerPumped) {
+        rec.pwlSummer = '';
       }
-      const ddS = numF(rec.ddSummer) || Math.max(0, pwlS - swlS);
-      rec.ddSummer = ddS > 0 ? ddS.toFixed(2) : (rec.ddSummer || '');
-      const storageS = numF(rec.volStorageSummer) || (0.786 * effDia * effDia * ddS);
-      rec.volStorageSummer = storageS > 0 ? storageS.toFixed(2) : (rec.volStorageSummer || '');
-      const inflowS = numF(rec.inflowRateSummer) || (durS > 0 ? Math.max(0, (qtyS - storageS) / durS) : 0);
-      rec.inflowRateSummer = inflowS > 0 ? inflowS.toFixed(2) : (rec.inflowRateSummer || '');
+      const ddS = isSummerPumped ? (numF(rec.ddSummer) || Math.max(0, pwlS - swlS)) : 0;
+      rec.ddSummer = isSummerPumped && ddS > 0 ? ddS.toFixed(2) : '';
+      const storageS = isSummerPumped ? (numF(rec.volStorageSummer) || (0.786 * effDia * effDia * ddS)) : 0;
+      rec.volStorageSummer = isSummerPumped && storageS > 0 ? storageS.toFixed(2) : '';
+      const inflowS = isSummerPumped && durS > 0 ? Math.max(0, (qtyS - storageS) / durS) : 0;
+      rec.inflowRateSummer = isSummerPumped && inflowS > 0 ? inflowS.toFixed(2) : '';
       const p1Area = numF(rec.perennialFloodHa1) + numF(rec.perennialSprinklerHa1) + numF(rec.perennialDripHa1);
       const p2Area = numF(rec.perennialFloodHa2) + numF(rec.perennialSprinklerHa2) + numF(rec.perennialDripHa2);
       const kharifCropArea = numF(rec.kharifFloodHa1) + numF(rec.kharifSprinklerHa1) + numF(rec.kharifDripHa1) +
