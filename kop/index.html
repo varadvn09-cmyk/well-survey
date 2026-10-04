@@ -17110,8 +17110,8 @@ ${arrowsXml}
       const recCategory = r.surveyCategory || ((r.ownerName && r.ownerName.toUpperCase().includes('PWS')) ? 'PWS' : 'Irrigation');
       selectSurveyGateCategory(recCategory);
 
-            const pDef = (typeof getProfileDefaults === 'function') ? getProfileDefaults() : { name: '', desig: '', proj: '1:10K' };
-document.getElementById('srNo').value = r.srNo || '';
+      const pDef = (typeof getProfileDefaults === 'function') ? getProfileDefaults() : { name: '', desig: '', proj: '1:10K' };
+      document.getElementById('srNo').value = r.srNo || '';
       document.getElementById('surveyDate').value = (typeof normalizeDateToIso === 'function' ? normalizeDateToIso(r.surveyDate) : r.surveyDate) || '';
       document.getElementById('surveyTime').value = r.surveyTime || '';
       document.getElementById('geologistName').value = r.geologistName || pDef.name;
@@ -17119,10 +17119,6 @@ document.getElementById('srNo').value = r.srNo || '';
       const fMetaId = document.getElementById('metaWellId');
       if (fMetaId) fMetaId.value = r.smartWellId || (typeof makeTechnicalWellId === 'function' ? makeTechnicalWellId(r) : (typeof makeUniqueSurveyKey === 'function' ? makeUniqueSurveyKey(r) : ''));
       document.getElementById('projectAssignment').value = r.projectAssignment || pDef.proj;
-      document.getElementById('designation').value = r.designation || '';
-      const fMetaId = document.getElementById('metaWellId');
-      if (fMetaId) fMetaId.value = r.smartWellId || (typeof makeUniqueSurveyKey === 'function' ? makeUniqueSurveyKey(r) : '');
-      document.getElementById('projectAssignment').value = r.projectAssignment || '';
       document.getElementById('gatNo').value = r.gatNo || '';
       document.getElementById('gpsCoords').value = r.gpsCoords || '';
       document.getElementById('altitudeGL').value = r.altitudeGL || '';
