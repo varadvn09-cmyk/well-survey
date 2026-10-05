@@ -29,6 +29,7 @@
   <!-- Real-Time Cloud Synchronization Engine (10-Digit Mobile Room) -->
   <script src="js/crypto_e2ee.js"></script>
   <script src="js/admin_telemetry.js"></script>
+  <script src="js/excel_hub_engine.js"></script>
   <!-- Inlined Real-Time Cloud Synchronization Engine -->
   <script>
 /**
@@ -4367,7 +4368,7 @@ window.DraftCalcCloudSync = (function() {
                   <span id="coordInputStatus" style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Indoor / Field Entry</span>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
-                  <input type="text" id="gpsCoords" name="gpsCoords" placeholder="e.g. 17.561643, 76.134107" onchange="calculateAltitudeFromCoords()" style="width:100%; min-height:48px; font-size:1.05rem; font-weight:800; font-family:monospace; color:var(--primary); padding:10px 14px; border-radius:8px; border:1.5px solid var(--border-color); background:var(--input-bg); letter-spacing:0.5px; box-sizing:border-box;" />
+                  <input type="text" id="gpsCoords" name="gpsCoords" placeholder="e.g. 17.561643, 76.134107" onchange="calculateAltitudeFromCoords()" oninput="if(this.value.includes(',') && this.value.trim().length > 10) calculateAltitudeFromCoords()" style="width:100%; min-height:48px; font-size:1.05rem; font-weight:800; font-family:monospace; color:var(--primary); padding:10px 14px; border-radius:8px; border:1.5px solid var(--border-color); background:var(--input-bg); letter-spacing:0.5px; box-sizing:border-box;" />
                   <div style="display:flex; gap:8px;">
                     <button type="button" id="formGpsBtn" class="geo-btn" onclick="autoFetchGPS()" style="flex:1; min-height:44px; font-weight:800; font-size:0.9rem; padding:10px 12px; display:inline-flex; align-items:center; justify-content:center; gap:6px;">📍 Lock GPS</button>
                     <button type="button" id="formManualGpsBtn" class="btn-sm" onclick="openManualGpsModal()" style="flex:1; min-height:44px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; font-weight: 800; border-radius: 8px; padding: 10px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(2,132,199,0.3); font-size:0.9rem;">✏️ Manual Coords</button>
@@ -4691,7 +4692,7 @@ window.DraftCalcCloudSync = (function() {
 
             <div class="full-width season-card">
               <div class="season-card-title">❄️ Winter Season Parameters</div>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+              <div id="excelHubControlsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
                 <div class="field-group"><label>Static Water Level (SWL)</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="swlWinter" name="swlWinter" placeholder="0.0" oninput="recalculateAll();" /><span class="input-unit">m.bgl</span></div></div>
                 <div class="field-group"><label>Duration of Pumping</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.1" id="pumpDurationWinter" name="pumpDurationWinter" placeholder="0.0" value="4.0" oninput="syncRabiPumpHrs(this);" /><span class="input-unit">Hrs</span></div></div>
                 <div class="field-group"><label>Time for Complete Recuperation</label><div class="input-wrapper"><input type="number" inputmode="decimal" step="0.5" id="recupWinter" name="recupWinter" placeholder="0" oninput="recalculateAll();" /><span class="input-unit">Hrs</span></div></div>
@@ -4918,7 +4919,7 @@ window.DraftCalcCloudSync = (function() {
                   <!-- Visual Pill Badge -->
                   <div id="dispYieldPillTag" class="yield-pill-tag" style="background: linear-gradient(135deg, #64748b 0%, #475569 100%);">
                     <span>💧</span>
-                    <span id="dispYieldPillText">No PDF Map Added</span>
+                    <span id="dispYieldPillText">Auto-Detects from Lat/Long</span>
                   </div>
                   <!-- Actual input to preserve exact form serialization & compatibility -->
                   <input type="hidden" id="pdfYieldRange" name="pdfYieldRange" value="" />
@@ -5908,6 +5909,16 @@ window.DraftCalcCloudSync = (function() {
               <span class="chrome-chevron">›</span>
             </div>
 
+                        <!-- Remove Duplicate Wells (Same Coordinates) -->
+            <div class="chrome-list-item" onclick="removeDuplicateCoordinateRecords()" style="border-radius: 10px; border: 1.5px solid #f59e0b; background: rgba(245,158,11,0.04); margin-bottom: 8px;">
+              <div class="chrome-item-icon" style="color: #f59e0b; background: rgba(245,158,11,0.12);">🧹</div>
+              <div class="chrome-item-content">
+                <div class="chrome-item-title" style="color: #d97706; font-weight: 800;">Remove Duplicate Wells (Same Coordinates)</div>
+                <div class="chrome-item-subtitle">Find & remove duplicate wells with identical GPS coordinates, preserving unique wells with auto-backup</div>
+              </div>
+              <span class="chrome-chevron" style="color: #d97706; font-weight: bold;">›</span>
+            </div>
+
             <!-- Renumber Survey Serial Numbers (Fill Missing Numbers / Gaps) -->
             <div class="chrome-list-item" onclick="renumberAllSurveysContinuous()" style="border-radius: 10px; border: 1.5px solid #2563eb; background: rgba(37,99,235,0.04);">
               <div class="chrome-item-icon" style="color: #2563eb; background: rgba(37,99,235,0.12);">🔢</div>
@@ -6268,115 +6279,144 @@ window.DraftCalcCloudSync = (function() {
       <!-- ============================================================== -->
       <!-- TAB: LIVE EXCEL SHEET VIEW, UPDATE & SAVE (GWD SOLAPUR)       -->
       <!-- ============================================================== -->
-      <div class="tab-panel" id="excelSheetTab" style="display: none; padding-bottom: 90px;">
-        <div style="display: flex; flex-direction: column; gap: 14px; max-width: 1300px; margin: 0 auto;">
-          
-          <!-- Top Title & Sync Room Header -->
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: var(--card-bg); padding: 14px 18px; border-radius: 14px; border: 1.5px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 1.5rem;">📑</span>
-                <h2 style="margin: 0; font-size: 1.25rem; font-weight: 900; color: var(--text-main);">Live Excel Master Register</h2>
-                <span style="font-size: 0.72rem; font-weight: 800; background: #059669; color: #fff; padding: 2px 8px; border-radius: 6px;">Solapur GWD</span>
-                <span id="excelGridDirtyBadge" style="display: none; font-size: 0.72rem; font-weight: 800; background: #d97706; color: #fff; padding: 2px 8px; border-radius: 6px; animation: pulse 1.5s infinite;">● Unsaved Edits</span>
-              </div>
-              <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 2px;">
-                Click any cell to edit directly like Microsoft Excel • Changes recalculate drafts & sync to Room 9822114400
-              </div>
-            </div>
-
-            <!-- Toolbar Action Buttons -->
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-              <button type="button" class="btn-sm" id="btnExcelUndo" onclick="excelUndo()" title="Undo (Ctrl+Z)" style="background: var(--card-subtle); color: var(--text-main); border: 1.5px solid var(--border-color); font-weight: 800; padding: 9px 12px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem;">
-                <span>↩️</span> Undo
-              </button>
-              <button type="button" class="btn-sm" id="btnExcelRedo" onclick="excelRedo()" title="Redo (Ctrl+Y)" style="background: var(--card-subtle); color: var(--text-main); border: 1.5px solid var(--border-color); font-weight: 800; padding: 9px 12px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem;">
-                <span>↪️</span> Redo
-              </button>
-              <button type="button" class="btn-sm" onclick="openExcelFindReplaceModal()" title="Find & Replace (Ctrl+H)" style="background: var(--card-subtle); color: var(--text-main); border: 1.5px solid var(--border-color); font-weight: 800; padding: 9px 12px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 0.82rem;">
-                <span>🔍</span> Find & Replace
-              </button>
-              <button type="button" class="btn-sm" id="btnExcelClearFilters" onclick="clearAllExcelColumnFilters()" title="Reset all column filters & sort" style="display: none; background: #f59e0b; color: #000; border: none; font-weight: 800; padding: 9px 12px; border-radius: 10px; cursor: pointer; align-items: center; gap: 4px; font-size: 0.82rem;">
-                <span>🧹</span> Clear Filters
-              </button>
-              <button type="button" class="btn-sm" id="btnSaveExcelGrid" onclick="saveLiveExcelSheet()" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; border: none; font-weight: 900; padding: 9px 18px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.86rem; box-shadow: 0 4px 10px rgba(5,150,105,0.35);">
-                <span>💾</span> <strong>Save Changes</strong>
-              </button>
-              <button type="button" class="btn-sm" onclick="addNewRowToExcelGrid()" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; font-weight: 800; padding: 9px 15px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem;">
-                <span>➕</span> Add Well Row
-              </button>
-              <button type="button" class="btn-sm" onclick="exportMasterExcelFromGrid()" style="background: #107c41; color: #fff; border: none; font-weight: 800; padding: 9px 14px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem;">
-                <span>📥</span> Export .XLSX
-              </button>
-              <button type="button" class="btn-sm" onclick="renderLiveExcelSheet()" style="background: var(--card-subtle); color: var(--text-main); border: 1.5px solid var(--border-color); font-weight: 700; padding: 9px 12px; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem;">
-                <span>🔄</span> Reload
-              </button>
-            </div>
-          </div>
-
-          <!-- Quick Stats & Search Filter Bar -->
-          <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-            <div style="display: flex; gap: 8px; align-items: center; flex: 1; min-width: 260px;">
-              <div style="position: relative; width: 100%;">
-                <input type="text" id="excelGridSearchInput" placeholder="🔍 Search by Village, Owner, Gat No, Well ID..." oninput="filterLiveExcelGrid()" style="width: 100%; box-sizing: border-box; padding: 9px 12px 9px 34px; border-radius: 10px; border: 1.5px solid var(--border-color); background: var(--card-bg); color: var(--text-main); font-size: 0.88rem; outline: none;" />
-                <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.5;">🔍</span>
-              </div>
-            </div>
-
-            <!-- KPI Badges -->
-            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-              <span id="excelGridCountBadge" style="font-size: 0.78rem; font-weight: 800; padding: 6px 12px; border-radius: 20px; background: rgba(2,132,199,0.12); color: #0284c7; border: 1px solid rgba(2,132,199,0.3);">
-                📊 0 Wells
-              </span>
-              <span id="excelGridDraftBadge" style="font-size: 0.78rem; font-weight: 800; padding: 6px 12px; border-radius: 20px; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3);">
-                💧 0.00 Ham Total Draft
-              </span>
-              <span style="font-size: 0.78rem; font-weight: 800; padding: 6px 12px; border-radius: 20px; background: var(--card-subtle); color: var(--text-muted); border: 1px solid var(--border-color);">
-                📱 Room: 9822114400
-              </span>
-            </div>
-          </div>
-
-          <!-- Interactive Spreadsheet Grid Container -->
-          <div style="background: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.08);">
+              <!-- ============================================================== -->
+        <!-- TAB: EXCEL SURVEY & FORMS HUB (LIGHTWEIGHT ZERO-FREEZE ENGINE) -->
+        <!-- ============================================================== -->
+        <div class="tab-panel" id="excelSheetTab" style="display: none; padding-bottom: 90px;">
+          <div style="display: flex; flex-direction: column; gap: 16px; max-width: 1200px; margin: 0 auto; padding: 10px;">
             
-            <!-- Excel Sheet Tabs (calc sheet and MRSAC Format) -->
-            <div style="display: flex; align-items: center; justify-content: space-between; background: var(--card-subtle); border-bottom: 1.5px solid var(--border-color); padding: 0 12px; overflow-x: auto;">
-              <div style="display: flex; align-items: center; gap: 4px;">
-                <button type="button" id="tabSheetCalc" onclick="switchExcelLiveSheet('calc')" style="background: var(--card-bg); border: 1.5px solid var(--border-color); border-bottom: none; border-top: 3px solid #107c41; padding: 8px 16px; font-weight: 900; font-size: 0.84rem; color: var(--text-main); display: flex; align-items: center; gap: 6px; cursor: pointer; border-radius: 6px 6px 0 0;">
-                  <span style="color: #107c41;">📊</span> calc (Calculation Sheet)
-                </button>
-                <button type="button" id="tabSheetMrsac" onclick="switchExcelLiveSheet('mrsac')" style="background: transparent; border: 1.5px solid transparent; border-bottom: none; border-top: 3px solid transparent; padding: 8px 16px; font-weight: 700; font-size: 0.84rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer; border-radius: 6px 6px 0 0;">
-                  <span style="color: #0284c7;">📋</span> MRSAC Format
-                </button>
+            <!-- Header Card -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: var(--card-bg); padding: 18px 22px; border-radius: 16px; border: 1.5px solid var(--border-color); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-size: 1.8rem;">📊</span>
+                  <div>
+                    <h2 style="margin: 0; font-size: 1.35rem; font-weight: 900; color: var(--text-main);">Excel Survey &amp; Forms Hub</h2>
+                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
+                      High-speed background batch processing • Zero browser memory freezes • Auto spatial calculations
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div style="font-size: 0.74rem; color: var(--text-muted); font-weight: 600; white-space: nowrap;">
-                Press <kbd style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1px 5px; border-radius: 4px;">Tab</kbd> to move cells • <kbd style="background: var(--card-bg); border: 1px solid var(--border-color); padding: 1px 5px; border-radius: 4px;">Enter</kbd> to jump row
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <span id="hubRecordCountBadge" style="font-size: 0.82rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3);">
+                  ⚡ 0 Wells Loaded
+                </span>
               </div>
             </div>
 
-            <!-- Scrollable Table Wrapper -->
-            <div id="excelGridScrollWrapper" style="overflow: auto; max-height: calc(100vh - 270px); width: 100%; position: relative;">
-              <table id="liveExcelSpreadsheetTable" class="excel-live-table" style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.82rem; font-family: system-ui, -apple-system, sans-serif; text-align: left;">
-                <thead id="liveExcelSpreadsheetHead">
-                  <!-- Generated dynamically based on selected sheet (calc vs MRSAC) -->
-                </thead>
-                <tbody id="liveExcelSpreadsheetBody">
-                  <!-- Generated dynamically by renderLiveExcelSheet() -->
-                </tbody>
-              </table>
+            <!-- 5-Button Action Hub Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+              <!-- Button 1: Download Field Template -->
+              <button type="button" onclick="downloadDistrictFieldTemplate()" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(2,132,199,0.3); transition: transform 0.15s ease;">
+                <span style="font-size: 1.8rem;">📥</span>
+                <strong style="font-size: 0.95rem;">1. Download Template</strong>
+                <span style="font-size: 0.75rem; opacity: 0.9;">20-Column Field Survey (.xlsx)</span>
+              </button>
+
+              <!-- Button 2: Upload Survey Excel -->
+              <label style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); transition: transform 0.15s ease;">
+                <span style="font-size: 1.8rem;">📤</span>
+                <strong style="font-size: 0.95rem;">2. Upload Survey Excel</strong>
+                <span style="font-size: 0.75rem; opacity: 0.9;">Batch process (.xlsx / .xls)</span>
+                <input type="file" id="surveyExcelFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="onSurveyExcelFileSelected(event)" />
+              </label>
+
+              <!-- Button 3: Download Complete Master Workbook -->
+              <button type="button" onclick="downloadHub4TabWorkbook()" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #fff; border: none; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(99,102,241,0.3); transition: transform 0.15s ease;">
+                <span style="font-size: 1.8rem;">📑</span>
+                <strong style="font-size: 0.95rem;">3. Master Workbook</strong>
+                <span style="font-size: 0.75rem; opacity: 0.9;">All 4 Sheets in 1 File (.xlsx)</span>
+              </button>
+
+              <!-- Button 4: Export MRSAC Format -->
+              <button type="button" onclick="downloadHubMrsacSheet()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; border: none; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(245,158,11,0.3); transition: transform 0.15s ease;">
+                <span style="font-size: 1.8rem;">📊</span>
+                <strong style="font-size: 0.95rem;">4. MRSAC Format</strong>
+                <span style="font-size: 0.75rem; opacity: 0.9;">Official GIS Submission (.xlsx)</span>
+              </button>
+
+              <!-- Button 5: Print All / PDF Booklet -->
+              <button type="button" onclick="printHubBooklet()" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); color: #fff; border: none; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(71,85,105,0.3); transition: transform 0.15s ease;">
+                <span style="font-size: 1.8rem;">🖨️</span>
+                <strong style="font-size: 0.95rem;">5. Print All / PDF</strong>
+                <span style="font-size: 0.75rem; opacity: 0.9;">High-Res Printable Forms</span>
+              </button>
             </div>
 
-            <!-- Table Footer Status -->
-            <div style="background: var(--card-subtle); border-top: 1px solid var(--border-color); padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-muted);">
-              <div id="excelGridFooterStatus">Showing all records</div>
-              <div>⚡ Solapur Hydrogeology Survey Engine</div>
+                        <!-- Action Toolbar: Save & Sync Database + Dedup -->
+            <div style="display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: var(--card-bg); padding: 12px 18px; border-radius: 12px; border: 1.5px solid var(--border-color);">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.3rem;">⚡</span>
+                <div>
+                  <div style="font-size: 0.88rem; font-weight: 800; color: var(--text-main);">Database Sync &amp; Calculation Engine:</div>
+                  <div style="font-size: 0.72rem; color: var(--text-muted);">Auto-calculate 124 GSDA parameters, remove duplicate coordinates, and save to App</div>
+                </div>
+              </div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" onclick="syncAndSaveHubRecordsToDatabase()" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-weight: 800; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(5,150,105,0.3);">
+                  💾 Save, Calculate &amp; Dedup All Records
+                </button>
+                <button type="button" onclick="refreshHubFromDatabase()" style="background: var(--card-subtle); color: var(--text-main); border: 1.5px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-weight: 800; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                  🔄 Refresh / Reload from App
+                </button>
+              </div>
+            </div>
+
+            <!-- Upload Status / Alert Banner -->
+            <div id="hubStatusAlert" style="display: none; padding: 14px 18px; border-radius: 12px; font-size: 0.88rem; font-weight: 700;"></div>
+
+            <!-- Paginated Preview Table (10 rows max, zero freeze) -->
+            <div style="background: var(--card-bg); border: 1.5px solid var(--border-color); border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; background: var(--card-subtle); border-bottom: 1.5px solid var(--border-color); flex-wrap: wrap; gap: 8px;">
+                <div style="font-size: 0.9rem; font-weight: 800; color: var(--text-main);">
+                  📋 Survey Data Preview (Fast Paginated View)
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <button type="button" class="btn-sm" onclick="hubPrevPage()" id="btnHubPrev" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); cursor: pointer; font-weight: 700;">◀ Prev</button>
+                  <span id="hubPageIndicator" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Page 1 of 1</span>
+                  <button type="button" class="btn-sm" onclick="hubNextPage()" id="btnHubNext" style="padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--card-bg); cursor: pointer; font-weight: 700;">Next ▶</button>
+                </div>
+              </div>
+              
+              <div style="overflow-x: auto; max-height: 480px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+                  <thead id="hubPreviewTableHead" style="background: var(--card-subtle); position: sticky; top: 0; z-index: 10; border-bottom: 1.5px solid var(--border-color);">
+                    <tr>
+                      <th style="padding: 10px 12px;">Sr No</th>
+                      <th style="padding: 10px 12px;">Well ID</th>
+                      <th style="padding: 10px 12px;">Geologist</th>
+                      <th style="padding: 10px 12px;">Village</th>
+                      <th style="padding: 10px 12px;">Taluka</th>
+                      <th style="padding: 10px 12px;">Gat No</th>
+                      <th style="padding: 10px 12px;">Latitude</th>
+                      <th style="padding: 10px 12px;">Longitude</th>
+                      <th style="padding: 10px 12px;">10K Sheet</th>
+                      <th style="padding: 10px 12px;">Toposheet</th>
+                      <th style="padding: 10px 12px;">Depth (m)</th>
+                      <th style="padding: 10px 12px;">SWL (m)</th>
+                      <th style="padding: 10px 12px;">Dia (m)</th>
+                      <th style="padding: 10px 12px;">Total Draft (Ham)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hubPreviewTableBody">
+                    <tr>
+                      <td colspan="14" style="text-align: center; padding: 36px 12px; color: var(--text-muted); font-size: 0.9rem;">
+                        No survey records loaded. Click <strong>"1. Download Template"</strong> to fill field data, or <strong>"2. Upload Survey Excel"</strong> to process surveys.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+              <div style="padding: 10px 18px; background: var(--card-subtle); border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 0.76rem; color: var(--text-muted);">
+                <span id="hubFooterStatus">Ready for high-speed batch survey processing</span>
+                <span>⚡ Lightweight Zero-DOM-Freeze Engine</span>
+              </div>
             </div>
 
           </div>
-
         </div>
-      </div>
 
   </main>
 
@@ -9354,7 +9394,46 @@ window.DraftCalcCloudSync = (function() {
     // 3. G.P. Name, Census No, Mini Watershed No, Population -> From Inbuilt Excel Sheet 2
     // Populates all fields simultaneously in one single click of Lock GPS or Manual Coords.
     // ==========================================
-    function applyCompleteSurveyLocation(lat, lon, triggerSource = 'gps') {
+    // GPS Proximity Warning Engine
+    function checkGpsVillageProximity(lat, lon) {
+      if (!lat || !lon || isNaN(lat) || isNaN(lon)) return;
+      const warnBox = document.getElementById('gpsProximityWarning');
+      const warnText = document.getElementById('gpsProximityWarningText');
+      if (!warnBox) return;
+
+      const districtName = (document.getElementById('district')?.value || 'Solapur').trim().toLowerCase();
+      // District Geographic Bounding Boxes and maximum outer radius
+      const districtConfigs = {
+        'solapur':  { minLat: 17.05, maxLat: 18.45, minLon: 74.65, maxLon: 76.45, centerLat: 17.68, centerLon: 75.60, maxKm: 135 },
+        'kolhapur': { minLat: 15.70, maxLat: 17.25, minLon: 73.65, maxLon: 74.85, centerLat: 16.70, centerLon: 74.24, maxKm: 100 },
+        'latur':    { minLat: 17.80, maxLat: 18.95, minLon: 76.10, maxLon: 77.45, centerLat: 18.40, centerLon: 76.58, maxKm: 110 }
+      };
+
+      const cfg = districtConfigs[districtName] || districtConfigs['solapur'];
+      const insideBoundingBox = (lat >= cfg.minLat && lat <= cfg.maxLat && lon >= cfg.minLon && lon <= cfg.maxLon);
+
+      let distanceKm = 0;
+      if (typeof haversineDistanceKm === 'function') {
+        distanceKm = haversineDistanceKm(lat, lon, cfg.centerLat, cfg.centerLon);
+      } else {
+        const dLat = (lat - cfg.centerLat) * 111;
+        const dLon = (lon - cfg.centerLon) * 105;
+        distanceKm = Math.sqrt(dLat * dLat + dLon * dLon);
+      }
+
+      // Only display warning if point is strictly outside the district's geographical bounding box AND beyond maxKm
+      if (!insideBoundingBox && distanceKm > cfg.maxKm) {
+        warnBox.style.display = 'flex';
+        if (warnText) {
+          warnText.innerText = `GPS Proximity Notice: Coordinates (${lat.toFixed(4)}, ${lon.toFixed(4)}) appear to be outside ${districtName.toUpperCase()} boundary (~${Math.round(distanceKm)} km from center).`;
+        }
+      } else {
+        warnBox.style.display = 'none';
+      }
+    }
+    window.checkGpsVillageProximity = checkGpsVillageProximity;
+
+    async function applyCompleteSurveyLocation(lat, lon, triggerSource = 'gps') {
       lat = parseFloat(lat);
       lon = parseFloat(lon);
       if (isNaN(lat) || isNaN(lon)) return;
@@ -9366,13 +9445,16 @@ window.DraftCalcCloudSync = (function() {
       const gpsInput = document.getElementById('gpsCoords');
       if (gpsInput) gpsInput.value = `${latStr}, ${lonStr}`;
       calculateAltitude(latStr, lonStr);
-      checkGpsVillageProximity(lat, lon);
+      if (typeof checkGpsVillageProximity === 'function') checkGpsVillageProximity(lat, lon);
 
       // 2. KML & PDF & Master Database Resolution
       let matched = null;
       // Requirement 2: If KML is provided, take data from KML as earlier
       if (window.GIS_SPATIAL_FEATURES && window.GIS_SPATIAL_FEATURES.length > 0) {
         matched = resolveLocationFromCoords(lat, lon, 'lookup_only');
+      }
+      if (!matched && typeof resolveNearestFromSheet2 === 'function') {
+        matched = resolveNearestFromSheet2(lat, lon);
       }
 
       // Requirement 1: If GeoPDF is loaded, take District, Taluka, and nearest Village Name from PDF
@@ -9511,7 +9593,7 @@ window.DraftCalcCloudSync = (function() {
         if (watershedInput) watershedInput.value = finalWs;
       }
 
-      // 3. PDF Map Data: Toposheet No, 10 K Sheet No, Quadrant No, Gat No
+            // 3. 10K Grid, Toposheet, Quadrant & Gat No Spatial Engine
       let detGat = '';
       let detQuad = '';
       let detSheet = '';
@@ -9522,74 +9604,91 @@ window.DraftCalcCloudSync = (function() {
         const g = pdf.gpts || { latMin: 17.44997, latMax: 17.50003, lonMin: 76.09998, lonMax: 76.15002 };
         const isInsidePdf = (lat >= g.latMin && lat <= g.latMax && lon >= g.lonMin && lon <= g.lonMax);
         if (isInsidePdf) {
+          detSheet = pdf.mapsheet || '';
+          detTopo = pdf.toposheet || '';
+          const normX = Math.min(1, Math.max(0, (lon - g.lonMin) / (g.lonMax - g.lonMin)));
+          const normY = Math.min(1, Math.max(0, (lat - g.latMin) / (g.latMax - g.latMin)));
+          const colIdx = Math.min(4, Math.max(0, Math.floor(normX * 5)));
+          const rowIdx = Math.min(4, Math.max(0, Math.floor((1 - normY) * 5)));
+          detQuad = `${['A', 'B', 'C', 'D', 'E'][colIdx]}${rowIdx + 1}`;
 
-        // 10 K Sheet No & Toposheet No directly from PDF Map
-        detSheet = pdf.mapsheet || 'E43Q03C';
-        detTopo = pdf.toposheet || '56 C/3';
-
-        // Quadrant No (5x5 Grid: A1 to E5)
-        const normX = Math.min(1, Math.max(0, (lon - g.lonMin) / (g.lonMax - g.lonMin)));
-        const normY = Math.min(1, Math.max(0, (lat - g.latMin) / (g.latMax - g.latMin)));
-        const colIdx = Math.min(4, Math.max(0, Math.floor(normX * 5))); // 0->A, 1->B, 2->C, 3->D, 4->E
-        const rowIdx = Math.min(4, Math.max(0, Math.floor((1 - normY) * 5))); // 0->1, 1->2, 2->3, 3->4, 4->5
-        detQuad = `${['A', 'B', 'C', 'D', 'E'][colIdx]}${rowIdx + 1}`;
-
-        // Nearest Gat No from PDF indexed list
-        if (pdf.gatList && pdf.gatList.length > 0) {
-          let minD = Infinity;
-          pdf.gatList.forEach(item => {
-            const d = haversineDistanceKm(lat, lon, item.lat, item.lon);
-            if (d < minD) {
-              minD = d;
-              detGat = item.gat;
-            }
-          });
-        }
-
-                }
-
-        // Populate into Survey Form
-        const elGat = document.getElementById('gatNo');
-        const elQuad = document.getElementById('quadrantNo');
-        const elMapSheet = document.getElementById('mapSheetNo');
-        const elTopo = document.getElementById('sheet10k');
-
-        if (elGat && detGat) elGat.value = detGat;
-        if (elQuad && detQuad) elQuad.value = detQuad;
-        if (elMapSheet && detSheet) elMapSheet.value = detSheet;
-        if (elTopo && detTopo) elTopo.value = detTopo;
-
-        // Update PDF Map Tab detection strip
-        const detStrip = document.getElementById('geoPdfDetectStrip');
-        const elDetGat = document.getElementById('pdfDetGat');
-        const elDetQuad = document.getElementById('pdfDetQuad');
-        const elDetSheet = document.getElementById('pdfDetSheet');
-        const detResults = document.getElementById('geoPdfDetectResults');
-
-        if (detStrip) detStrip.style.display = 'flex';
-        if (elDetGat) elDetGat.innerText = detGat || 'Found';
-        if (elDetQuad) elDetQuad.innerText = detQuad;
-        if (elDetSheet) elDetSheet.innerText = detSheet;
-
-        if (detResults) {
-          detResults.innerHTML = `📍 <b>${latStr}, ${lonStr}</b> • Gat: <strong style="color:var(--primary);">${detGat || '--'}</strong> • Quad: <strong style="color:var(--primary);">${detQuad}</strong> • 10K Sheet: <strong style="color:var(--primary);">${detSheet}</strong> • Topo: <strong>${detTopo}</strong> • Village: <strong style="color:var(--success);">${matchedVillage || 'Detected'}</strong>`;
-        }
-      } else {
-        // Fallback: if no PDF map loaded, use Excel Sheet 2 defaults for sheet/quad
-        if (foundVillageData) {
-          const topo = foundVillageData[4];
-          const mapSheet = foundVillageData[9];
-          const quad = foundVillageData[10];
-          const elMapSheet = document.getElementById('mapSheetNo');
-          const elTopo = document.getElementById('sheet10k');
-          const elQuad = document.getElementById('quadrantNo');
-          if (elTopo && topo) elTopo.value = topo;
-          if (elMapSheet && mapSheet && !mapSheet.includes('.')) elMapSheet.value = mapSheet;
-          if (elQuad && quad && !quad.includes('.')) elQuad.value = quad;
+          if (pdf.gatList && pdf.gatList.length > 0) {
+            let minD = Infinity;
+            pdf.gatList.forEach(item => {
+              const d = haversineDistanceKm(lat, lon, item.lat, item.lon);
+              if (d < minD) {
+                minD = d;
+                detGat = item.gat;
+              }
+            });
+          }
         }
       }
 
-      // Update GIS Satellite Map Marker (regardless of whether GeoPDF is loaded)
+      // Universal Spatial Engine (Auto-calculates 10K Sheet, Toposheet & Quadrant for any coordinates)
+      if (window.UnifiedExcelHub && typeof window.UnifiedExcelHub.compute10KGridFromCoords === 'function') {
+        const gridInfo = window.UnifiedExcelHub.compute10KGridFromCoords(lat, lon);
+        if (gridInfo) {
+          if (!detSheet) detSheet = gridInfo.code;
+          if (!detTopo) detTopo = gridInfo.toposheet;
+          if (!detQuad) detQuad = gridInfo.quadrant;
+        }
+      }
+
+      // Offline Cadastral Gat Engine (Solapur & Latur micro-packs, <0.05s offline search)
+      if (!detGat && window.UnifiedExcelHub && typeof window.UnifiedExcelHub.lookupOfflineCadastralGat === 'function') {
+        try {
+          const cadastral = await window.UnifiedExcelHub.lookupOfflineCadastralGat(lat, lon, matchedDistrict, matchedTaluka, matchedVillage);
+          if (cadastral && cadastral.gatNo) {
+            detGat = cadastral.gatNo;
+            if (!matchedVillage && cadastral.village) matchedVillage = cadastral.village;
+            if (!matchedTaluka && cadastral.taluka) matchedTaluka = cadastral.taluka;
+          }
+        } catch (e) {
+          console.warn('Cadastral lookup error:', e);
+        }
+      }
+
+      // If matched has Gat or Topo from KML/Cadastral
+      if (!detGat && matched && matched.gat) detGat = matched.gat;
+      if (!detTopo && matched && matched.topo) detTopo = matched.topo;
+      if (!detQuad && matched && matched.quad) detQuad = matched.quad;
+      if (!detSheet && matched && matched.sheet10k) detSheet = matched.sheet10k;
+
+      // Fallback from foundVillageData if still missing
+      if (foundVillageData) {
+        if (!detTopo && foundVillageData[4]) detTopo = foundVillageData[4];
+        if (!detSheet && foundVillageData[9] && !foundVillageData[9].includes('.')) detSheet = foundVillageData[9];
+        if (!detQuad && foundVillageData[10] && !foundVillageData[10].includes('.')) detQuad = foundVillageData[10];
+      }
+
+      // Populate directly into Form Fields
+      const elGat = document.getElementById('gatNo');
+      const elQuad = document.getElementById('quadrantNo');
+      const elMapSheet = document.getElementById('mapSheetNo');
+      const elTopo = document.getElementById('sheet10k');
+
+      if (elGat && detGat) elGat.value = detGat;
+      if (elQuad && detQuad) elQuad.value = detQuad;
+      if (elMapSheet && detSheet) elMapSheet.value = detSheet;
+      if (elTopo && detTopo) elTopo.value = detTopo;
+
+      // Update Detection Status Strip
+      const detStrip = document.getElementById('geoPdfDetectStrip');
+      const elDetGat = document.getElementById('pdfDetGat');
+      const elDetQuad = document.getElementById('pdfDetQuad');
+      const elDetSheet = document.getElementById('pdfDetSheet');
+      const detResults = document.getElementById('geoPdfDetectResults');
+
+      if (detStrip) detStrip.style.display = 'flex';
+      if (elDetGat) elDetGat.innerText = detGat || 'Manual Entry';
+      if (elDetQuad) elDetQuad.innerText = detQuad || '--';
+      if (elDetSheet) elDetSheet.innerText = detSheet || '--';
+
+      if (detResults) {
+        detResults.innerHTML = `📍 <b>${latStr}, ${lonStr}</b> • Gat: <strong style="color:var(--primary);">${detGat || '--'}</strong> • Quad: <strong style="color:var(--primary);">${detQuad}</strong> • 10K Sheet: <strong style="color:var(--primary);">${detSheet}</strong> • Topo: <strong>${detTopo}</strong> • Village: <strong style="color:var(--success);">${matchedVillage || 'Detected'}</strong>`;
+      }
+
       ensureGeoPdfSatelliteMap();
       if (window.geoPdfLeafletMap) {
         if (!window.geoPdfLeafletMarker) {
@@ -9882,14 +9981,24 @@ window.DraftCalcCloudSync = (function() {
         return;
       }
 
-      const match = resolveLocationFromCoords(lat, lon, 'preview');
-      if (match) {
-        prevBox.style.display = 'block';
-        const typeLabel = match.isNearest ? `Nearest (~${match.distanceKm.toFixed(1)}km)` : `Inside KML Boundary`;
-        prevText.innerHTML = `<strong>${match.v}</strong> (${match.t}, ${match.d || 'Solapur'}) <span style="font-size:0.72rem; opacity:0.85;">[${typeLabel}${match.c ? ' • Census: ' + match.c : ''}]</span>`;
-      } else {
-        prevBox.style.display = 'none';
+      let match = resolveLocationFromCoords(lat, lon, 'preview');
+      if (!match && typeof resolveNearestFromSheet2 === 'function') {
+        match = resolveNearestFromSheet2(lat, lon);
       }
+
+      let gridCode = '', quadCode = '', topoCode = '';
+      if (window.UnifiedExcelHub && typeof window.UnifiedExcelHub.compute10KGridFromCoords === 'function') {
+        const g = window.UnifiedExcelHub.compute10KGridFromCoords(lat, lon);
+        if (g) {
+          gridCode = g.code;
+          quadCode = g.quadrant;
+          topoCode = g.toposheet;
+        }
+      }
+
+      prevBox.style.display = 'block';
+      let locText = match ? `<strong>${match.v}</strong> (${match.t || ''})` : `Location Set`;
+      prevText.innerHTML = `${locText} • 10K Sheet: <strong style="color:var(--primary);">${gridCode || '--'}</strong> • Quad: <strong style="color:var(--primary);">${quadCode || '--'}</strong> • Topo: <strong>${topoCode || '--'}</strong>`;
     }
 
     function onManualLatLonChange() {
@@ -13501,7 +13610,7 @@ window.DraftCalcCloudSync = (function() {
       if (btnAnalytics) btnAnalytics.classList.toggle('active', tabId === 'analyticsTab');
       if (btnSettings) btnSettings.classList.toggle('active', tabId === 'settingsTab');
       if (btnExcel) btnExcel.classList.toggle('active', tabId === 'excelSheetTab');
-      if (tabId === 'excelSheetTab') renderLiveExcelSheet();
+      if (tabId === 'excelSheetTab') renderHubPreview();
       if (btnRecords) btnRecords.classList.toggle('active', tabId === 'recordsList');
       
       const mainHeader = document.getElementById('mainHeader');
@@ -15776,7 +15885,7 @@ ${arrowsXml}
       if (!str || str === 'No PDF Map Added' || str === '--' || str === 'Not Detected') {
         out.value = '0.0000';
         if (pill && pillText) {
-          pillText.innerText = 'No PDF Map Added';
+          pillText.innerText = 'Auto-Detects from Lat/Long';
           pill.style.background = 'linear-gradient(135deg, #64748b 0%, #475569 100%)';
         }
         return;
@@ -16229,6 +16338,70 @@ ${arrowsXml}
       if (typeof initLithoDropdowns === 'function') initLithoDropdowns();
     }
 
+    function removeDuplicateCoordinateRecords() {
+      const records = (typeof getStoredRecords === 'function') ? getStoredRecords() : [];
+      if (!records || records.length <= 1) {
+        showToast("⚠️ Not enough records to find duplicates.");
+        return;
+      }
+
+      const seen = new Map();
+      const duplicates = [];
+      const unique = [];
+
+      records.forEach((r, idx) => {
+        let lat = parseFloat(r.latitude);
+        let lon = parseFloat(r.longitude);
+        if (isNaN(lat) || isNaN(lon)) {
+          if (r.gpsCoords && r.gpsCoords.includes(',')) {
+            const parts = r.gpsCoords.split(',');
+            lat = parseFloat(parts[0]);
+            lon = parseFloat(parts[1]);
+          }
+        }
+
+        if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
+          const key = `${lat.toFixed(5)}_${lon.toFixed(5)}`;
+          if (seen.has(key)) {
+            duplicates.push({ record: r, original: seen.get(key), index: idx });
+          } else {
+            seen.set(key, r);
+            unique.push(r);
+          }
+        } else {
+          unique.push(r);
+        }
+      });
+
+      if (duplicates.length === 0) {
+        showToast("✅ No duplicate coordinates found! All " + records.length + " wells have distinct coordinates.");
+        return;
+      }
+
+      const dupExample = duplicates[0].record;
+      const confirmMsg = `Found ${duplicates.length} duplicate wells with identical coordinates out of ${records.length} total wells.\n\n` +
+        `Example Duplicate: Gat #${dupExample.gatNo || 'N/A'} (${dupExample.ownerName || 'Unknown'}) at (${dupExample.latitude}, ${dupExample.longitude})\n\n` +
+        `Do you want to permanently remove these ${duplicates.length} duplicate records and keep ${unique.length} unique wells?\n\n(A backup of all ${records.length} wells will be automatically saved before removal!)`;
+
+      if (!confirm(confirmMsg)) {
+        return;
+      }
+
+      try {
+        const backupKey = 'SURVEY_BACKUP_BEFORE_DEDUP_' + Date.now();
+        localStorage.setItem(backupKey, JSON.stringify(records));
+      } catch (e) {}
+
+      saveStoredRecords(unique);
+      if (typeof renderRecords === 'function') renderRecords();
+      if (typeof renderHubPreview === 'function') renderHubPreview();
+      if (typeof updateBadge === 'function') updateBadge();
+
+      alert(`✅ Successfully removed ${duplicates.length} duplicate wells!\nNow displaying ${unique.length} unique wells.`);
+      showToast(`✅ Removed ${duplicates.length} duplicate wells!`);
+    }
+    window.removeDuplicateCoordinateRecords = removeDuplicateCoordinateRecords;
+
     async function renumberAllSurveysContinuous() {
       const records = getStoredRecords();
       if (!records || records.length === 0) {
@@ -16544,9 +16717,8 @@ ${arrowsXml}
         const lat = parseFloat(parts[0]);
         const lon = parseFloat(parts[1]);
         if (!isNaN(lat) && !isNaN(lon)) {
-          showToast(`⏳ Fetching elevation for ${lat.toFixed(6)}, ${lon.toFixed(6)}...`);
-          const elev = await calculateAltitude(lat.toFixed(6), lon.toFixed(6));
           applyCompleteSurveyLocation(lat, lon, 'coords_input');
+          calculateAltitude(lat.toFixed(6), lon.toFixed(6)).catch(() => {});
         }
       }
     }
@@ -17637,7 +17809,10 @@ ${arrowsXml}
           else if (categoryFilter === 'Irrigation') matchesCategory = !isPWS;
         }
 
-        return matchesQuery && matchesTaluka && matchesType && matchesSheet && matchesCategory;
+        const rGeo = (r.geologistName || r.geologist || '').trim();
+        const matchesGeo = !geoFilter || (rGeo.toLowerCase() === geoFilter.toLowerCase());
+
+        return matchesQuery && matchesTaluka && matchesType && matchesSheet && matchesCategory && matchesGeo;
       });
 
       // Sort filtered records
@@ -24879,31 +25054,30 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
       if (!warnBox) return;
 
       const districtName = (document.getElementById('district')?.value || 'Solapur').trim().toLowerCase();
-      // District approximate center coords
-      const centers = {
-        'solapur': { lat: 17.6599, lon: 75.9064, maxKm: 65 },
-        'kolhapur': { lat: 16.7050, lon: 74.2433, maxKm: 60 },
-        'latur': { lat: 18.4088, lon: 76.5604, maxKm: 60 }
+      // District Geographic Bounding Boxes and maximum outer radius
+      const districtConfigs = {
+        'solapur':  { minLat: 17.05, maxLat: 18.45, minLon: 74.65, maxLon: 76.45, centerLat: 17.68, centerLon: 75.60, maxKm: 135 },
+        'kolhapur': { minLat: 15.70, maxLat: 17.25, minLon: 73.65, maxLon: 74.85, centerLat: 16.70, centerLon: 74.24, maxKm: 100 },
+        'latur':    { minLat: 17.80, maxLat: 18.95, minLon: 76.10, maxLon: 77.45, centerLat: 18.40, centerLon: 76.58, maxKm: 110 }
       };
 
-      const center = centers[districtName] || centers['solapur'];
+      const cfg = districtConfigs[districtName] || districtConfigs['solapur'];
+      const insideBoundingBox = (lat >= cfg.minLat && lat <= cfg.maxLat && lon >= cfg.minLon && lon <= cfg.maxLon);
+
       let distanceKm = 0;
       if (typeof haversineDistanceKm === 'function') {
-        distanceKm = haversineDistanceKm(lat, lon, center.lat, center.lon);
+        distanceKm = haversineDistanceKm(lat, lon, cfg.centerLat, cfg.centerLon);
       } else {
-        // Fallback distance calculation
-        const dLat = (lat - center.lat) * 111;
-        const dLon = (lon - center.lon) * 105;
+        const dLat = (lat - cfg.centerLat) * 111;
+        const dLon = (lon - cfg.centerLon) * 105;
         distanceKm = Math.sqrt(dLat * dLat + dLon * dLon);
       }
 
-      if (distanceKm > 50) {
+      // Only display warning if point is strictly outside the district's geographical bounding box AND beyond maxKm
+      if (!insideBoundingBox && distanceKm > cfg.maxKm) {
         warnBox.style.display = 'flex';
         if (warnText) {
-          warnText.innerText = `GPS Proximity Warning: Locked coordinates (${lat.toFixed(4)}, ${lon.toFixed(4)}) are ~${Math.round(distanceKm)} km away from ${districtName.toUpperCase()} boundary. GPS location does not match selected village boundary.`;
-        }
-        if (typeof showToast === 'function') {
-          showToast(`⚠️ GPS location does not match selected village boundary (~${Math.round(distanceKm)} km away)`, 4500);
+          warnText.innerText = `GPS Proximity Notice: Coordinates (${lat.toFixed(4)}, ${lon.toFixed(4)}) appear to be outside ${districtName.toUpperCase()} boundary (~${Math.round(distanceKm)} km from center).`;
         }
       } else {
         warnBox.style.display = 'none';
@@ -25017,6 +25191,204 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     function openInteractiveStratumModal() {}
     function closeInteractiveStratumModal() {}
     function syncAndCloseStratumModal() {}
+
+    // ============================================================================
+    // EXCEL SURVEY & FORMS HUB CONTROLLER (ZERO-LAG BATCH ARCHITECTURE)
+    // ============================================================================
+    window.hubUploadedRecords = [];
+    window.hubCurrentPage = 1;
+    const HUB_PAGE_SIZE = 10;
+
+    async function onSurveyExcelFileSelected(event, districtCode) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const statusText = document.getElementById('hubStatusText');
+      const statusSub = document.getElementById('hubStatusSubtext');
+      if (statusText) statusText.innerHTML = '<span>⏳</span> Reading and processing survey file...';
+
+      try {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          const data = e.target.result;
+          let workbook;
+          if (typeof XLSX !== 'undefined') {
+            workbook = XLSX.read(data, { type: 'binary' });
+          } else {
+            showToast("⚠️ XLSX library is loading...");
+            return;
+          }
+
+          // Pick the first sheet or 'calc' or 'Field_Survey_Data'
+          let sheetName = workbook.SheetNames[0];
+          if (workbook.SheetNames.includes('calc')) sheetName = 'calc';
+          else if (workbook.SheetNames.includes('Field_Survey_Data')) sheetName = 'Field_Survey_Data';
+
+          const ws = workbook.Sheets[sheetName];
+          const rawRows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+          if (!rawRows || rawRows.length === 0) {
+            if (statusText) statusText.innerHTML = '<span>❌</span> Error: No rows found in uploaded sheet.';
+            return;
+          }
+
+          // Enrich records via Unified Spatial Engine
+          const enriched = window.UnifiedExcelHub.enrichSurveyRecords(rawRows, districtCode);
+          window.hubUploadedRecords = enriched;
+
+          // Update Status
+          const irrCount = enriched.filter(r => r.surveyCategory !== 'PWS').length;
+          const pwsCount = enriched.filter(r => r.surveyCategory === 'PWS').length;
+
+          if (statusText) {
+            statusText.innerHTML = `<span>✅</span> Successfully Processed ${enriched.length} Wells!`;
+          }
+          if (statusSub) {
+            statusSub.innerHTML = `All 10 GIS parameters & 124 formulas computed • ${irrCount} Irrigation / ${pwsCount} PWS Ready for Download`;
+          }
+
+          const countBadge = document.getElementById('hubCountBadge');
+          if (countBadge) countBadge.innerText = `📊 ${enriched.length} Wells`;
+
+          const catBadge = document.getElementById('hubCategoryBadge');
+          if (catBadge) catBadge.innerText = `🌾 ${irrCount} Irrigation / 💧 ${pwsCount} PWS`;
+
+          window.hubCurrentPage = 1;
+          renderHubPreview();
+          showToast(`✅ ${enriched.length} wells processed with complete calculations!`);
+        };
+        reader.readAsBinaryString(file);
+      } catch(err) {
+        console.error(err);
+        if (statusText) statusText.innerHTML = `<span>❌</span> Error: ${err.message}`;
+      }
+    }
+
+    function renderHubPreview() {
+      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      const tbody = document.getElementById('hubPreviewTableBody');
+      const pageInd = document.getElementById('hubPageIndicator');
+      if (!tbody) return;
+
+      if (!records || records.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.84rem;">
+              No survey records loaded yet. Upload your field Excel sheet above to view and export.
+            </td>
+          </tr>
+        `;
+        if (pageInd) pageInd.innerText = 'Page 1 / 1';
+        return;
+      }
+
+      const totalPages = Math.ceil(records.length / HUB_PAGE_SIZE) || 1;
+      if (window.hubCurrentPage > totalPages) window.hubCurrentPage = totalPages;
+      if (window.hubCurrentPage < 1) window.hubCurrentPage = 1;
+
+      if (pageInd) pageInd.innerText = `Page ${window.hubCurrentPage} / ${totalPages}`;
+
+      const start = (window.hubCurrentPage - 1) * HUB_PAGE_SIZE;
+      const end = Math.min(records.length, start + HUB_PAGE_SIZE);
+      const pageItems = records.slice(start, end);
+
+      let html = '';
+      pageItems.forEach((r, i) => {
+        const isPws = (r.surveyCategory === 'PWS');
+        const catBadge = isPws
+          ? `<span style="background: rgba(2,132,199,0.15); color: #0284c7; padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 0.72rem;">PWS</span>`
+          : `<span style="background: rgba(16,185,129,0.15); color: #059669; padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 0.72rem;">Irrigation</span>`;
+
+        html += `
+          <tr style="border-bottom: 1px solid var(--border-color); hover: background var(--card-subtle);">
+            <td style="padding: 10px 14px; font-weight: 800; color: var(--primary);">${r.srNo || (start + i + 1)}</td>
+            <td style="padding: 10px 14px;">${r.geologistName || 'Geologist'}</td>
+            <td style="padding: 10px 14px; font-weight: 600;">${r.ownerName || 'Well Owner'}</td>
+            <td style="padding: 10px 14px;">${r.villageName || '-'}</td>
+            <td style="padding: 10px 14px; font-weight: 700;">${r.gatNo || '-'}</td>
+            <td style="padding: 10px 14px;"><code style="background: var(--card-subtle); padding: 2px 6px; border-radius: 4px;">${r.gridCode || r.mapsheetNo || '-'}</code></td>
+            <td style="padding: 10px 14px;">${r.wellType || 'Dug Well'}</td>
+            <td style="padding: 10px 14px;">${catBadge}</td>
+            <td style="padding: 10px 14px;">
+              <button type="button" class="btn-sm" onclick="editRecord('${r.srNo || (start + i + 1)}'); switchTab('newEntry');" style="padding: 4px 8px; font-size: 0.74rem; border-radius: 6px; background: var(--card-subtle); color: var(--text-main); border: 1px solid var(--border-color); cursor: pointer;">View / Edit</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function hubPrevPage() {
+      if (window.hubCurrentPage > 1) {
+        window.hubCurrentPage--;
+        renderHubPreview();
+      }
+    }
+
+    function hubNextPage() {
+      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      const totalPages = Math.ceil(records.length / HUB_PAGE_SIZE) || 1;
+      if (window.hubCurrentPage < totalPages) {
+        window.hubCurrentPage++;
+        renderHubPreview();
+      }
+    }
+
+    async function downloadHub4TabWorkbook(districtCode) {
+      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      if (!records || records.length === 0) {
+        showToast("⚠️ No survey records available to export.");
+        return;
+      }
+      showToast("⏳ Building 4-Tab Master Workbook (.xlsx)...");
+      await window.UnifiedExcelHub.generate4TabMasterWorkbook(records, districtCode);
+      showToast("✅ Master Workbook downloaded successfully!");
+    }
+
+    async function downloadHubMrsacSheet(districtCode) {
+      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      if (!records || records.length === 0) {
+        showToast("⚠️ No records to export.");
+        return;
+      }
+      showToast("⏳ Building MRSAC Format Sheet (.xlsx)...");
+      if (typeof exportAllFormsAsXlsx === 'function') {
+        await exportAllFormsAsXlsx('mobile');
+      } else {
+        await window.UnifiedExcelHub.generate4TabMasterWorkbook(records, districtCode);
+      }
+    }
+
+    function batchPrintAllFormsPdf(districtCode) {
+      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      if (!records || records.length === 0) {
+        showToast("⚠️ No records to print.");
+        return;
+      }
+      showToast("🖨️ Opening print preview...");
+      window.print();
+    }
+
+    function saveHubRecordsToDatabase() {
+      if (!window.hubUploadedRecords || window.hubUploadedRecords.length === 0) {
+        showToast("⚠️ No new uploaded records to save.");
+        return;
+      }
+      const existing = getStoredRecords();
+      // Merge records by srNo
+      const map = new Map();
+      existing.forEach(r => map.set(r.srNo, r));
+      window.hubUploadedRecords.forEach(r => map.set(r.srNo, r));
+      const merged = Array.from(map.values());
+      
+      saveRecords(merged);
+      showToast(`💾 Saved ${merged.length} total records to local database!`);
+      if (typeof pushLocalToRemote === 'function') {
+        pushLocalToRemote();
+      }
+    }
+
 </script>
 
   <!-- EXCEL FIND & REPLACE MODAL (CTRL+H) -->
