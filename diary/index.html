@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>GSDA दैनंदिनी - मोबाईल ऍप (Universal Offline)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -599,7 +602,7 @@
       <button class="btn btn-green btn-sm" onclick="saveAllMobileData()" title="डेटा जतन करा"><i class="fa-solid fa-floppy-disk"></i> जतन करा</button>
       <button class="btn btn-amber btn-sm" onclick="openShareModal()" title="WhatsApp वर पाठवा"><i class="fa-solid fa-share-nodes"></i> शेअर</button>
       <button class="btn btn-sm" onclick="switchNav('profile', document.getElementById('dNavProfile'))" style="background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 0.72rem; padding: 4px 8px; font-weight: bold; cursor: pointer;" title="अधिकारी प्रोफाइल (Profile Manager)"><i class="fa-solid fa-user-gear"></i> <span>प्रोफाइल</span></button>
-      <span class="badge">Offline OK</span>
+      <span class="badge" title="आवृत्ती v2.6 (Calculation Fixed)">v2.6 OK</span>
     </div>
   </header>
 
@@ -1937,6 +1940,42 @@
         if (changed) persist();
       }
 
+      // मासिक विहिरी व मॅपशीट फील्ड प्रगती ऑटो-सिंक (Auto-sync 1:10K Mapsheet and Wells with entries for all months)
+      if (appData.months) {
+        let fpChanged = false;
+        Object.keys(appData.months).forEach(k => {
+          const m = appData.months[k];
+          if (m && m.entries) {
+            let wSum = 0;
+            let mSum = 0;
+            m.entries.forEach(e => {
+              let w = parseCleanInt(e.wells);
+              if (w > 0) wSum += w;
+              if (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail))) {
+                let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
+                if (mc > 0) mSum += mc;
+              }
+            });
+            if (!m.field_progress) m.field_progress = [];
+            let fpMap = m.field_progress.find(p => isMapsheetScheme(p.scheme));
+            if (!fpMap) {
+              fpMap = { scheme: "1:10K mapsheet", villages: "-", cases: "-" };
+              m.field_progress.push(fpMap);
+              fpChanged = true;
+            }
+            if (wSum > 0 && (!fpMap.cases || fpMap.cases === '-' || fpMap.cases === '0')) {
+              fpMap.cases = String(wSum);
+              fpChanged = true;
+            }
+            if (mSum > 0 && (!fpMap.villages || fpMap.villages === '-' || fpMap.villages === '0')) {
+              fpMap.villages = String(mSum);
+              fpChanged = true;
+            }
+          }
+        });
+        if (fpChanged) persist();
+      }
+
       // सर्व १२ महिन्यांसाठी ५ तारीख हमी (Ensure default submission date is 5th of next month for all 12 months)
       if (!appData.months) appData.months = {};
       let subDatesChanged = false;
@@ -2421,25 +2460,31 @@
         let b = parseCleanInt(e.borewells);
         if (b > 0) boreSum += b;
 
-        if (isMapsheetScheme(e.scheme)) {
-          let mc = parseCleanInt(e.cases);
+        if (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail))) {
+          let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
           if (mc > 0) mapsheetCount += mc;
         }
       });
 
-      const fpMapRow = (mData.field_progress || []).find(p => isMapsheetScheme(p.scheme));
-      if (fpMapRow) {
-        let fpV = parseCleanInt(fpMapRow.villages);
-        if (fpV > 0) {
-          mapsheetCount = Math.max(mapsheetCount, fpV);
-        } else if (mapsheetCount === 0) {
-          let fpC = parseCleanInt(fpMapRow.cases);
-          if (fpC > 0) mapsheetCount = fpC;
-        }
-        let fpW = parseCleanInt(fpMapRow.cases);
-        if (fpW > 0) {
-          wellsSum = Math.max(wellsSum, fpW);
-        }
+      if (!mData.field_progress) mData.field_progress = [];
+      let fpMapRow = mData.field_progress.find(p => isMapsheetScheme(p.scheme));
+      if (!fpMapRow) {
+        fpMapRow = { scheme: "1:10K mapsheet", villages: "-", cases: "-" };
+        mData.field_progress.push(fpMapRow);
+      }
+
+      let fpV = parseCleanInt(fpMapRow.villages);
+      if (fpV > 0) {
+        mapsheetCount = Math.max(mapsheetCount, fpV);
+      } else if (mapsheetCount > 0) {
+        fpMapRow.villages = String(mapsheetCount);
+      }
+
+      let fpW = parseCleanInt(fpMapRow.cases);
+      if (fpW > 0) {
+        wellsSum = Math.max(wellsSum, fpW);
+      } else if (wellsSum > 0) {
+        fpMapRow.cases = String(wellsSum);
       }
 
       document.getElementById('stTotal').textContent = tot;
@@ -2467,15 +2512,21 @@
         (mData.field_progress || []).forEach((fp, idx) => {
           const tr = document.createElement('tr');
           const isMapsheet = isMapsheetScheme(fp.scheme) || (fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('नकाशा')));
+          let valVillages = (fp.villages && fp.villages !== '-') ? fp.villages : '';
+          let valCases = (fp.cases && fp.cases !== '-') ? fp.cases : '';
+          if (isMapsheet) {
+            if (!valVillages && mapsheetCount > 0) valVillages = String(mapsheetCount);
+            if (!valCases && wellsSum > 0) valCases = String(wellsSum);
+          }
           tr.innerHTML = `
             <td style="font-weight: 600;">${fp.scheme}</td>
             <td>
               ${isMapsheet ? '<div style="font-size: 0.68rem; color: #4338ca; font-weight: bold; margin-bottom: 2px;">मॅपशीट:</div>' : ''}
-              <input type="text" id="fpVillages_${idx}" value="${fp.villages && fp.villages !== '-' ? fp.villages : ''}" placeholder="${isMapsheet ? 'मॅपशीट संख्या' : '-'}" oninput="onFieldProgressInput()" onchange="onFieldProgressInput()">
+              <input type="text" id="fpVillages_${idx}" value="${valVillages}" placeholder="${isMapsheet ? 'मॅपशीट संख्या' : '-'}" oninput="onFieldProgressInput()" onchange="onFieldProgressInput()">
             </td>
             <td>
               ${isMapsheet ? '<div style="font-size: 0.68rem; color: #4338ca; font-weight: bold; margin-bottom: 2px;">विहिरी:</div>' : ''}
-              <input type="text" id="fpCases_${idx}" value="${fp.cases && fp.cases !== '-' ? fp.cases : ''}" placeholder="${isMapsheet ? 'विहिरी संख्या' : '-'}" oninput="onFieldProgressInput()" onchange="onFieldProgressInput()">
+              <input type="text" id="fpCases_${idx}" value="${valCases}" placeholder="${isMapsheet ? 'विहिरी संख्या' : '-'}" oninput="onFieldProgressInput()" onchange="onFieldProgressInput()">
             </td>
           `;
           fpBody.appendChild(tr);
@@ -2489,17 +2540,19 @@
       mData.field_progress.forEach((fp, idx) => {
         const vInput = document.getElementById(`fpVillages_${idx}`);
         const cInput = document.getElementById(`fpCases_${idx}`);
-        if (vInput && vInput.value.trim() !== '') fp.villages = vInput.value.trim();
-        if (cInput && cInput.value.trim() !== '') fp.cases = cInput.value.trim();
+        if (vInput) fp.villages = vInput.value.trim() !== '' ? vInput.value.trim() : '-';
+        if (cInput) fp.cases = cInput.value.trim() !== '' ? cInput.value.trim() : '-';
       });
+      persist();
+
       let wellsSum = 0, boreSum = 0, mapsheetCount = 0;
       mData.entries.forEach(e => {
         let w = parseCleanInt(e.wells);
         if (w > 0) wellsSum += w;
         let b = parseCleanInt(e.borewells);
         if (b > 0) boreSum += b;
-        if (isMapsheetScheme(e.scheme)) {
-          let mc = parseCleanInt(e.cases);
+        if (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail))) {
+          let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
           if (mc > 0) mapsheetCount += mc;
         }
       });
@@ -2507,10 +2560,6 @@
       if (fpMapRow) {
         let fpV = parseCleanInt(fpMapRow.villages);
         if (fpV > 0) mapsheetCount = Math.max(mapsheetCount, fpV);
-        else if (mapsheetCount === 0) {
-          let fpC = parseCleanInt(fpMapRow.cases);
-          if (fpC > 0) mapsheetCount = fpC;
-        }
         let fpW = parseCleanInt(fpMapRow.cases);
         if (fpW > 0) wellsSum = Math.max(wellsSum, fpW);
       }
@@ -2813,29 +2862,40 @@
         mData.entries.push(entryObj);
       }
 
-      // Link progress if scheme is chosen
-      if (entryObj.scheme) {
-        let prog = (mData.field_progress || []).find(p => p.scheme === entryObj.scheme || (isMapsheetScheme(p.scheme) && isMapsheetScheme(entryObj.scheme)));
+      // Always ensure 1:10K mapsheet row exists in mData.field_progress
+      if (!mData.field_progress) mData.field_progress = [];
+      let fpMap = mData.field_progress.find(p => isMapsheetScheme(p.scheme));
+      if (!fpMap) {
+        fpMap = { scheme: "1:10K mapsheet", villages: "-", cases: "-" };
+        mData.field_progress.push(fpMap);
+      }
+
+      // Calculate monthly wells and mapsheet totals across all entries
+      let wSum = 0;
+      let mSum = 0;
+      mData.entries.forEach(entry => {
+        let w = parseCleanInt(entry.wells);
+        if (w > 0) wSum += w;
+        if (isMapsheetScheme(entry.scheme) || (entry.work_detail && isMapsheetScheme(entry.work_detail))) {
+          let mc = parseCleanInt(entry.cases) || parseCleanInt(entry.villages);
+          if (mc > 0) mSum += mc;
+        }
+      });
+
+      // Update 1:10K mapsheet row
+      if (wSum > 0) {
+        fpMap.cases = String(wSum);
+      }
+      if (mSum > 0) {
+        fpMap.villages = String(mSum);
+      }
+
+      // If user selected another specific scheme (not mapsheet), link that row as well
+      if (entryObj.scheme && !isMapsheetScheme(entryObj.scheme)) {
+        let prog = mData.field_progress.find(p => p.scheme === entryObj.scheme);
         if (prog) {
-          if (isMapsheetScheme(entryObj.scheme)) {
-            let mSum = 0;
-            mData.entries.forEach(entry => {
-              if (isMapsheetScheme(entry.scheme)) {
-                let mc = parseCleanInt(entry.cases);
-                if (mc > 0) mSum += mc;
-              }
-            });
-            prog.villages = mSum > 0 ? String(mSum) : (entryObj.cases || prog.villages);
-            let wSum = 0;
-            mData.entries.forEach(entry => {
-              let w = parseCleanInt(entry.wells);
-              if (w > 0) wSum += w;
-            });
-            if (wSum > 0) prog.cases = String(wSum);
-          } else {
-            prog.villages = entryObj.villages || prog.villages;
-            prog.cases = entryObj.cases || prog.cases;
-          }
+          if (entryObj.villages && entryObj.villages !== '-') prog.villages = entryObj.villages;
+          if (entryObj.cases && entryObj.cases !== '-') prog.cases = entryObj.cases;
         }
       }
 
@@ -3039,30 +3099,6 @@
         tbody.appendChild(tr);
       });
 
-      // 1-Page Field Progress table
-      const progTbody = document.getElementById('prProgressBody');
-      if (progTbody) {
-        progTbody.innerHTML = '';
-        (mData.field_progress || []).forEach(fp => {
-          const ptr = document.createElement('tr');
-          const isMapsheet = isMapsheetScheme(fp.scheme) || (fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('नकाशा')));
-          if (isMapsheet) {
-            ptr.innerHTML = `
-              <td class="text-left font-bold">${fp.scheme}</td>
-              <td style="font-weight: bold;">${fp.villages || '-'}</td>
-              <td style="font-weight: bold;">${fp.cases || '-'}</td>
-            `;
-          } else {
-            ptr.innerHTML = `
-              <td class="text-left">${fp.scheme}</td>
-              <td>${fp.villages || '-'}</td>
-              <td>${fp.cases || '-'}</td>
-            `;
-          }
-          progTbody.appendChild(ptr);
-        });
-      }
-
       // Summary counts
       let tot = 0, off = 0, tour = 0, hol = 0, train = 0, leave = 0, wellsTot = 0, boreTot = 0, mapCount = 0;
       mData.entries.forEach(e => {
@@ -3078,22 +3114,51 @@
         let b = parseCleanInt(e.borewells);
         if (b > 0) boreTot += b;
 
-        if (isMapsheetScheme(e.scheme)) {
-          let mc = parseCleanInt(e.cases);
+        if (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail))) {
+          let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
           if (mc > 0) mapCount += mc;
         }
       });
 
-      const fpRow = (mData.field_progress || []).find(p => isMapsheetScheme(p.scheme));
-      if (fpRow) {
-        let v = parseCleanInt(fpRow.villages);
-        if (v > 0) mapCount = Math.max(mapCount, v);
-        else if (mapCount === 0) {
-          let c = parseCleanInt(fpRow.cases);
-          if (c > 0) mapCount = c;
-        }
-        let w = parseCleanInt(fpRow.cases);
-        if (w > 0) wellsTot = Math.max(wellsTot, w);
+      if (!mData.field_progress) mData.field_progress = [];
+      let fpRow = mData.field_progress.find(p => isMapsheetScheme(p.scheme));
+      if (!fpRow) {
+        fpRow = { scheme: "1:10K mapsheet", villages: "-", cases: "-" };
+        mData.field_progress.push(fpRow);
+      }
+
+      let v = parseCleanInt(fpRow.villages);
+      if (v > 0) mapCount = Math.max(mapCount, v);
+      else if (mapCount > 0) fpRow.villages = String(mapCount);
+
+      let w = parseCleanInt(fpRow.cases);
+      if (w > 0) wellsTot = Math.max(wellsTot, w);
+      else if (wellsTot > 0) fpRow.cases = String(wellsTot);
+
+      // 1-Page Field Progress table
+      const progTbody = document.getElementById('prProgressBody');
+      if (progTbody) {
+        progTbody.innerHTML = '';
+        (mData.field_progress || []).forEach(fp => {
+          const ptr = document.createElement('tr');
+          const isMapsheet = isMapsheetScheme(fp.scheme) || (fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('नकाशा')));
+          if (isMapsheet) {
+            const vVal = (fp.villages && fp.villages !== '-' && fp.villages !== '0') ? fp.villages : (mapCount > 0 ? String(mapCount) : '-');
+            const cVal = (fp.cases && fp.cases !== '-' && fp.cases !== '0') ? fp.cases : (wellsTot > 0 ? String(wellsTot) : '-');
+            ptr.innerHTML = `
+              <td class="text-left font-bold">${fp.scheme}</td>
+              <td style="font-weight: bold;">${vVal}</td>
+              <td style="font-weight: bold;">${cVal}</td>
+            `;
+          } else {
+            ptr.innerHTML = `
+              <td class="text-left">${fp.scheme}</td>
+              <td>${fp.villages || '-'}</td>
+              <td>${fp.cases || '-'}</td>
+            `;
+          }
+          progTbody.appendChild(ptr);
+        });
       }
 
       const sumEl = document.getElementById('prSummaryBody');
@@ -3131,6 +3196,8 @@
           const ptr = document.createElement('tr');
           const isMapsheet = isMapsheetScheme(fp.scheme) || (fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('नकाशा')));
           if (isMapsheet) {
+            const vVal = (fp.villages && fp.villages !== '-' && fp.villages !== '0') ? fp.villages : (mapCount > 0 ? String(mapCount) : '-');
+            const cVal = (fp.cases && fp.cases !== '-' && fp.cases !== '0') ? fp.cases : (wellsTot > 0 ? String(wellsTot) : '-');
             ptr.innerHTML = `
               <td style="text-align:center;">${idx + 1}</td>
               <td style="text-align:left; padding-left:8px; font-weight:bold;">
@@ -3138,11 +3205,11 @@
               </td>
               <td style="font-weight:bold; text-align:center; vertical-align: middle; line-height: 1.15; padding: 1.5px 2px;">
                 <div style="font-size: 5.8pt; color: #475569; font-weight: normal; margin-bottom: 1px;">मॅपशीट</div>
-                <span>${fp.villages || '-'}</span>
+                <span>${vVal}</span>
               </td>
               <td style="font-weight:bold; text-align:center; vertical-align: middle; line-height: 1.15; padding: 1.5px 2px;">
                 <div style="font-size: 5.8pt; color: #475569; font-weight: normal; margin-bottom: 1px;">विहिरी</div>
-                <span>${fp.cases || '-'}</span>
+                <span>${cVal}</span>
               </td>
               <td style="text-align:center;">-</td>
               <td style="text-align:center;">-</td>
@@ -3673,8 +3740,8 @@
 
         let totMapsheet2 = 0;
         entries.forEach(e => {
-          if (e && isMapsheetScheme(e.scheme)) {
-            let mc = parseCleanInt(e.cases);
+          if (e && (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail)))) {
+            let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
             if (mc > 0) totMapsheet2 += mc;
           }
         });
@@ -3682,10 +3749,6 @@
         if (fpMapRow2) {
           let v = parseCleanInt(fpMapRow2.villages);
           if (v > 0) totMapsheet2 = Math.max(totMapsheet2, v);
-          else if (totMapsheet2 === 0) {
-            let c = parseCleanInt(fpMapRow2.cases);
-            if (c > 0) totMapsheet2 = c;
-          }
           let w = parseCleanInt(fpMapRow2.cases);
           if (w > 0) totWells2 = Math.max(totWells2, w);
         }
@@ -3720,11 +3783,14 @@
         for (let sIdx = 0; sIdx < 10; sIdx++) {
           const sName = activeSchemes2[sIdx] || standardSchemes2[sIdx] || '';
           const curFp = fpList2.find(f => f.scheme === sName) || fpList2[sIdx] || {};
+          const isMap2 = isMapsheetScheme(sName);
+          const vDisp = isMap2 ? ((curFp.villages && curFp.villages !== '-' && curFp.villages !== '0') ? curFp.villages : (totMapsheet2 > 0 ? totMapsheet2 : '-')) : (curFp.villages || '-');
+          const cDisp = isMap2 ? ((curFp.cases && curFp.cases !== '-' && curFp.cases !== '0') ? curFp.cases : (totWells2 > 0 ? totWells2 : '-')) : (curFp.cases || '-');
           s2Rows.push([
             sIdx + 1,
             sName,
-            curFp.villages || '-',
-            curFp.cases || '-',
+            vDisp,
+            cDisp,
             "",
             ""
           ]);
@@ -3936,8 +4002,8 @@
 
       let totMapsheet = 0;
       entries.forEach(e => {
-        if (e && isMapsheetScheme(e.scheme)) {
-          let mc = parseCleanInt(e.cases);
+        if (e && (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail)))) {
+          let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
           if (mc > 0) totMapsheet += mc;
         }
       });
@@ -3945,10 +4011,6 @@
       if (fpMapRow) {
         let v = parseCleanInt(fpMapRow.villages);
         if (v > 0) totMapsheet = Math.max(totMapsheet, v);
-        else if (totMapsheet === 0) {
-          let c = parseCleanInt(fpMapRow.cases);
-          if (c > 0) totMapsheet = c;
-        }
         let w = parseCleanInt(fpMapRow.cases);
         if (w > 0) totWells = Math.max(totWells, w);
       }
@@ -3969,9 +4031,12 @@
         const rowArr = new Array(18).fill('');
         const sName = activeSchemes[sIdx] || standardSchemes[sIdx] || '';
         const curFp = fpList.find(f => f.scheme === sName) || fpList[sIdx] || {};
+        const isMap1 = isMapsheetScheme(sName);
+        const vDisp1 = isMap1 ? ((curFp.villages && curFp.villages !== '-' && curFp.villages !== '0') ? curFp.villages : (totMapsheet > 0 ? totMapsheet : '-')) : (curFp.villages || '-');
+        const cDisp1 = isMap1 ? ((curFp.cases && curFp.cases !== '-' && curFp.cases !== '0') ? curFp.cases : (totWells > 0 ? totWells : '-')) : (curFp.cases || '-');
         rowArr[0] = sName;
-        rowArr[4] = curFp.villages || '-';
-        rowArr[5] = curFp.cases || '-';
+        rowArr[4] = vDisp1;
+        rowArr[5] = cDisp1;
 
         if (sIdx < sumLabels.length) {
           rowArr[6] = sumLabels[sIdx][0];
