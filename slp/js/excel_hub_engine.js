@@ -1155,21 +1155,28 @@
         throw new Error("No data found in the selected Excel sheet.");
       }
 
-      let headerRowIdx = 0;
+      let bestHeaderIdx = -1;
+      let maxMatches = 0;
+      const headerTokenRe = /^(sr\.?\s*no\.?|serial|date|time|geologist|well|owner|farmer|taluka|village|lat|long|gps|altitude|depth|dia|diameter|swl|pump|power|hp|recuperation|crop|strata|lithology|curbing|parapet)/i;
+
       for (let i = 0; i < Math.min(sheetData.length, 15); i++) {
         const row = sheetData[i] || [];
-        const rowStr = row.map(c => String(c || '').toLowerCase()).join(' ');
+        const nonEmpty = row.filter(c => c !== null && c !== undefined && String(c).trim() !== '');
+        // Header rows have many columns (at least 4); ignore title or instruction banners
+        if (nonEmpty.length < 4) continue;
+
         let matches = 0;
-        const keywords = ['sr_no', 'sr.no', 'sr no', 'latitude', 'longitude', 'lat', 'long', 'geologist', 'owner', 'survey_category', 'well_type'];
-        for (const kw of keywords) {
-          if (rowStr.includes(kw)) matches++;
+        for (const cell of nonEmpty) {
+          const s = String(cell).trim();
+          if (headerTokenRe.test(s)) matches++;
         }
-        if (matches >= 2) {
-          headerRowIdx = i;
-          break;
+        if (matches > maxMatches) {
+          maxMatches = matches;
+          bestHeaderIdx = i;
         }
       }
 
+      const headerRowIdx = (bestHeaderIdx >= 0 && maxMatches >= 2) ? bestHeaderIdx : 0;
       const rawHeaders = (sheetData[headerRowIdx] || []).map(c => String(c || '').trim());
       const rawRows = [];
 
@@ -1186,13 +1193,30 @@
           obj[cleanKey.toLowerCase()] = val;
         });
 
-        // Skip non-data / decorative rows
-        const sr = String(obj.Sr_No || obj.sr_no || '').trim().toLowerCase();
-        const owner = String(obj.Owner_Name || obj.owner_name || '').trim().toLowerCase();
-        const lat = String(obj.Latitude || obj.latitude || '').trim().toLowerCase();
-        if (sr.includes('sr_no') || owner.includes('owner_name') || sr.includes('note:')) continue;
-        if (sr || owner || lat) {
+        // Skip instructions, repeated headers, or decorative rows
+        const rowStr = Object.values(obj).map(v => String(v || '').trim().toLowerCase()).join(' ');
+        if (rowStr.includes('instructions:') || rowStr.includes('fill survey records') || rowStr.includes('note:')) continue;
+        if (rowStr.includes('sr.no') && rowStr.includes('geologist') && rowStr.includes('date')) continue;
+
+        const sr = String(obj.Sr_No || obj.sr_no || obj['Sr.No.'] || obj.well_no || obj['Well No'] || '').trim();
+        const owner = String(obj.Well_Owner || obj.well_owner || obj.Owner_Name || obj.owner_name || obj.owner || '').trim();
+        const village = String(obj.Village_Name || obj.village_name || obj.Village || obj.village || '').trim();
+        const latLong = String(obj.LatLong || obj.latlong || obj.Latitude || obj.latitude || obj.gpsCoords || '').trim();
+        const depth = String(obj.Depth || obj.depth || obj.Depth_m || obj.depth_m || '').trim();
+
+        if (sr || owner || village || latLong || depth) {
           rawRows.push(obj);
+        }
+      }
+
+      if (rawRows.length === 0) {
+        // Fallback: try raw sheet_to_json if table had no banners
+        const fallbackRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+        if (fallbackRows && fallbackRows.length > 0) {
+          fallbackRows.forEach(r => {
+            const hasData = Object.values(r).some(v => v !== null && v !== undefined && String(v).trim() !== '');
+            if (hasData) rawRows.push(r);
+          });
         }
       }
 
