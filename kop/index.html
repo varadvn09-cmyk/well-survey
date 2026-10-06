@@ -6258,6 +6258,9 @@ window.DraftCalcCloudSync = (function() {
                 <button type="button" onclick="syncAndSaveHubRecordsToDatabase()" style="background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; border: none; border-radius: 8px; padding: 10px 18px; font-weight: 800; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(5,150,105,0.3);">
                   💾 Save, Calculate &amp; Dedup All Records
                 </button>
+                <button type="button" id="btnRestoreHubBackup" onclick="restoreHubBackupFromDatabase()" style="background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: #fff; border: none; border-radius: 8px; padding: 10px 14px; font-weight: 800; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(217,119,6,0.3);">
+                  ↩️ Restore Pre-Dedup Backup
+                </button>
                 <button type="button" onclick="refreshHubFromDatabase()" style="background: var(--card-subtle); color: var(--text-main); border: 1.5px solid var(--border-color); border-radius: 8px; padding: 10px 14px; font-weight: 800; font-size: 0.84rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                   🔄 Refresh / Reload from App
                 </button>
@@ -13612,7 +13615,7 @@ window.DraftCalcCloudSync = (function() {
     // --- Section F: Interactive Stratigraphic Lithology Column ---
     // --- Section F: Dynamic Interactive Stratigraphic Rock & Soil Cross-Section ---
     window.currentStrataLayers = [
-      { id: 'layer_1', type: 'Black Cotton Soil', depth: 1.0, isSoil: true },
+      { id: 'layer_1', type: 'Soil', depth: 1.0, isSoil: true },
       { id: 'layer_2', type: 'Highly Weathered Basalt', depth: 5.0 },
       { id: 'layer_3', type: 'Moderately Weathered Basalt', depth: 8.0 },
       { id: 'layer_4', type: 'Fractured/ Jointed  Basalt', depth: 12.0 },
@@ -13621,6 +13624,7 @@ window.DraftCalcCloudSync = (function() {
 
     function getAllLithologyOptions() {
       const all = [
+        'Soil',
         'Black Cotton Soil',
         'Soil / Silt',
         'Sandy Loam Soil',
@@ -13655,9 +13659,6 @@ window.DraftCalcCloudSync = (function() {
       if (t.includes('dyke') || t.includes('intrusion')) {
         return { bg: 'linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%)', color: '#7c3aed', label: 'Dyke', isAquifer: false };
       }
-      if (t.includes('soil') || t.includes('clay') || t.includes('silt') || t.includes('loam')) {
-        return { bg: 'linear-gradient(180deg, #78350f 0%, #92400e 100%)', color: '#92400e', label: 'Soil', isAquifer: false };
-      }
       if (t.includes('highly weathered') || t.includes('murrum')) {
         return { bg: 'linear-gradient(180deg, #b45309 0%, #d97706 100%)', color: '#d97706', label: 'Weath', isAquifer: false };
       }
@@ -13669,6 +13670,9 @@ window.DraftCalcCloudSync = (function() {
       }
       if (t.includes('joint') || t.includes('compact') || t.includes('amygdaloidal')) {
         return { bg: 'linear-gradient(180deg, #475569 0%, #334155 100%)', color: '#475569', label: 'Jointed', isAquifer: false };
+      }
+      if (t.includes('soil') || t.includes('clay') || t.includes('silt') || t.includes('loam')) {
+        return { bg: 'linear-gradient(180deg, #78350f 0%, #92400e 100%)', color: '#92400e', label: 'Soil', isAquifer: false };
       }
       return { bg: 'linear-gradient(180deg, #334155 0%, #1e293b 100%)', color: '#1e293b', label: 'Massive', isAquifer: false };
     }
@@ -13701,9 +13705,15 @@ window.DraftCalcCloudSync = (function() {
         } else if (isLast) {
           headerHtml = `
             <div class="stratum-layer-header">
-              <span class="stratum-layer-badge" style="background: #1e293b;">Layer ${layerNum} (Bedrock / Massive - Pinned 📌)</span>
-              <div class="stratum-depth-input-wrap">
-                <span style="font-weight: 800; color: var(--primary);">To Bottom</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="stratum-layer-badge" style="background: #1e293b;">Layer ${layerNum} (Bottom Stratum)</span>
+                <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">${lyr.type || ''}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="stratum-depth-input-wrap">
+                  <span style="font-weight: 800; color: var(--primary);">To Bottom</span>
+                </div>
+                ${layers.length > 2 ? `<button type="button" class="btn-sm" onclick="removeStratumLayer(${idx})" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 3px 8px; font-size: 0.72rem; font-weight: 800; cursor: pointer;" title="Remove bottom stratum layer">✕ Remove</button>` : ''}
               </div>
             </div>`;
         } else {
@@ -13751,6 +13761,15 @@ window.DraftCalcCloudSync = (function() {
 
     function onStratumTypeChange(idx, val) {
       if (!window.currentStrataLayers || !window.currentStrataLayers[idx]) return;
+      if (idx > 0 && (val.toLowerCase().includes('soil') || val.toLowerCase().includes('clay') || val.toLowerCase().includes('silt'))) {
+        const keep = confirm(`⚠️ Notice: Layer ${idx + 1} is usually rock/basalt strata (e.g. Weathered Basalt). You have selected '${val}'. Do you want to keep this custom entry?`);
+        if (!keep) {
+          const fallbackRock = (idx === 1) ? 'Highly Weathered Basalt' : (idx === 2 ? 'Moderately Weathered Basalt' : 'Fractured/ Jointed  Basalt');
+          window.currentStrataLayers[idx].type = fallbackRock;
+          renderStratumLadderUI();
+          return;
+        }
+      }
       window.currentStrataLayers[idx].type = val;
       updateStratigraphicColumn();
     }
@@ -13763,7 +13782,7 @@ window.DraftCalcCloudSync = (function() {
       const totalDepth = parseFloat(document.getElementById('depthWell')?.value) || (prevDepth + 6.0);
       const newDepth = parseFloat(((prevDepth + totalDepth) / 2.0).toFixed(1));
 
-      let defaultType = 'Vesicular Basalt';
+      let defaultType = 'Fractured/ Jointed  Basalt';
       if (preset === 'redbole') defaultType = 'Red Bole';
       else if (preset === 'dyke') defaultType = 'Basaltic Dyke';
 
@@ -13773,7 +13792,7 @@ window.DraftCalcCloudSync = (function() {
         depth: newDepth
       };
 
-      // Insert immediately before Massive Basalt (bottom layer)
+      // Insert immediately before bottom layer
       const insertIdx = Math.max(1, layers.length - 1);
       layers.splice(insertIdx, 0, newLayer);
       renderStratumLadderUI();
@@ -13788,12 +13807,8 @@ window.DraftCalcCloudSync = (function() {
         if (typeof showToast === 'function') showToast("⚠️ Soil is locked at top (0.0m) and cannot be removed!");
         return;
       }
-      if (idx === window.currentStrataLayers.length - 1) {
-        if (typeof showToast === 'function') showToast("⚠️ Bedrock is locked at bottom and cannot be removed!");
-        return;
-      }
       if (window.currentStrataLayers.length <= 2) {
-        if (typeof showToast === 'function') showToast("⚠️ Minimum 2 layers required (Soil & Bedrock)!");
+        if (typeof showToast === 'function') showToast("⚠️ Minimum 2 layers required (Top Soil & Bottom Stratum)!");
         return;
       }
       const removed = window.currentStrataLayers.splice(idx, 1)[0];
@@ -13805,7 +13820,7 @@ window.DraftCalcCloudSync = (function() {
 
     function resetStratumLayersToDefault() {
       window.currentStrataLayers = [
-        { id: 'layer_1', type: 'Black Cotton Soil', depth: 1.0, isSoil: true },
+        { id: 'layer_1', type: 'Soil', depth: 1.0, isSoil: true },
         { id: 'layer_2', type: 'Highly Weathered Basalt', depth: 5.0 },
         { id: 'layer_3', type: 'Moderately Weathered Basalt', depth: 8.0 },
         { id: 'layer_4', type: 'Fractured/ Jointed  Basalt', depth: 12.0 },
@@ -17069,11 +17084,8 @@ ${arrowsXml}
       const strata = (window.currentStrataLayers && window.currentStrataLayers.length >= 2)
         ? window.currentStrataLayers
         : [
-            { type: document.getElementById('lithoType1')?.value || entry.lithoType1 || 'Black Cotton Soil', depth: parseFloat(document.getElementById('lithoDepth1')?.value || entry.lithoDepth1) || 1.0 },
-            { type: document.getElementById('lithoType2')?.value || entry.lithoType2 || 'Highly Weathered Basalt', depth: parseFloat(document.getElementById('lithoDepth2')?.value || entry.lithoDepth2) || 5.0 },
-            { type: document.getElementById('lithoType3')?.value || entry.lithoType3 || 'Moderately Weathered Basalt', depth: parseFloat(document.getElementById('lithoDepth3')?.value || entry.lithoDepth3) || 8.0 },
-            { type: document.getElementById('lithoType4')?.value || entry.lithoType4 || 'Fractured/ Jointed  Basalt', depth: parseFloat(document.getElementById('lithoDepth4')?.value || entry.lithoDepth4) || 12.0 },
-            { type: document.getElementById('lithoType5')?.value || entry.lithoType5 || 'Massive Basalt' }
+            { type: document.getElementById('lithoType1')?.value || entry.lithoType1 || 'Soil', depth: parseFloat(document.getElementById('lithoDepth1')?.value || entry.lithoDepth1) || 1.0 },
+            { type: document.getElementById('lithoType2')?.value || entry.lithoType2 || 'Highly Weathered Basalt', depth: parseFloat(document.getElementById('lithoDepth2')?.value || entry.lithoDepth2) || 5.0 }
           ];
 
       let strataValid = true;
@@ -17098,15 +17110,19 @@ ${arrowsXml}
       }
 
       entry.strataLayers = JSON.stringify(strata);
-      entry.lithoType1 = strata[0]?.type || 'Black Cotton Soil';
-      entry.lithoDepth1 = String(strata[0]?.depth || '1.0');
+      entry.lithoType1 = strata[0]?.type || 'Soil';
+      entry.lithoDepth1 = (strata[0]?.depth !== undefined && strata[0]?.depth !== null) ? String(strata[0].depth) : '1.0';
       entry.lithoType2 = strata[1]?.type || 'Highly Weathered Basalt';
-      entry.lithoDepth2 = String(strata[1]?.depth || '5.0');
-      entry.lithoType3 = strata[2]?.type || 'Moderately Weathered Basalt';
-      entry.lithoDepth3 = String(strata[2]?.depth || '8.0');
-      entry.lithoType4 = strata[3]?.type || (strata.length > 4 ? strata[3]?.type : 'Fractured/ Jointed  Basalt');
-      entry.lithoDepth4 = String(strata[3]?.depth || (strata.length > 4 ? strata[3]?.depth : '12.0'));
-      entry.lithoType5 = strata[strata.length - 1]?.type || 'Massive Basalt';
+      entry.lithoDepth2 = (strata[1]?.depth !== undefined && strata[1]?.depth !== null) ? String(strata[1].depth) : '';
+      entry.lithoType3 = strata.length > 2 ? (strata[2]?.type || '') : '';
+      entry.lithoDepth3 = strata.length > 2 && (strata[2]?.depth !== undefined && strata[2]?.depth !== null) ? String(strata[2].depth) : '';
+      entry.lithoType4 = strata.length > 3 ? (strata[3]?.type || '') : '';
+      entry.lithoDepth4 = strata.length > 3 && (strata[3]?.depth !== undefined && strata[3]?.depth !== null) ? String(strata[3].depth) : '';
+      entry.lithoType5 = strata.length > 4 ? (strata[4]?.type || '') : '';
+      entry.lithologyStrata = strata.map((s, idx) => {
+        if (idx === strata.length - 1 && (!s.depth || s.depth === '')) return s.type;
+        return `${s.type} (${s.depth || ''}m)`;
+      }).join(', ');
 
       // 7. Photograph: Prompt with Bypass option if not captured
       if (!currentPhotoBase64 || currentPhotoBase64.trim() === '') {
@@ -17323,9 +17339,10 @@ ${arrowsXml}
       document.getElementById('wellCondition').value = r.wellCondition || 'Good';
       document.getElementById('yearConstruction').value = r.yearConstruction || '';
       
-      document.getElementById('pumpHP').value = r.pumpHP || '';
+      const resolvedHp = String(r.pumpHP || r.pumpHp || r.Pump_HP || (r['Pump HP'] ? String(r['Pump HP']) : '') || '5');
+      document.getElementById('pumpHP').value = resolvedHp;
       onPumpHPChange();
-      const defaultDis = getDefaultPumpDischarge(r.pumpHP);
+      const defaultDis = getDefaultPumpDischarge(resolvedHp);
       document.getElementById('pumpDischarge').value = r.pumpDischarge || defaultDis || '';
       
       document.getElementById('dischargeMethod').value = r.dischargeMethod || 'Adhoc';
@@ -17450,13 +17467,14 @@ ${arrowsXml}
           }
         } catch(e) {}
       } else {
-        window.currentStrataLayers = [
-          { id: 'layer_1', type: r.lithoType1 || 'Black Cotton Soil', depth: parseFloat(r.lithoDepth1) || 1.0, isSoil: true },
-          { id: 'layer_2', type: r.lithoType2 || 'Highly Weathered Basalt', depth: parseFloat(r.lithoDepth2) || 5.0 },
-          { id: 'layer_3', type: r.lithoType3 || 'Moderately Weathered Basalt', depth: parseFloat(r.lithoDepth3) || 8.0 },
-          { id: 'layer_4', type: r.lithoType4 || 'Fractured/ Jointed  Basalt', depth: parseFloat(r.lithoDepth4) || 12.0 },
-          { id: 'layer_5', type: r.lithoType5 || 'Massive Basalt', isMassive: true }
+        const dynLayers = [
+          { id: 'layer_1', type: r.lithoType1 || 'Soil', depth: parseFloat(r.lithoDepth1) || 1.0, isSoil: true },
+          { id: 'layer_2', type: r.lithoType2 || 'Highly Weathered Basalt', depth: parseFloat(r.lithoDepth2) || 5.0 }
         ];
+        if (r.lithoType3) dynLayers.push({ id: 'layer_3', type: r.lithoType3, depth: parseFloat(r.lithoDepth3) || 8.0 });
+        if (r.lithoType4) dynLayers.push({ id: 'layer_4', type: r.lithoType4, depth: parseFloat(r.lithoDepth4) || 12.0 });
+        if (r.lithoType5) dynLayers.push({ id: 'layer_5', type: r.lithoType5, isMassive: true });
+        window.currentStrataLayers = dynLayers;
       }
       renderStratumLadderUI();
 
@@ -17511,6 +17529,13 @@ ${arrowsXml}
       initFormDefaults();
       initProfile();
       initCropDropdowns();
+      window.currentStrataLayers = [
+        { id: 'layer_1', type: 'Soil', depth: 1.0, isSoil: true },
+        { id: 'layer_2', type: 'Highly Weathered Basalt', depth: 5.0 },
+        { id: 'layer_3', type: 'Moderately Weathered Basalt', depth: 8.0 },
+        { id: 'layer_4', type: 'Fractured/ Jointed  Basalt', depth: 12.0 },
+        { id: 'layer_5', type: 'Massive Basalt', isMassive: true }
+      ];
       initLithoDropdowns();
       initPumpDropdowns();
       onTalukaChange();
@@ -25196,23 +25221,144 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
       window.print();
     }
 
-    function saveHubRecordsToDatabase() {
-      if (!window.hubUploadedRecords || window.hubUploadedRecords.length === 0) {
-        showToast("⚠️ No new uploaded records to save.");
+    async function syncAndSaveHubRecordsToDatabase() {
+      let records = [];
+      if (window.hubUploadedRecords && window.hubUploadedRecords.length > 0) {
+        const existing = getStoredRecords();
+        const map = new Map();
+        existing.forEach(r => map.set(String(r.srNo), r));
+        window.hubUploadedRecords.forEach(r => map.set(String(r.srNo), r));
+        records = Array.from(map.values());
+      } else {
+        records = getStoredRecords();
+      }
+
+      if (!records || records.length === 0) {
+        showToast("⚠️ No survey records available to save or sync.");
         return;
       }
-      const existing = getStoredRecords();
-      // Merge records by srNo
-      const map = new Map();
-      existing.forEach(r => map.set(r.srNo, r));
-      window.hubUploadedRecords.forEach(r => map.set(r.srNo, r));
-      const merged = Array.from(map.values());
-      
-      saveRecords(merged);
-      showToast(`💾 Saved ${merged.length} total records to local database!`);
-      if (typeof pushLocalToRemote === 'function') {
-        pushLocalToRemote();
+
+      // 1. Create Pre-Dedup Backup
+      try {
+        const backupKey = 'SURVEY_BACKUP_BEFORE_DEDUP_' + Date.now();
+        localStorage.setItem(backupKey, JSON.stringify(records));
+        localStorage.setItem('SURVEY_HUB_PRE_DEDUP_BACKUP', JSON.stringify(records));
+      } catch (e) {
+        console.warn('Backup error:', e);
       }
+
+      // 2. Deduplicate records based on coordinates
+      const seen = new Map();
+      const unique = [];
+      let dupCount = 0;
+
+      records.forEach(r => {
+        let lat = parseFloat(r.latitude);
+        let lon = parseFloat(r.longitude);
+        if (isNaN(lat) || isNaN(lon)) {
+          if (r.gpsCoords && r.gpsCoords.includes(',')) {
+            const parts = r.gpsCoords.split(',');
+            lat = parseFloat(parts[0]);
+            lon = parseFloat(parts[1]);
+          }
+        }
+        if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
+          const key = `${lat.toFixed(5)}_${lon.toFixed(5)}`;
+          if (seen.has(key)) {
+            dupCount++;
+          } else {
+            seen.set(key, r);
+            unique.push(r);
+          }
+        } else {
+          unique.push(r);
+        }
+      });
+
+      // 3. Save to database
+      await saveStoredRecords(unique);
+      window.hubUploadedRecords = unique;
+
+      // 4. Update UI
+      renderHubPreview();
+      if (typeof renderRecords === 'function') renderRecords();
+      if (typeof updateBadge === 'function') updateBadge();
+      if (typeof pushLocalToRemote === 'function') pushLocalToRemote();
+
+      const countBadge = document.getElementById('hubCountBadge');
+      if (countBadge) countBadge.innerText = `📊 ${unique.length} Wells`;
+
+      showToast(`💾 Saved ${unique.length} records! (${dupCount} duplicate coordinates filtered, backup saved)`);
+    }
+
+    function restoreHubBackupFromDatabase() {
+      let backupJson = localStorage.getItem('SURVEY_HUB_PRE_DEDUP_BACKUP');
+      if (!backupJson) {
+        const keys = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('SURVEY_BACKUP_BEFORE_DEDUP_')) {
+            keys.push(k);
+          }
+        }
+        keys.sort().reverse();
+        if (keys.length > 0) {
+          backupJson = localStorage.getItem(keys[0]);
+        }
+      }
+
+      if (!backupJson) {
+        showToast("⚠️ No Pre-Dedup Backup found in local storage.");
+        return;
+      }
+
+      try {
+        const backupRecords = JSON.parse(backupJson);
+        if (!Array.isArray(backupRecords) || backupRecords.length === 0) {
+          showToast("⚠️ Backup data is empty or invalid.");
+          return;
+        }
+
+        const proceed = confirm(`↩️ Found Pre-Dedup Backup containing ${backupRecords.length} wells.\n\nDo you want to restore these records and overwrite the current database?`);
+        if (!proceed) return;
+
+        saveStoredRecords(backupRecords);
+        window.hubUploadedRecords = backupRecords;
+        window.hubCurrentPage = 1;
+
+        renderHubPreview();
+        if (typeof renderRecords === 'function') renderRecords();
+        if (typeof updateBadge === 'function') updateBadge();
+        if (typeof pushLocalToRemote === 'function') pushLocalToRemote();
+
+        const countBadge = document.getElementById('hubCountBadge');
+        if (countBadge) countBadge.innerText = `📊 ${backupRecords.length} Wells`;
+
+        showToast(`✅ Successfully restored ${backupRecords.length} wells from Pre-Dedup Backup!`);
+      } catch (e) {
+        showToast("❌ Error parsing backup data: " + e.message);
+      }
+    }
+
+    function refreshHubFromDatabase() {
+      window.hubUploadedRecords = [];
+      window.hubCurrentPage = 1;
+      const records = getStoredRecords();
+
+      const countBadge = document.getElementById('hubCountBadge');
+      if (countBadge) countBadge.innerText = `📊 ${records.length} Wells`;
+
+      const irrCount = records.filter(r => r.surveyCategory !== 'PWS').length;
+      const pwsCount = records.filter(r => r.surveyCategory === 'PWS').length;
+      const catBadge = document.getElementById('hubCategoryBadge');
+      if (catBadge) catBadge.innerText = `🌾 ${irrCount} Irrigation / 💧 ${pwsCount} PWS`;
+
+      renderHubPreview();
+      showToast(`🔄 Reloaded ${records.length} wells from App database.`);
+    }
+
+    function saveHubRecordsToDatabase() {
+      return syncAndSaveHubRecordsToDatabase();
     }
 
 </script>

@@ -201,12 +201,25 @@
     let minD2 = Infinity;
     let matchedVilName = '';
 
-    // If village is provided, try searching in that village first
+    function normalizeVillageFuzzy(str) {
+      if (!str) return '';
+      return str.toString().trim().toLowerCase()
+        .replace(/[w]/g, 'v')
+        .replace(/[y]/g, 'i')
+        .replace(/[\s\._\-]/g, '')
+        .replace(/bk|kh|budruk|khurd|rural|r$|du$/g, '');
+    }
+
+    // If village is provided, try searching in that village first (with fuzzy matching)
     if (village) {
       const cleanVil = village.toString().trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const fuzzyVil = normalizeVillageFuzzy(village);
       let vilObj = null;
+
       for (const [vName, vData] of Object.entries(talukaData.villages)) {
-        if (vName.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanVil) {
+        const vClean = vName.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const vFuzzy = normalizeVillageFuzzy(vName);
+        if (vClean === cleanVil || vFuzzy === fuzzyVil || (vData.censusCode && vData.censusCode === village)) {
           vilObj = vData;
           matchedVilName = vName;
           break;
@@ -225,8 +238,8 @@
       }
     }
 
-    // If no parcel found in village or nearest is > 0.03 deg (~3.3 km), search across all villages in taluka
-    if (!bestParcel || minD2 > 0.0009) {
+    // If no parcel found in village or nearest is > 0.05 deg (~5.5 km), search across all villages in taluka
+    if (!bestParcel || minD2 > 0.0025) {
       for (const [vName, vData] of Object.entries(talukaData.villages)) {
         if (!vData || !vData.parcels) continue;
         for (let i = 0; i < vData.parcels.length; i++) {
@@ -302,7 +315,7 @@
     const recupW = num(raw.recupWinter || raw.Recuperation_Hrs || 4.0);
     const recupS = num(raw.recupSummer || raw.Recuperation_Hrs || 6.0);
 
-    const pumpHp = num(raw.pumpHp || raw.Pump_HP || 5.0);
+    const pumpHp = num(raw.pumpHP || raw.pumpHp || raw.Pump_HP || raw['Pump HP'] || raw.HP || 5.0);
     // Standard CGWB / GSDA pump discharge estimation based on HP
     // Discharge in m3/hr: ~12 to 18 m3/hr for 5 HP
     const discharge = num(raw.pumpDischarge) || (pumpHp >= 7.5 ? 18.0 : (pumpHp >= 5.0 ? 14.5 : 10.0));
@@ -373,50 +386,101 @@
     const enriched = [];
 
     rawList.forEach((r, idx) => {
-      const lat = parseFloat(r.Latitude || r.lat || r.latitude || r.gpsCoords?.split(',')[0]);
-      const lon = parseFloat(r.Longitude || r.lon || r.longitude || r.gpsCoords?.split(',')[1]);
-      
-      const geoName = r.Geologist_Name || r.geologistName || r.geologist || 'Geologist';
-      const localSeq = r.Sr_No || r.srNo || (idx + 1);
+      let lat = parseFloat(r.Latitude || r.lat || r.latitude || r['Lat (DD)'] || r['Lat'] || r['Lat.'] || (r.gpsCoords && r.gpsCoords.includes(',') ? r.gpsCoords.split(',')[0] : 0));
+      let lon = parseFloat(r.Longitude || r.lon || r.longitude || r['Long (DD)'] || r['Long'] || r['Long.'] || (r.gpsCoords && r.gpsCoords.includes(',') ? r.gpsCoords.split(',')[1] : 0));
+      if (isNaN(lat)) lat = 0;
+      if (isNaN(lon)) lon = 0;
+
+      const geoName = r.Geologist_Name || r.geologistName || r.geologist || r['Geologist Name'] || 'Geologist';
+      const localSeq = r.Sr_No || r.srNo || r['Sr. No.'] || r['Sr.No.'] || (idx + 1);
       const prefixedSrNo = formatPrefixedSrNo(geoName, localSeq);
       const uploaderPrefix = getGeologistPrefix(geoName);
 
       // Category detection: Irrigation vs PWS
-      const owner = (r.Owner_Name || r.ownerName || '').trim();
-      const catInput = (r.Survey_Category || r.surveyCategory || '').toUpperCase();
+      const owner = (r.Owner_Name || r.ownerName || r['Well Owner'] || r['Owner Name'] || '').toString().trim();
+      const catInput = (r.Survey_Category || r.surveyCategory || r['Survey Category'] || '').toString().toUpperCase();
       const isPws = catInput.includes('PWS') || owner.toUpperCase().includes('PWS') || owner.toUpperCase().includes('GRAM PANCHAYAT');
       const category = isPws ? 'PWS' : 'Irrigation';
 
       // 10K Grid lookup
-      const grid = compute10KGridFromCoords(lat, lon) || {
+      const grid = compute10KGridFromCoords(lat || 17.598239, lon || 76.052817) || {
         code: 'E43Q02Q', toposheet: '56 C/02', quadrant: 'A1', f10kLetter: 'Q'
       };
 
       // Village & Gat No resolution
-      let village = r.Village || r.villageName || r.Village_Name || '';
-      let taluka = r.Taluka || r.talukaName || r.Taluka_Name || '';
-      let gatNo = r.Gat_No || r.gatNo || '';
-      let censusCode = r.Census_No || r.censusNo || '';
+      let village = r.Village || r.villageName || r.Village_Name || r['Village Name'] || r['Village'] || '';
+      let taluka = r.Taluka || r.talukaName || r.Taluka_Name || r['Taluka Name'] || r['Taluka'] || '';
+      let gatNo = (r.Gat_No || r.gatNo || r['Gat No.'] || r['Gat No'] || r.gat || '').toString().trim();
+      let censusCode = (r.Census_No || r.censusNo || r['Census No.'] || r['Census No'] || '').toString().trim();
 
       if (!village) village = (currentDistrict === 'latur') ? 'Latur Rural' : 'Chincholi';
       if (!taluka) taluka = (currentDistrict === 'latur') ? 'Latur' : 'South Solapur';
       if (!gatNo) gatNo = String(idx + 1);
       if (!censusCode) censusCode = '562548';
 
+      // Pump HP Preservation: strictly preserve 3, 5, 7.5, 10 or entered values, only default to 5 if blank/missing
+      let pumpHpRaw = r.Pump_HP ?? r['Pump HP'] ?? r.pumpHP ?? r.pumpHp ?? r.HP ?? r.hp ?? r['Pump_Hp'] ?? '';
+      let pumpHpNum = parseFloat(pumpHpRaw);
+      let pumpHpVal = (!isNaN(pumpHpNum) && pumpHpNum > 0) ? String(pumpHpNum) : '5';
+
+      // Lithology Layers Preservation
+      let lithoStrata = (r.Lithology_Strata || r['Lithology Strata'] || r.strata || r.Strata || r.lithologyStrata || '').toString().trim();
+      let l1 = (r.lithoType1 || r['Lithology 1'] || r.Lithology_1 || r.Lithology || r['Soil Type'] || r.soilType || '').toString().trim();
+      let l2 = (r.lithoType2 || r['Lithology 2'] || r.Lithology_2 || '').toString().trim();
+      let l3 = (r.lithoType3 || r['Lithology 3'] || r.Lithology_3 || '').toString().trim();
+      let d1 = (r.lithoDepth1 || '1.0').toString().trim();
+      let d2 = (r.lithoDepth2 || '5.0').toString().trim();
+      let d3 = (r.lithoDepth3 || '8.0').toString().trim();
+
+      // If combined Lithology_Strata string is present (e.g. "Soil: 0.5m, W.Basalt: 3m, J.Basalt: 9m, M.Basalt: 10.66m")
+      if (lithoStrata && (!l1 || l1.toLowerCase() === 'soil')) {
+        const parts = lithoStrata.split(',').map(s => s.trim());
+        if (parts.length > 0 && parts[0]) {
+          const m1 = parts[0].split(':');
+          if (m1[0]) l1 = m1[0].trim();
+          if (m1[1]) d1 = m1[1].replace(/[^0-9.]/g, '') || d1;
+        }
+        if (parts.length > 1 && parts[1]) {
+          const m2 = parts[1].split(':');
+          if (m2[0]) l2 = m2[0].trim();
+          if (m2[1]) d2 = m2[1].replace(/[^0-9.]/g, '') || d2;
+        }
+        if (parts.length > 2 && parts[2]) {
+          const m3 = parts[2].split(':');
+          if (m3[0]) l3 = m3[0].trim();
+          if (m3[1]) d3 = m3[1].replace(/[^0-9.]/g, '') || d3;
+        }
+      }
+
+      // Default standards: Layer 1 is Soil, Layer 2 is Weathered Basalt
+      if (!l1) l1 = 'Soil';
+      if (!l2) l2 = 'Highly Weathered Basalt';
+      if (!lithoStrata) {
+        if (l3) {
+          lithoStrata = `${l1} (${d1}m), ${l2} (${d2}m), ${l3} (${d3}m)`;
+        } else {
+          lithoStrata = `${l1} (${d1}m), ${l2} (${d2}m)`;
+        }
+      }
+
       // CGWB Yield lookup (using inbuilt grid if available)
       let yieldRange = '15 - 25 m³/day (30 - 50 LPM)';
-      if (typeof window.resolveInbuiltSpatialYield === 'function' && !isNaN(lat) && !isNaN(lon)) {
+      if (typeof window.resolveInbuiltSpatialYield === 'function' && lat > 0 && lon > 0) {
         const det = window.resolveInbuiltSpatialYield(lat, lon);
         if (det) yieldRange = det;
       }
 
-      // Calculations
-      const calcs = calculateWellFormulas(r, currentDistrict);
+      // Calculations (injecting preserved pumpHpVal)
+      const calcs = calculateWellFormulas({ ...r, pumpHp: pumpHpVal, pumpHP: pumpHpVal }, currentDistrict);
 
       // Official Technical Well ID
-      const wellType = r.Well_Type || r.wellType || 'Dug Well';
+      const wellType = r.Well_Type || r.wellType || r['Type of Well'] || r['Well Type'] || 'Dug Well';
       const wellTypeAbbr = wellType.toLowerCase().includes('bore') ? 'BW' : (wellType.toLowerCase().includes('dcb') ? 'DCB' : 'DW');
-      const techWellId = `${censusCode}${lat ? lat.toFixed(4) : ''}${lon ? lon.toFixed(4) : ''}${wellTypeAbbr}`;
+      const latStr = (lat > 0) ? lat.toFixed(4) : '';
+      const lonStr = (lon > 0) ? lon.toFixed(4) : '';
+      const techWellId = (latStr && lonStr)
+        ? `${censusCode}${latStr}${lonStr}${wellTypeAbbr}`
+        : `${censusCode}-${grid.code}-${String(localSeq).padStart(2, '0')}${wellTypeAbbr}`;
       const smartId = `${censusCode}-${grid.code}-${String(localSeq).padStart(2, '0')}`;
 
       enriched.push({
@@ -430,9 +494,9 @@
         ownerName: owner || (isPws ? 'Gram Panchayat Drinking Water Well' : 'Farmer Well'),
         latitude: lat || 17.598239,
         longitude: lon || 76.052817,
-        latDms: toDmsString(lat, true),
-        lonDms: toDmsString(lon, false),
-        gpsCoords: `${lat || 17.598239}, ${lon || 76.052817}`,
+        latDms: toDmsString(lat || 17.598239, true),
+        lonDms: toDmsString(lon || 76.052817, false),
+        gpsCoords: (lat > 0 && lon > 0) ? `${lat}, ${lon}` : (r.gpsCoords || '17.598239, 76.052817'),
         district: currentDistrict.charAt(0).toUpperCase() + currentDistrict.slice(1),
         taluka: taluka,
         villageName: village,
@@ -447,6 +511,15 @@
         smartWellId: smartId,
         technicalWellId: techWellId,
         pdfYieldRange: yieldRange,
+        pumpHP: pumpHpVal,
+        pumpHp: pumpHpVal,
+        lithoType1: l1,
+        lithoDepth1: d1,
+        lithoType2: l2,
+        lithoDepth2: d2,
+        lithoType3: l3,
+        lithoDepth3: d3,
+        lithologyStrata: lithoStrata,
         ...calcs
       });
     });
@@ -495,14 +568,14 @@
         r.parapetHeight || 0.3, r.diaTop || 11.0, r.diaEffective, r.depthWell || 10.66,
         r.liningMaterial || "Stone", r.swlWinter || 9.14, r.swlSummer || 10.66,
         Math.max(0, (r.swlSummer || 10.66) - (r.swlWinter || 9.14)).toFixed(2),
-        r.pumpType || "Submersible", r.powerMode || "Electric", r.pumpHp || 5,
+        r.pumpType || "Submersible", r.powerMode || "Electric", r.pumpHP || r.pumpHp || 5,
         r.discharge, r.pumpDurationWinter || 4.0, r.pumpDurationSummer || 6.0,
         r.recupWinter || 4.0, r.recupSummer || 6.0, r.pwlWinter, r.pwlSummer,
         r.ddWinter, r.ddSummer, r.volStorageWinter, r.volStorageSummer,
         r.inflowRateWinter, r.inflowRateSummer, r.cultivableLand || 3.23,
         "Tur", 0.8, "Wheat", 0.8, "", 0, "", 0,
         r.kharifHam, r.rabiHam, r.summerHam, r.totalDraftHam,
-        r.pdfYieldRange, r.lithologyStrata || "Soil (0.5m), Basalt (10.66m)", r.wellRemarks || "Seasonal"
+        r.pdfYieldRange, r.lithologyStrata || `${r.lithoType1 || "Soil"} (0.5m), ${r.lithoType2 || "Weathered Basalt"} (10.66m)`, r.wellRemarks || "Seasonal"
       ]);
     });
 
@@ -525,9 +598,9 @@
         r.srNo, r.taluka, r.villageName, r.ownerName, r.surveyDate || "17/03/2026", r.wellType, r.gatNo,
         `${r.gridCode}-${r.quadrant}`, r.latitude, r.longitude, r.depthWell || 10.66, r.diaEffective,
         r.parapetHeight || 0.3, r.swlWinter || 9.14, r.swlSummer || 10.66, r.pumpType || "Submersible",
-        "Electric", r.pumpHp || 5, r.pumpDurationWinter || 4.0, r.pumpDurationSummer || 6.0,
+        "Electric", r.pumpHP || r.pumpHp || 5, r.pumpDurationWinter || 4.0, r.pumpDurationSummer || 6.0,
         r.recupWinter || 4.0, r.recupSummer || 6.0, r.pwlWinter, r.pwlSummer, r.ddWinter, r.ddSummer,
-        r.cultivableLand || 3.23, r.totalDraftHam, r.pdfYieldRange, "Soil", "Basalt", r.wellRemarks || "Seasonal"
+        r.cultivableLand || 3.23, r.totalDraftHam, r.pdfYieldRange, r.lithoType1 || "Soil", r.lithoType2 || "Weathered Basalt", r.wellRemarks || "Seasonal"
       ]);
     });
 
@@ -698,7 +771,20 @@
       const workbook = XLSX.read(data, { type: 'array' });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+
+      // Smart Header Row Detection (handles templates with Title Banner or Notes in row 1-2)
+      const sheetData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+      let headerRowIdx = 0;
+      for (let i = 0; i < Math.min(sheetData.length, 10); i++) {
+        const row = sheetData[i] || [];
+        const rowStr = row.map(c => String(c).toLowerCase()).join(' ');
+        if (rowStr.includes('sr_no') || rowStr.includes('sr. no') || rowStr.includes('sr.no') || (rowStr.includes('geologist') && rowStr.includes('owner')) || (rowStr.includes('latitude') && rowStr.includes('longitude')) || (rowStr.includes('lat') && rowStr.includes('long'))) {
+          headerRowIdx = i;
+          break;
+        }
+      }
+
+      const rawRows = XLSX.utils.sheet_to_json(worksheet, { range: headerRowIdx, defval: '' });
 
       if (!rawRows || rawRows.length === 0) {
         throw new Error("No data rows found in the selected Excel sheet.");
@@ -777,9 +863,9 @@
         r.srNo, r.taluka, r.villageName, r.ownerName, r.surveyDate || "17/03/2026", r.wellType, r.gatNo,
         `${r.gridCode}-${r.quadrant}`, r.latitude, r.longitude, r.depthWell || 10.66, r.diaEffective,
         r.parapetHeight || 0.3, r.swlWinter || 9.14, r.swlSummer || 10.66, r.pumpType || "Submersible",
-        "Electric", r.pumpHp || 5, r.pumpDurationWinter || 4.0, r.pumpDurationSummer || 6.0,
+        "Electric", r.pumpHP || r.pumpHp || 5, r.pumpDurationWinter || 4.0, r.pumpDurationSummer || 6.0,
         r.recupWinter || 4.0, r.recupSummer || 6.0, r.pwlWinter, r.pwlSummer, r.ddWinter, r.ddSummer,
-        r.cultivableLand || 3.23, r.totalDraftHam, r.pdfYieldRange, "Soil", "Basalt", r.wellRemarks || "Seasonal"
+        r.cultivableLand || 3.23, r.totalDraftHam, r.pdfYieldRange, r.lithoType1 || "Soil", r.lithoType2 || "Weathered Basalt", r.wellRemarks || "Seasonal"
       ]);
     });
     const ws = XLSX.utils.aoa_to_sheet(data);
@@ -799,36 +885,36 @@
       return;
     }
 
+    // 0. Automatic Safety Backup before deduplication
+    try {
+      localStorage.setItem('HYDROGEO_BACKUP_BEFORE_DEDUP', JSON.stringify(records));
+      localStorage.setItem('HYDROGEO_BACKUP_BEFORE_DEDUP_TIME', new Date().toISOString());
+      localStorage.setItem('HYDROGEO_BACKUP_BEFORE_DEDUP_COUNT', String(records.length));
+    } catch(e) { console.warn("Could not save localStorage pre-dedup backup:", e); }
+
     const district = (window.DISTRICT_CONFIG && window.DISTRICT_CONFIG.name) || 'Solapur';
 
     // 1. Calculate all 124 GSDA parameters and 10K spatial grids at once
     let enriched = enrichSurveyRecords(records, district);
 
-    // 2. Remove duplicate coordinates (keep unique entries)
+    // 2. Safe Deduplication using Technical Well ID (Census + Lat + Lon + Type) AND Gat No / Owner Name
     const seen = new Map();
     const unique = [];
     let dupCount = 0;
 
-    enriched.forEach(r => {
-      let lat = parseFloat(r.latitude);
-      let lon = parseFloat(r.longitude);
-      if (isNaN(lat) || isNaN(lon)) {
-        if (r.gpsCoords && r.gpsCoords.includes(',')) {
-          const parts = r.gpsCoords.split(',');
-          lat = parseFloat(parts[0]);
-          lon = parseFloat(parts[1]);
-        }
-      }
+    enriched.forEach((r, idx) => {
+      const wellId = r.technicalWellId || (typeof makeTechnicalWellId === 'function' ? makeTechnicalWellId(r) : `${r.censusNo || ''}_${r.latitude}_${r.longitude}_${r.wellType}`);
+      const gatClean = (r.gatNo || r.Gat_No || '').toString().trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const ownerClean = (r.ownerName || r.Owner_Name || '').toString().trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 
-      if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
-        const key = `${lat.toFixed(5)}_${lon.toFixed(5)}`;
-        if (seen.has(key)) {
-          dupCount++;
-        } else {
-          seen.set(key, r);
-          unique.push(r);
-        }
+      // Only merge if exact same Well ID AND same Gat No AND same Owner
+      // Different Gat numbers or different owners are NEVER merged!
+      const key = `${wellId}_GAT_${gatClean || 'UNSET'}_OWNER_${ownerClean || 'UNSET'}`;
+
+      if (seen.has(key)) {
+        dupCount++;
       } else {
+        seen.set(key, r);
         unique.push(r);
       }
     });
@@ -852,10 +938,55 @@
       alertBox.style.background = 'rgba(16,185,129,0.12)';
       alertBox.style.color = '#059669';
       alertBox.style.border = '1px solid rgba(16,185,129,0.3)';
-      alertBox.innerHTML = `✅ <strong>Database Saved & Calculated!</strong> All ${unique.length} wells processed with 124 GSDA parameters & 10K grids.${dupCount > 0 ? ` <em>(${dupCount} duplicate coordinates removed).</em>` : ''}`;
+      alertBox.innerHTML = `✅ <strong>Database Saved & Calculated!</strong> All ${unique.length} wells processed with 124 GSDA parameters, 10K grids & Well IDs.${dupCount > 0 ? ` <em>(${dupCount} exact duplicates removed).</em>` : ''}`;
     }
 
-    alert(`✅ Successfully calculated, deduplicated, and saved ${unique.length} wells to App Database!${dupCount > 0 ? `\n\n(${dupCount} duplicate records removed)` : ''}`);
+    const restoreBtn = document.getElementById('btnRestoreHubBackup');
+    if (restoreBtn) restoreBtn.style.display = 'inline-flex';
+
+    alert(`✅ Successfully calculated, deduplicated (using Well ID + Gat No), and saved ${unique.length} wells to App Database!${dupCount > 0 ? `\n\n(${dupCount} exact duplicate records removed)` : ''}`);
+  }
+
+  async function restoreHubBackupFromDatabase() {
+    let backupJson = localStorage.getItem('HYDROGEO_BACKUP_BEFORE_DEDUP');
+    if (!backupJson) {
+      alert("⚠️ No pre-deduplication backup found in browser memory.");
+      return;
+    }
+    try {
+      const restored = JSON.parse(backupJson);
+      if (!Array.isArray(restored) || restored.length === 0) {
+        alert("⚠️ Backup data is empty or invalid.");
+        return;
+      }
+      if (!confirm(`Restore all ${restored.length} original records from backup? This will undo any previous deduplication.`)) {
+        return;
+      }
+
+      if (typeof saveStoredRecords === 'function') {
+        await saveStoredRecords(restored);
+      }
+      hubLoadedRecords = restored;
+      hubCurrentPage = 1;
+
+      renderHubPreview();
+      if (typeof renderRecords === 'function') renderRecords();
+      if (typeof updateBadge === 'function') updateBadge();
+      if (typeof updateHomeDashboard === 'function') updateHomeDashboard();
+
+      const alertBox = document.getElementById('hubStatusAlert');
+      if (alertBox) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = 'rgba(16,185,129,0.12)';
+        alertBox.style.color = '#059669';
+        alertBox.style.border = '1px solid rgba(16,185,129,0.3)';
+        alertBox.innerHTML = `↩️ <strong>Restored!</strong> Successfully restored all ${restored.length} wells from original backup.`;
+      }
+      alert(`↩️ Successfully restored all ${restored.length} original wells!`);
+    } catch(err) {
+      console.error(err);
+      alert(`❌ Error restoring backup: ${err.message}`);
+    }
   }
 
   function refreshHubFromDatabase() {
@@ -888,6 +1019,7 @@
     downloadHubMrsacSheet,
     printHubBooklet,
     syncAndSaveHubRecordsToDatabase,
+    restoreHubBackupFromDatabase,
     refreshHubFromDatabase
   };
 
@@ -901,6 +1033,7 @@
   window.downloadHubMrsacSheet = downloadHubMrsacSheet;
   window.printHubBooklet = printHubBooklet;
   window.syncAndSaveHubRecordsToDatabase = syncAndSaveHubRecordsToDatabase;
+  window.restoreHubBackupFromDatabase = restoreHubBackupFromDatabase;
   window.refreshHubFromDatabase = refreshHubFromDatabase;
 
 })(window);
