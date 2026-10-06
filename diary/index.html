@@ -186,15 +186,15 @@
         margin: 0 !important;
         color: black !important;
         width: 100% !important;
-        height: 100% !important;
-        max-height: 297mm !important;
-        overflow: hidden !important;
+        height: auto !important;
+        overflow: visible !important;
       }
       header, .controls, .summary-strip, .bottom-nav, .no-print, .desktop-nav, #printMobileHelpBanner { display: none !important; }
       .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
       #view-print { display: block !important; margin: 0 !important; padding: 0 !important; }
       .print-preview-wrapper { overflow: visible !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
-      .print-sheet {
+      /* Mode 1-Page: Lock to 1 Page A4 */
+      .print-preview-wrapper.mode-1page .print-sheet {
         padding: 2.5mm 3.5mm 2mm 3.5mm !important;
         border: 1px solid #000 !important;
         width: 100% !important;
@@ -212,6 +212,23 @@
         break-after: avoid !important;
         box-sizing: border-box !important;
       }
+
+      /* Mode 2-Page: Multi-Page support */
+      .print-preview-wrapper.mode-2page,
+      .print-preview-wrapper.mode-2page .print-sheet {
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
       .print-table {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
@@ -227,10 +244,142 @@
         font-size: 7.2pt !important;
       }
       .print-sig-officer {
-        margin-top: 36px !important;
+        margin-top: 16px !important;
       }
       #mPrSubmissionDate { border: none !important; background: transparent !important; }
+      .mode-2page .page2-container {
+        page-break-before: always !important;
+        break-before: page !important;
+        margin-top: 0 !important;
+        border-top: none !important;
+        padding-top: 8mm !important;
+      }
+      .mode-2page .print-table {
+        width: 100% !important;
+        font-size: 8.5pt !important;
+        line-height: 1.25 !important;
+      }
+      .mode-2page .print-table th,
+      .mode-2page .print-table td {
+        height: 7.6mm !important;
+        padding: 2.5px 2.5px !important;
+        vertical-align: middle !important;
+        font-size: 8.5pt !important;
+      }
+      .mode-2page .print-table thead th {
+        height: 8.5mm !important;
+        font-size: 8.8pt !important;
+      }
+      .mode-2page .page2-container table th,
+      .mode-2page .page2-container table td {
+        height: 6.8mm !important;
+        font-size: 9pt !important;
+        padding: 3px 5px !important;
+      }
       @page { size: A4 portrait; margin: 5mm 4mm 3mm 6mm; }
+    }
+
+    .mode-2page .print-table th,
+    .mode-2page .print-table td {
+      height: 7.6mm;
+      padding: 2.5px 2.5px;
+      font-size: 8.5pt;
+      line-height: 1.25;
+    }
+    .mode-2page .print-table thead th {
+      height: 8.5mm;
+      font-size: 8.8pt;
+    }
+    .mode-2page .page2-container {
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: none !important;
+    }
+
+    /* Unbroken seamless divider line across travel columns */
+    td.rt-td {
+      padding: 0 !important;
+      vertical-align: top !important;
+    }
+    .rt-cell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+    .rt-leg1 {
+      height: 30px;
+      min-height: 30px;
+      max-height: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 1px 4px;
+      box-sizing: border-box;
+      line-height: 1.1;
+      overflow: hidden;
+    }
+    .rt-leg2 {
+      height: 25px;
+      min-height: 25px;
+      max-height: 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      border-top: 1.5px solid #64748b; /* unbroken solid line across all 7 columns */
+      padding: 1px 4px;
+      box-sizing: border-box;
+      font-size: 0.72rem;
+      line-height: 1.1;
+      color: #15803d;
+      font-weight: 600;
+      overflow: hidden;
+    }
+    .print-table td.rt-td {
+      padding: 0 !important;
+      vertical-align: top !important;
+    }
+    .print-table .rt-cell {
+      height: 100%;
+      min-height: auto;
+    }
+    .print-table .rt-leg1 {
+      height: 5.1mm !important;
+      min-height: 5.1mm !important;
+      max-height: 5.1mm !important;
+      padding: 0.2mm 0.5mm !important;
+      font-size: 6.8pt !important;
+      line-height: 1.0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      text-align: center !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+    .print-table .rt-leg2 {
+      height: 4.5mm !important;
+      min-height: 4.5mm !important;
+      max-height: 4.5mm !important;
+      border-top: 0.75px solid #000000 !important; /* solid unbroken black dividing line in print */
+      padding: 0.2mm 0.5mm !important;
+      font-size: 6.8pt !important;
+      line-height: 1.0 !important;
+      color: #000000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      text-align: center !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+      font-weight: normal !important;
     }
 
     .print-preview-wrapper {
@@ -322,6 +471,62 @@
 </head>
 <body>
 
+  <!-- DEVICE-BOUND ACTIVATION LOCK SCREEN (OFFLINE ANTI-PIRACY) -->
+  <div id="deviceActivationOverlay" style="position: fixed; inset: 0; z-index: 9999999; background: rgba(11, 17, 32, 0.98); backdrop-filter: blur(14px); display: none; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <div style="background: #1e293b; border: 2px solid #1d4ed8; border-radius: 18px; max-width: 440px; width: 100%; box-shadow: 0 16px 50px rgba(0,0,0,0.6); overflow: hidden; color: #f8fafc;">
+      <div style="background: linear-gradient(135deg, rgba(29, 78, 216, 0.3) 0%, rgba(30, 41, 59, 0.7) 100%); padding: 22px 20px; border-bottom: 1.5px solid #334155; text-align: center;">
+        <div style="width: 58px; height: 58px; margin: 0 auto 10px auto; border-radius: 50%; background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 16px rgba(29, 78, 216, 0.4); border: 2px solid rgba(255,255,255,0.2);">
+          🔐
+        </div>
+        <h2 style="font-size: 1.25rem; font-weight: 900; color: #f8fafc; margin: 0;">GSDA दैनंदिनी (Diary Pro)</h2>
+        <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 3px 12px; border-radius: 20px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; font-size: 0.72rem; font-weight: 800; color: #f59e0b;">
+          ⚠️ अ‍ॅप सक्रियीकरण आवश्यक (Activation Required)
+        </div>
+      </div>
+
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.45; margin: 0; text-align: center;">
+          हे अ‍ॅप या उपकरणासाठी सुरक्षित (Lock) केलेले आहे. अ‍ॅप सुरू करण्यासाठी खालील <strong>Device Request Code</strong> निर्मात्यांना (<strong>Vrad Vinayak</strong>) WhatsApp वर पाठवून Activation Key मिळवा.
+        </p>
+
+        <!-- Device Request Code Card -->
+        <div style="background: #0f172a; border: 1.5px dashed #1d4ed8; border-radius: 12px; padding: 14px; text-align: center;">
+          <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em;">
+            तुमचा Device Request Code
+          </div>
+          <div id="lblDeviceRequestCode" style="font-size: 1.6rem; font-weight: 900; font-family: monospace; color: #60a5fa; letter-spacing: 2px; margin: 6px 0;">
+            REQ-......
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center; margin-top: 6px;">
+            <button type="button" class="btn btn-sm" style="padding: 6px 14px; font-size: 0.76rem; font-weight: 800; background: #334155; border: 1px solid #475569; color: #f8fafc; border-radius: 8px; cursor: pointer;" onclick="copyDeviceRequestCode()">
+              📋 Copy Code
+            </button>
+            <button type="button" class="btn btn-sm" style="padding: 6px 14px; font-size: 0.76rem; font-weight: 800; background: #25D366; color: #ffffff; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 6px rgba(37,211,102,0.3);" onclick="sendActivationOnWhatsApp()">
+              💬 WhatsApp वर पाठवा
+            </button>
+          </div>
+        </div>
+
+        <div id="activationErrorBanner" style="display: none; padding: 10px 12px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1.5px solid #ef4444; color: #ef4444; font-size: 0.8rem; font-weight: 700; text-align: center;">
+        </div>
+
+        <!-- Key Input Field -->
+        <div style="margin: 0;">
+          <label style="font-size: 0.76rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">🔑 ६-अंकी Activation Key टाका</label>
+          <input type="text" id="activationKeyInput" placeholder="उदा. 482915" maxlength="20" style="width: 100%; padding: 12px; font-size: 1.15rem; font-weight: 800; text-align: center; letter-spacing: 3px; font-family: monospace; border-radius: 8px; border: 1.5px solid #475569; background: #0f172a; color: #f8fafc; box-sizing: border-box;" onkeydown="if(event.key==='Enter') handleDeviceActivation();" />
+        </div>
+
+        <button type="button" class="btn btn-green" style="width: 100%; padding: 13px; font-size: 1rem; font-weight: 800; background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); color: #fff; border: none; border-radius: 8px; box-shadow: 0 4px 14px rgba(29, 78, 216, 0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;" onclick="handleDeviceActivation()">
+          🔓 अ‍ॅप सक्रिय करा (Activate App)
+        </button>
+
+        <div style="text-align: center; font-size: 0.72rem; color: #94a3b8; font-weight: 600; line-height: 1.35;">
+          🛡️ <em>100% ऑफलाइन पडताळणी. एकदा सक्रिय झाल्यावर हे उपकरण कायमस्वरूपी सुरू राहील.</em>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- HEADER -->
   <header>
     <div>
@@ -334,6 +539,7 @@
       </button>
       <button class="btn btn-green btn-sm" onclick="saveAllMobileData()" title="डेटा जतन करा"><i class="fa-solid fa-floppy-disk"></i> जतन करा</button>
       <button class="btn btn-amber btn-sm" onclick="openShareModal()" title="WhatsApp वर पाठवा"><i class="fa-solid fa-share-nodes"></i> शेअर</button>
+      <button class="btn btn-sm" onclick="switchNav('profile', document.getElementById('dNavProfile'))" style="background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 0.72rem; padding: 4px 8px; font-weight: bold; cursor: pointer;" title="अधिकारी प्रोफाइल (Profile Manager)"><i class="fa-solid fa-user-gear"></i> <span>प्रोफाइल</span></button>
       <span class="badge">Offline OK</span>
     </div>
   </header>
@@ -350,14 +556,17 @@
       <button class="desktop-nav-btn" id="dNavSummary" onclick="switchNav('summary', this)">
         <i class="fa-solid fa-chart-pie"></i> <span>मासिक गोषवारा (Summary)</span>
       </button>
-      <button class="desktop-nav-btn" id="dNavPrint" onclick="triggerPrint()">
-        <i class="fa-solid fa-print"></i> <span>१-पान A4 प्रिंट (Print/PDF)</span>
+      <button class="desktop-nav-btn" id="dNavPrint" onclick="switchNav('print', this)">
+        <i class="fa-solid fa-print"></i> <span>रोजनिशी प्रिंट (Print/PDF)</span>
       </button>
       <button class="desktop-nav-btn" id="dNavHolidays" onclick="switchNav('holidays', this)">
         <i class="fa-solid fa-calendar-check"></i> <span>सुट्ट्या (Holidays)</span>
       </button>
       <button class="desktop-nav-btn" id="dNavProfile" onclick="switchNav('profile', this)">
         <i class="fa-solid fa-user-tie"></i> <span>अधिकारी प्रोफाइल (Profile)</span>
+      </button>
+      <button class="desktop-nav-btn" id="dNavGuide" onclick="switchNav('guide', this)" style="color: #0284c7; font-weight: bold;">
+        <i class="fa-solid fa-book-open-reader"></i> <span>मार्गदर्शिका (User Guide)</span>
       </button>
     </div>
   </nav>
@@ -413,11 +622,11 @@
               <tr>
                 <th style="width: 38px;">अ.क्र.</th>
                 <th style="width: 90px;">दिनांक / वार</th>
-                <th style="width: 95px;">प्रवासाचे साधन</th>
                 <th style="width: 100px;">प्रस्थान (कोठून)</th>
                 <th style="width: 55px;">वेळ</th>
                 <th style="width: 110px;">आगमन (कोठे)</th>
                 <th style="width: 55px;">वेळ</th>
+                <th style="width: 95px;">प्रवासाचे साधन</th>
                 <th style="width: 55px;">कि.मी.</th>
                 <th style="width: 65px;">भाडे रु.</th>
                 <th>कामाचे तपशील / प्रवासाचे कारण</th>
@@ -483,6 +692,14 @@
           <div class="stat-val" id="stKm" style="color: #0f172a;">0</div>
           <div class="stat-lbl">एकूण प्रवास अंतर (कि.मी.)</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stWellsSummary" style="color: #0284c7;">0</div>
+          <div class="stat-lbl">तपासलेल्या विहिरी संख्या (No. of Wells)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stMapsheetSummary" style="color: #059669;">0</div>
+          <div class="stat-lbl">1:10K मॅपशीट संख्या (No. of Mapsheet)</div>
+        </div>
       </div>
 
       <!-- Field Progress Table (1:10K, Atal Bhujal, etc.) -->
@@ -506,11 +723,22 @@
       </div>
     </div>
 
-    <!-- VIEW 4: OFFICIAL 1-PAGE A4 PRINT (प्रपत्र A4) -->
+    <!-- VIEW 4: OFFICIAL PRINT (प्रपत्र A4) -->
     <div id="view-print" class="view-panel">
-      <div class="no-print" style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <div style="font-size: 0.75rem; color: #475569;">अधिकृत शासकीय प्रपत्र (Cell A1:J50) हुबेहूब 1 पूर्ण पानावर मुद्रित होते.</div>
-        <button class="btn btn-purple" onclick="window.print()"><i class="fa-solid fa-print"></i> A4 Portrait वर मुद्रण / PDF सेव्ह करा</button>
+      <div class="no-print" style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: #f8fafc; padding: 10px 14px; border-radius: 10px; border: 1.5px solid #cbd5e1;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span style="font-weight: bold; font-size: 0.8rem; color: #1e293b;">
+            <i class="fa-solid fa-file-invoice text-blue-700"></i> प्रिंट फॉरमॅट:
+          </span>
+          <button type="button" id="mBtnFormat1Page" onclick="setQuickPrintFormat('1page')" style="padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 0.78rem; cursor: pointer; border: 1.5px solid #3b82f6; background: #3b82f6; color: white;">
+            १ पान कॉम्पॅक्ट (1-Page)
+          </button>
+          <button type="button" id="mBtnFormat2Page" onclick="setQuickPrintFormat('2page')" style="padding: 5px 12px; border-radius: 6px; font-weight: bold; font-size: 0.78rem; cursor: pointer; border: 1.5px solid #cbd5e1; background: white; color: #475569;">
+            २ पाने सविस्तर (2-Page Varad)
+          </button>
+          <span id="mPrintBadgeText" style="font-size: 0.72rem; color: #0369a1; font-weight: 600; margin-left: 6px;"></span>
+        </div>
+        <button class="btn btn-purple" onclick="window.print()" style="font-size: 0.85rem; padding: 7px 16px; font-weight: bold; cursor: pointer;"><i class="fa-solid fa-print"></i> मुद्रण / PDF सेव्ह करा (Print)</button>
       </div>
 
       <!-- Mobile swipe hint banner (no-print) -->
@@ -534,77 +762,157 @@
           <span id="prOfficerSalary">वेतन:६४०००/-</span>
         </div>
 
-        <!-- Table A1 to J35 (100% Proportional Widths) -->
+        <!-- Table A1 to J35 (100% Proportional Widths matching Varad Excel Sheet 1) -->
         <table class="print-table" id="prTable">
           <thead>
             <tr>
-              <th style="width: 4%;">अ.क्र.</th>
-              <th style="width: 10%;">दिनांक</th>
-              <th style="width: 9%;">कोठून</th>
+              <th rowspan="2" style="width: 10%;">दिनांक</th>
+              <th colspan="2" style="width: 15%;">निघण्याचे</th>
+              <th colspan="2" style="width: 25%;">पोहचण्याचे</th>
+              <th rowspan="2" style="width: 10%;">प्रवासाचे साधन</th>
+              <th rowspan="2" style="width: 7%;">प्रवासाचे अंतर कि. मी.</th>
+              <th rowspan="2" style="width: 6%;">प्रवास भाडे रुपये</th>
+              <th rowspan="2" style="width: 27%; text-align: left;">कामाचे तपशील / प्रवासाचे कारण</th>
+            </tr>
+            <tr>
+              <th style="width: 9.5%;">ठिकाण</th>
               <th style="width: 5.5%;">वेळ</th>
-              <th style="width: 22%;">कोठे</th>
+              <th style="width: 19.5%;">ठिकाण</th>
               <th style="width: 5.5%;">वेळ</th>
-              <th style="width: 10%;">प्रवासाचे साधन</th>
-              <th style="width: 6%;">अंतर कि.मी.</th>
-              <th style="width: 5%;">भाडे रु.</th>
-              <th style="width: 23%; text-align: left;">कामाचे तपशील / प्रवासाचे कारण</th>
             </tr>
           </thead>
           <tbody id="prTableBody"></tbody>
         </table>
 
-        <!-- Bottom Grid: Left Progress | Right Summary -->
-        <div style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 4px; margin-top: 5px; font-size: 6.6pt; border-top: 1px solid #000; padding-top: 3px;">
-          <div>
-            <div style="font-weight: bold; text-align: center; background: #f1f5f9; border: 0.75px solid #000; padding: 1.5px 0;">क्षे्त्रिय प्रगती</div>
-            <table class="print-table" style="margin: 0;">
-              <thead>
-                <tr>
-                  <th style="text-align: left; padding: 2px 3px;">योजना प्रकार</th>
-                  <th style="width: 32px; padding: 2px 1px;">गावे</th>
-                  <th style="width: 32px; padding: 2px 1px;">प्रकरणे</th>
-                </tr>
-              </thead>
-              <tbody id="prProgressBody"></tbody>
-            </table>
-          </div>
+        <!-- Bottom Summary Section (Sheet 2: Goshwara, Pragati & Signatures) -->
+        <div id="prSummaryPageContainer">
 
-          <div>
-            <div style="font-weight: bold; text-align: center; background: #f1f5f9; border: 0.75px solid #000; padding: 1.5px 0;">मासिक गोषवारा</div>
-            <table class="print-table" style="margin: 0; text-align: left;">
-              <tbody id="prSummaryBody"></tbody>
-            </table>
-            <!-- Officer Signature right under summary (pushed down from table to align with 1:10K Mapsheet Survey row) -->
-            <div class="print-sig-officer" style="text-align: center; font-weight: bold; margin-top: 50px; padding-top: 2px;">
-              <p id="prSigOfficerName">(विनायक नवनाथ निंबाळकर)</p>
-              <p id="prSigOfficerDesig">सहाय्यक भूवैज्ञानिक</p>
-              <p id="prSigOffice">भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर</p>
+          <!-- ======================================================== -->
+          <!-- 1-PAGE COMPACT FORMAT: Side-by-Side Tables               -->
+          <!-- ======================================================== -->
+          <div id="prSummary1PageContainer">
+            <!-- Bottom Grid: Left Progress | Right Summary -->
+            <div id="prBottomSummaryGrid" style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 4px; margin-top: 5px; font-size: 6.6pt; border-top: 1px solid #000; padding-top: 3px;">
+              <div>
+                <div style="font-weight: bold; text-align: center; background: #f1f5f9; border: 0.75px solid #000; padding: 1.5px 0;">क्षे्त्रिय प्रगती</div>
+                <table class="print-table" style="margin: 0;">
+                  <thead>
+                    <tr>
+                      <th style="text-align: left; padding: 2px 3px;">योजना प्रकार</th>
+                      <th style="width: 32px; padding: 2px 1px;">गावे/न.प.</th>
+                      <th style="width: 32px; padding: 2px 1px;">प्रकरणे/विहिरी</th>
+                    </tr>
+                  </thead>
+                  <tbody id="prProgressBody"></tbody>
+                </table>
+              </div>
+
+              <div>
+                <div style="font-weight: bold; text-align: center; background: #f1f5f9; border: 0.75px solid #000; padding: 1.5px 0;">मासिक गोषवारा</div>
+                <table class="print-table" style="margin: 0; text-align: left;">
+                  <tbody id="prSummaryBody"></tbody>
+                </table>
+                <!-- Officer Signature right under summary -->
+                <div class="print-sig-officer" style="text-align: center; font-weight: bold; margin-top: 18px; padding-top: 2px;">
+                  <p id="prSigOfficerName">(विनायक नवनाथ निंबाळकर)</p>
+                  <p id="prSigOfficerDesig">सहाय्यक भूवैज्ञानिक</p>
+                  <p id="prSigOffice">भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submission Remarks -->
+            <div style="font-size: 6.8pt; margin-top: 5px; border-top: 0.75px solid #000; padding-top: 3px; font-weight: bold; line-height: 1.35;">
+              <p>प्रति,</p>
+              <p id="prSubmissionOffice">मा. वरिष्ठ भूवैज्ञानिक, भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर यांना माहितीस्तव व मंजूरीस्तव सविनय सादर.</p>
+            </div>
+
+            <!-- Date & Bottom Signature -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 6.8pt; font-weight: bold; margin-top: 5px; padding-top: 2px;">
+              <div style="display:flex; align-items:center; gap:3px;">
+                <span>दिनांक:</span>
+                <input type="text" id="mPrSubmissionDate" value="05/02/2026" style="width:75px; border:1px solid #3b82f6; background:#eff6ff; font-size:inherit; font-weight:bold; text-align:center; border-radius:3px; padding:2px;" oninput="onMobileSubDateChange(this.value)" title="सादर दिनांक">
+                <button type="button" onclick="promptMobileSubmissionDate()" class="no-print" style="background:#2563eb; color:white; border:none; border-radius:3px; padding:2px 5px; font-size:0.65rem; font-weight:bold; cursor:pointer;" title="सादर दिनांक संपादित करा">
+                  <i class="fa-solid fa-pen-to-square"></i> दिनांक बदला
+                </button>
+              </div>
+              <div style="text-align: center;">
+                <p>आपला विश्वासु,</p>
+                <div style="height: 25px;"></div>
+                <p id="prBottomOfficerName">(विनायक नवनाथ निंबाळकर)</p>
+                <p id="prBottomDesigCity">सहाय्यक भूवैज्ञानिक, सोलापूर</p>
+                <p id="prBottomOffice">भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Submission Remarks -->
-        <div style="font-size: 6.8pt; margin-top: 5px; border-top: 0.75px solid #000; padding-top: 3px; font-weight: bold; line-height: 1.35;">
-          <p>प्रति,</p>
-          <p id="prSubmissionOffice">मा. वरिष्ठ भूवैज्ञानिक, भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर यांना माहितीस्तव व मंजूरीस्तव सविनय सादर.</p>
-        </div>
+          <!-- ======================================================== -->
+          <!-- 2-PAGE VARAD FORMAT: Sheet 2 Up and Down Tables           -->
+          <!-- ======================================================== -->
+          <div id="prSummary2PageContainer" style="display: none;" class="page2-container">
+            <!-- Sheet 2 Title Header -->
+            <div style="text-align: center; margin-bottom: 8px;">
+              <div style="font-weight: bold; font-size: 8.8pt; text-decoration: underline; margin-bottom: 3px;">मासिक दैनंदिनीचा गोषवारा</div>
+              <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px; font-size: 6.8pt;">
+                <span id="prP2OfficerName">नाव : विनायक नवनाथ निंबाळकर</span>
+                <span id="prP2OfficerDesig">पदनाम : सहाय्यक भूवैज्ञानिक</span>
+                <span id="prP2OfficerDept">भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर</span>
+              </div>
+            </div>
 
-        <!-- Date & Bottom Signature -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 6.8pt; font-weight: bold; margin-top: 5px; padding-top: 2px;">
-          <div style="display:flex; align-items:center; gap:3px;">
-            <span>दिनांक:</span>
-            <input type="text" id="mPrSubmissionDate" value="31/07/2026" style="width:75px; border:1px solid #3b82f6; background:#eff6ff; font-size:inherit; font-weight:bold; text-align:center; border-radius:3px; padding:2px;" oninput="onMobileSubDateChange(this.value)" title="सादर दिनांक संपादित करा">
-            <button type="button" onclick="promptMobileSubmissionDate()" class="no-print" style="background:#2563eb; color:white; border:none; border-radius:3px; padding:2px 5px; font-size:0.65rem; font-weight:bold; cursor:pointer;" title="सादर दिनांक संपादित करा">
-              <i class="fa-solid fa-pen-to-square"></i> दिनांक बदला
-            </button>
+            <!-- Table 1 (TOP): मासिक गोषवारा (Full Width) -->
+            <div style="margin-bottom: 10px;">
+              <table class="print-table" style="width: 100%; margin: 0; font-size: 7.2pt;">
+                <thead>
+                  <tr style="background: #f1f5f9; font-weight: bold; text-align: center;">
+                    <th style="width: 32px; padding: 2.5px 2px;">अ.क्र.</th>
+                    <th style="text-align: left; padding: 2.5px 8px; width: 42%;">तपशील</th>
+                    <th style="width: 70px; padding: 2.5px 2px; text-align: center;">एकुण दिवस</th>
+                    <th style="width: 38%; padding: 2.5px 2px; text-align: center;">शेरा</th>
+                  </tr>
+                </thead>
+                <tbody id="prP2SummaryBody"></tbody>
+              </table>
+            </div>
+
+            <!-- Table 2 (BOTTOM): क्षेत्रीय प्रगती (Full Width) -->
+            <div style="margin-bottom: 10px;">
+              <table class="print-table" style="width: 100%; margin: 0; font-size: 7.2pt; text-align: center;">
+                <thead>
+                  <tr style="background: #f1f5f9; font-weight: bold; text-align: center;">
+                    <th style="width: 32px; padding: 2.5px 2px;">अ.क्र.</th>
+                    <th style="text-align: left; padding: 2.5px 8px; width: 34%;">योजना</th>
+                    <th style="width: 70px; padding: 2.5px 2px;">गावे / वाडी</th>
+                    <th style="width: 80px; padding: 2.5px 2px;">सर्वेक्षित प्रकरणे</th>
+                    <th style="width: 65px; padding: 2.5px 2px;">मंजूर प्रकरणे</th>
+                    <th style="width: 32%; padding: 2.5px 2px;">शेरा</th>
+                  </tr>
+                </thead>
+                <tbody id="prP2ProgressBody"></tbody>
+              </table>
+            </div>
+
+            <!-- Submission Line -->
+            <div style="font-size: 6.8pt; margin-top: 6px; border-top: 0.75px solid #000; padding-top: 3px; font-weight: bold; line-height: 1.35;">
+              <p id="prP2SubmissionLine">उपरोक्त माहे ची मासिक दैनंदिनी मंजूरीसाठी सविनय सादर.</p>
+            </div>
+
+            <!-- Date on Left, Signature on Right -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 6.8pt; font-weight: bold; margin-top: 6px; padding-top: 2px;">
+              <div>
+                <span>दिनांक: </span><span id="prP2DateDisplay" style="font-family: monospace;">05/08/2026</span>
+              </div>
+              <div style="text-align: center; min-width: 140px;">
+                <p>आपला विश्वासु,</p>
+                <div style="height: 25px;"></div>
+                <p id="prP2SigName">(विनायक नवनाथ निंबाळकर)</p>
+                <p id="prP2SigDesig">सहाय्यक भूवैज्ञानिक</p>
+                <p id="prP2SigDept">भूजल सर्वेक्षण आणि विकास यंत्रणा,</p>
+                <p id="prP2SigCity">सोलापूर</p>
+              </div>
+            </div>
           </div>
-          <div style="text-align: center;">
-            <p>आपला विश्वासु,</p>
-            <div style="height: 25px;"></div> <!-- space for signature pushed down -->
-            <p id="prBottomOfficerName">(विनायक नवनाथ निंबाळकर)</p>
-            <p id="prBottomDesigCity">सहाय्यक भूवैज्ञानिक, लातूर</p>
-            <p id="prBottomOffice">ग्रामीण पाणी पुरवठा, जिल्हा परिषद , लातूर</p>
-          </div>
+
         </div>
       </div>
       </div>
@@ -750,8 +1058,29 @@
           <span style="font-size: 0.65rem; color: #92400e;">* अंतर टाकून 'भाडे गणना' दाबल्यावर या दरानुसार प्रवास भाडे स्वयंचलित गणले जाईल.</span>
         </div>
 
-        <button class="btn btn-green" onclick="saveMobileProfile()" style="width: 100%; justify-content: center; padding: 10px; font-size: 0.9rem;">
-          <i class="fa-solid fa-floppy-disk"></i> प्रोफाइल व मुख्यालय जतन करा
+        <!-- Print / Report Page Format Option -->
+        <div class="form-group" style="background: #f0fdf4; padding: 10px; border-radius: 8px; border: 1px solid #86efac; margin-bottom: 12px;">
+          <label style="color: #166534; font-weight: bold; margin-bottom: 6px; font-size: 0.8rem; display: flex; align-items: center; gap: 5px;">
+            <i class="fa-solid fa-file-invoice"></i> रोजनिशी प्रिंट / अहवाल स्वरूप (Print & Report Format):
+          </label>
+          <div style="display: flex; gap: 16px; margin-top: 4px; flex-wrap: wrap;">
+            <label style="font-size: 0.78rem; display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: 600; color: #1e293b;">
+              <input type="radio" name="mProfPrintFormat" value="1page" checked onchange="onPrintFormatOptionChange(this.value)">
+              १ पान कॉम्पॅक्ट (1-Page Fit)
+            </label>
+            <label style="font-size: 0.78rem; display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: 600; color: #1e293b;">
+              <input type="radio" name="mProfPrintFormat" value="2page" onchange="onPrintFormatOptionChange(this.value)">
+              २ पाने सविस्तर (2-Page / Varad Format)
+            </label>
+          </div>
+          <div style="font-size: 0.68rem; color: #15803d; margin-top: 5px; line-height: 1.4;">
+            * <strong>१ पान:</strong> सर्व माहिती एकाच A4 पानात बसते.<br>
+            * <strong>२ पाने:</strong> पान १ वर सर्व दैनंदिन नोंदी (तपशील मोठा असल्यास २/३ पानांवर) व पान २ वर स्वतंत्र मासिक गोषवारा, क्षेत्रीय प्रगती व स्वाक्षरी.
+          </div>
+        </div>
+
+        <button class="btn btn-green" onclick="saveMobileProfile()" style="width: 100%; justify-content: center; padding: 10px; font-size: 0.9rem; font-weight: bold;">
+          <i class="fa-solid fa-floppy-disk"></i> प्रोफाइल सेव्ह करा (Save Profile)
         </button>
 
         <!-- MASTER STORAGE PATH & BACKUP BUTTONS -->
@@ -788,10 +1117,130 @@
             <input type="file" id="mJsonRestoreInput" accept=".json" style="display: none;" onchange="handleRestoreJson(event)">
           </div>
         </div>
+
+        <!-- DEVICE ACTIVATION STATUS CARD -->
+        <div style="background: #f8fafc; border: 1.5px solid #1d4ed8; border-radius: 8px; padding: 12px; margin-top: 14px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <h4 style="font-size: 0.85rem; color: #1d4ed8; font-weight: bold; margin: 0; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-shield-halved"></i> उपकरण सुरक्षा व परवाना (Device Activation)
+            </h4>
+            <span id="lblProfileActivationStatus" style="font-size: 0.72rem;"></span>
+          </div>
+          <p style="font-size: 0.72rem; color: #475569; margin: 0 0 8px 0; line-height: 1.4;">
+            हे अ‍ॅप १००% ऑफलाइन सुरक्षित असून फक्त अधिकृत उपकरणावरच सुरू राहते.
+          </p>
+          <div style="display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px;">
+            <div>उपकरण कोड: <strong id="lblProfileReqCode" style="font-family: monospace; color: #1d4ed8;">REQ-......</strong></div>
+            <div style="display: flex; gap: 6px;">
+              <button type="button" class="btn btn-sm" style="padding: 3px 8px; font-size: 0.72rem; background: #e0e7ff; color: #1e40af; border: 1px solid #c7d2fe;" onclick="copyDeviceRequestCode()">
+                <i class="fa-solid fa-copy"></i> कॉपी
+              </button>
+              <button type="button" class="btn btn-sm" style="padding: 3px 8px; font-size: 0.72rem; background: #25D366; color: #ffffff; border: none;" onclick="sendActivationOnWhatsApp()">
+                <i class="fa-brands fa-whatsapp"></i> WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-  </div>
+    <!-- VIEW 6: USER GUIDE (वापर मार्गदर्शिका) -->
+    <div id="view-guide" class="view-panel no-print">
+      <div style="background: white; border-radius: 10px; padding: 14px; border: 1px solid var(--border);">
+        <div style="border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3 style="font-size: 1rem; color: var(--primary); font-weight: bold; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-book-open-reader text-cyan-600"></i> GSDA दैनंदिनी वापर मार्गदर्शिका (User Guide)
+            </h3>
+            <p style="font-size: 0.7rem; color: #64748b; margin-top: 2px;">दैनंदिनी भरणे, परतीचा प्रवास, १-पान प्रिंट आणि एक्सेल डाऊनलोड सोप्या पायऱ्यांत</p>
+          </div>
+          <span style="font-size: 0.68rem; background: #dcfce7; color: #166534; padding: 3px 8px; border-radius: 999px; font-weight: bold; border: 1px solid #86efac;">
+            आवृत्ती २०२६
+          </span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr; gap: 10px; font-size: 0.74rem;">
+          <!-- Guide 1 -->
+          <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px;">
+            <div style="font-weight: bold; color: #1e3a8a; font-size: 0.8rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <span style="background: #2563eb; color: white; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem;">१</span>
+              <span>अधिकारी प्रोफाइल भरणे (Profile Setup):</span>
+            </div>
+            <ul style="margin-left: 20px; line-height: 1.5; color: #334155;">
+              <li>'प्रोफाइल' टॅबवर जाऊन आपले नाव, पदनाम, कार्यालय व मुख्यालय (सोलापूर / लातूर इ.) भरा.</li>
+              <li>प्रवास भाडे दर (रु./कि.मी.): डिफॉल्ट १० रु. असतो, बदलून जतन करा.</li>
+            </ul>
+          </div>
+
+          <!-- Guide 2 -->
+          <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px;">
+            <div style="font-weight: bold; color: #14532d; font-size: 0.8rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <span style="background: #16a34a; color: white; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem;">२</span>
+              <span>दैनिक नोंद भरणे (Daily Entry):</span>
+            </div>
+            <ul style="margin-left: 20px; line-height: 1.5; color: #334155;">
+              <li>'नोंदी' टॅबमध्ये ज्या तारखेची नोंद करायची त्या कार्डवर / पेन्सिलवर क्लिक करा.</li>
+              <li>झटपट स्थिती: 🏢 मुख्यालय, 🚗 दौरा, 🚩 साप्ताहिक सुट्टी यावर एका क्लिकवर माहिती भरता येते.</li>
+              <li>माईकचे लाल बटण दाबून मराठीत बोलूनही कामकाज नोंदवता येते.</li>
+            </ul>
+          </div>
+
+          <!-- Guide 3 -->
+          <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px;">
+            <div style="font-weight: bold; color: #78350f; font-size: 0.8rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <span style="background: #d97706; color: white; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem;">३</span>
+              <span>परतीचा प्रवास नोंदवणे (Return Journey):</span>
+            </div>
+            <ul style="margin-left: 20px; line-height: 1.5; color: #334155;">
+              <li>जाण्याचा प्रवास भरल्यावर खाली <strong>'+ Add Return / Multi Journey'</strong> बटण दाबा.</li>
+              <li>परतीचे ठिकाण, वेळ, अंतर आणि प्रवासाचे साधन भरा.</li>
+              <li><strong>शासकीय वाहन:</strong> निवडल्यास भाडे आपोआप ० होते. खाजगी वाहन निवडल्यास दरानुसार भाडे गणले जाते.</li>
+              <li>दोन्ही प्रवास मुख्य तक्त्यात, १-पान प्रिंटमध्ये आणि Excel मध्ये अचूक दिसतात.</li>
+              <li><strong>दुसऱ्या दिवशी आगमन (Next Day Arrival):</strong> वेळ व कंसात तारीख लिहा, उदा. <code>०१.०० (८/७/२६)</code>. यामुळे प्रिंट व टेबलमध्ये वेळ आणि तारीख आपोआप वर-खाली (२ ओळींत) बसते व रकान्याची रुंदी (Column Width) अजिबात वाढत नाही.</li>
+            </ul>
+          </div>
+
+          <!-- Guide 4 -->
+          <div style="background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; padding: 10px;">
+            <div style="font-weight: bold; color: #581c87; font-size: 0.8rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <span style="background: #7e22ce; color: white; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem;">४</span>
+              <span>क्षेत्रीय प्रगती योजना (Add/Delete Schemes):</span>
+            </div>
+            <ul style="margin-left: 20px; line-height: 1.5; color: #334155;">
+              <li>एकाच ओळीत <strong>योजना निवडा | गावे | प्रकरणे</strong> उपलब्ध आहेत.</li>
+              <li><strong>+ योजना जोडा:</strong> नवीन शासकीय योजना तत्काळ यादीत जोडा.</li>
+              <li><strong>🗑️ योजना हटवा:</strong> नको असलेली जुनी योजना एका क्लिकवर काढून टाका.</li>
+            </ul>
+          </div>
+
+          <!-- Guide 5 -->
+          <div style="background: #fdf2f8; border: 1px solid #fbcfe8; border-radius: 8px; padding: 10px;">
+            <div style="font-weight: bold; color: #831843; font-size: 0.8rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <span style="background: #db2777; color: white; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem;">५</span>
+              <span>१-पान A4 प्रिंट आणि Excel डाऊनलोड:</span>
+            </div>
+            <ul style="margin-left: 20px; line-height: 1.5; color: #334155;">
+              <li><strong>'प्रपत्र A4':</strong> एकाच A4 पानात संपूर्ण ३१ दिवसांची दैनंदिनी, गोषवारा आणि स्वाक्षरी अचूक बसते.</li>
+              <li>सादर दिनांक: पुढील महिन्याची ५ तारीख आपोआप येते (बदलण्यायोग्य).</li>
+              <li><strong>अधिकृत Excel (.xlsx):</strong> मूळ १८ रकान्यांच्या मास्टर फॉरमॅटनुसार डाऊनलोड होते.</li>
+            </ul>
+          </div>
+
+          <!-- Guide 6 -->
+          <div style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px;">
+            <div style="font-weight: bold; color: #0369a1; font-size: 0.8rem; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+              <span style="background: #0284c7; color: white; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.65rem;">६</span>
+              <span>गुगल ड्राईव्ह बॅकअप व सुरक्षा (Google Drive Backup & Sync):</span>
+            </div>
+            <ul style="margin-left: 20px; line-height: 1.5; color: #334155;">
+              <li><strong>डेटा सुरक्षितता:</strong> महिन्याचे काम झाल्यावर <strong>'Excel डाऊनलोड'</strong> करून ती फाईल तुमच्या Google Drive वर ठेवा. मोबाईल किंवा PC खराब झाला तरी तुमचा डेटा १००% सुरक्षित राहील.</li>
+              <li><strong>Google Drive वरून कुठेही वापर:</strong> गुगल ड्राईव्हमधील एक्सेल फाईल तुम्ही कधीही, कोणत्याही मोबाईल किंवा कॉम्प्युटरवरून उघडू शकता.</li>
+              <li><strong>Google Drive for Desktop (PC साठी):</strong> PC मधील दैनंदिनी फोल्डर गुगल ड्राईव्हसोबत सिंक करून ठेवल्यास प्रत्येक बदल आपोआप क्लाऊडवर सेव्ह राहतो.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
 
   <!-- ENTRY EDIT MODAL -->
   <div id="entryModal" class="modal-overlay">
@@ -827,7 +1276,7 @@
         </div>
         <div class="form-group">
           <label>प्रवासाचे साधन:</label>
-          <select id="mTravelMode">
+          <select id="mTravelMode" onchange="onTravelModeChange(this.value, 'mFare', 'mDistance')">
             <option value="-">- लागू नाही -</option>
             <option value="शासकीय वाहन">शासकीय वाहन</option>
             <option value="खाजगी वाहन">खाजगी वाहन</option>
@@ -855,7 +1304,7 @@
         </div>
         <div class="form-group">
           <label>आगमन वेळ:</label>
-          <input type="text" id="mToTime" placeholder="17.30">
+          <input type="text" id="mToTime" placeholder="17.30 किंवा ०१.०० (८/७/२६)">
         </div>
       </div>
 
@@ -870,6 +1319,74 @@
             <button type="button" onclick="mobileAutoCalculateFare(true)" style="border: none; background: none; color: #2563eb; font-size: 0.68rem; font-weight: bold; cursor: pointer;">⚡ भाडे गणना</button>
           </div>
           <input type="text" id="mFare" placeholder="-">
+        </div>
+      </div>
+
+      <!-- + Add Return / Multi Journey Button & Section -->
+      <div style="margin-bottom: 10px;">
+        <button type="button" id="mBtnToggleReturnJourney" onclick="toggleReturnJourneySection()" class="btn btn-sm" style="width: 100%; justify-content: center; background: #e0f2fe; color: #0369a1; border: 1.5px dashed #0284c7; font-size: 0.78rem; font-weight: bold; padding: 6px 10px;">
+          <i class="fa-solid fa-route"></i> + Add Return / Multi Journey (परतीचा / दुसरा प्रवास जोडा)
+        </button>
+
+        <div id="mReturnJourneyContainer" style="display: none; background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 8px; padding: 10px; margin-top: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px dashed #86efac; padding-bottom: 4px;">
+            <span style="font-size: 0.76rem; font-weight: bold; color: #166534;">
+              <i class="fa-solid fa-arrow-right-arrow-left"></i> परतीचा / दुसरा प्रवास तपशील (Return Journey):
+            </span>
+            <button type="button" onclick="clearAndHideReturnJourney()" style="background: none; border: none; color: #dc2626; font-size: 0.72rem; cursor: pointer; font-weight: bold;">
+              <i class="fa-solid fa-trash"></i> प्रवास काढा
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label style="font-size: 0.72rem;">प्रवासाचे साधन (Return Travel Mode):</label>
+            <select id="mTravelMode2" onchange="onTravelModeChange(this.value, 'mFare2', 'mDistance2')">
+              <option value="-">- लागू नाही -</option>
+              <option value="शासकीय वाहन">शासकीय वाहन</option>
+              <option value="खाजगी वाहन">खाजगी वाहन</option>
+              <option value="एस.टी. / बस">एस.टी. / बस</option>
+              <option value="रेल्वे">रेल्वे</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label style="font-size: 0.72rem;">कोठून (From):</label>
+              <input type="text" id="mFrom2" placeholder="पुणे">
+            </div>
+            <div class="form-group">
+              <label style="font-size: 0.72rem;">प्रस्थान वेळ (Dep. Time):</label>
+              <input type="text" id="mFromTime2" placeholder="19.00">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label style="font-size: 0.72rem;">कोठे (To):</label>
+              <input type="text" id="mTo2" placeholder="सोलापूर">
+            </div>
+            <div class="form-group">
+              <label style="font-size: 0.72rem;">आगमन वेळ (Arr. Time):</label>
+              <input type="text" id="mToTime2" placeholder="23.55 किंवा ०१.०० (८/७/२६)">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label style="font-size: 0.72rem;">कि.मी.:</label>
+              <input type="text" id="mDistance2" placeholder="-" oninput="calculateReturnJourneyFare()">
+            </div>
+            <div class="form-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label style="font-size: 0.72rem;">भाडे रु.:</label>
+                <button type="button" onclick="calculateReturnJourneyFare(true)" style="border: none; background: none; color: #166534; font-size: 0.65rem; font-weight: bold; cursor: pointer;">⚡ भाडे गणना</button>
+              </div>
+              <input type="text" id="mFare2" placeholder="-">
+            </div>
+          </div>
+          <span style="font-size: 0.65rem; color: #15803d; display: block; margin-top: 2px;">
+            * शासकीय वाहन निवडल्यास भाडे आपोआप ० होईल. खाजगी वाहन/बस असल्यास भाडे टाका.
+          </span>
         </div>
       </div>
 
@@ -935,18 +1452,28 @@
 
       <div class="form-group" style="background: #fffbeb; padding: 8px; border-radius: 6px; margin-bottom: 10px; border: 1px solid #fde68a;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <label style="color: #92400e; font-weight: bold; margin-bottom: 0;">क्षेत्रीय प्रगती योजना:</label>
+          <label style="color: #92400e; font-weight: bold; margin-bottom: 0; font-size: 0.76rem;">क्षेत्रीय प्रगती योजना:</label>
           <div style="display: flex; gap: 4px;">
             <button type="button" class="btn btn-sm btn-green" onclick="addNewSchemePrompt()" style="padding: 2px 8px; font-size: 0.68rem;" title="नवीन योजना जोडा"><i class="fa-solid fa-plus"></i> योजना जोडा</button>
             <button type="button" class="btn btn-sm" onclick="removeSelectedSchemePrompt()" style="padding: 2px 8px; font-size: 0.68rem; background: #ef4444; color: white;" title="निवडलेली योजना हटवा"><i class="fa-solid fa-trash"></i> योजना हटवा</button>
           </div>
         </div>
-        <select id="mScheme" style="margin-bottom: 6px;">
-          <option value="">- योजना नाही -</option>
-        </select>
-        <div class="form-row">
-          <div><label>गावे:</label><input type="number" id="mVillages" min="0" placeholder="1"></div>
-          <div><label>प्रकरणे:</label><input type="number" id="mCases" min="0" placeholder="0"></div>
+        <!-- Single horizontal row: योजना निवडा | गावे | प्रकरणे / मॅपशीट संख्या -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; align-items: end;">
+          <div>
+            <label style="font-size: 0.68rem; margin-bottom: 2px;">योजना निवडा:</label>
+            <select id="mScheme" onchange="onSchemeSelectionChange(this.value)" style="margin-bottom: 0; font-size: 0.75rem; padding: 5px;">
+              <option value="">- योजना नाही -</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.68rem; margin-bottom: 2px;">गावे:</label>
+            <input type="number" id="mVillages" min="0" placeholder="1" style="font-size: 0.75rem; padding: 5px; text-align: center; font-weight: bold;">
+          </div>
+          <div>
+            <label id="mCasesLabel" style="font-size: 0.68rem; margin-bottom: 2px;">प्रकरणे:</label>
+            <input type="number" id="mCases" min="0" placeholder="0" style="font-size: 0.75rem; padding: 5px; text-align: center; font-weight: bold;">
+          </div>
         </div>
       </div>
 
@@ -1046,6 +1573,10 @@
       <i class="fa-solid fa-user-gear"></i>
       <span>प्रोफाइल</span>
     </button>
+    <button class="nav-btn" onclick="switchNav('guide', this)" style="color: #0284c7;">
+      <i class="fa-solid fa-book-open-reader"></i>
+      <span>मार्गदर्शिका</span>
+    </button>
   </nav>
 
   <script>
@@ -1102,6 +1633,28 @@
       return (appData.profile && appData.profile.headquarters) ? appData.profile.headquarters.trim() : 'सोलापूर';
     }
 
+    // Helper to display time cleanly (stacks date on next line to prevent column widening)
+    function formatTimeDisplay(val) {
+      if (!val || val === '-') return '-';
+      let s = String(val).trim();
+      if (s.includes('<span')) return s;
+      s = s.replace(/\r?\n/g, '<br>');
+      s = s.replace(/(?:<br>|\s+)?(\([^\)]+\))/g, '<br><span style="font-size: 0.82em; opacity: 0.9; line-height: 1; display: inline-block;">$1</span>');
+      return s;
+    }
+
+    // Helper to extract clean numeric value from English or Marathi numeral input
+    function parseDistanceNumber(val) {
+      if (!val) return NaN;
+      let s = String(val).trim();
+      const marathiDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+      marathiDigits.forEach((ch, idx) => {
+        s = s.replaceAll(ch, String(idx));
+      });
+      const match = s.match(/[0-9]+(?:\.[0-9]+)?/);
+      return match ? parseFloat(match[0]) : NaN;
+    }
+
     // 2026 OFFICIAL HOLIDAYS DATASET
     const GOVT_HOLIDAYS_2026 = [
       {"date": "2026-01-26", "day": "सोमवार", "name": "प्रजासत्ताक दिन"},
@@ -1137,7 +1690,7 @@
 
     const MARATHI_MONTHS = ["जानेवारी", "फेब्रुवारी", "मार्च", "एप्रिल", "मे", "जून", "जुलै", "ऑगस्ट", "सप्टेंबर", "ऑक्टोबर", "नोव्हेंबर", "डिसेंबर"];
     const STANDARD_SCHEMES = [
-      "स्थानिक भूजल सर्वेक्षण",
+      "इतर योजना सर्वेक्षण",
       "अटल भूजल योजना /जलयुक्त शिवार अभियान",
       "निरीक्षण विहीरींची वाचने",
       "वाळू/खाणपट्टा सर्वेक्षण",
@@ -1145,8 +1698,8 @@
       "प्रयोगशाळा",
       "न.पा.पु.सर्वेक्षण",
       "टांचाई अंतर्गत सर्वेक्षण",
-      "1:10K Mapsheet Survey",
-      "इतर योजना सर्वेक्षण"
+      "तांत्रिक सर्वेक्षण",
+      "1:10K mapsheet"
     ];
 
     // Local Storage State
@@ -1175,8 +1728,68 @@
       if (!appData.schemes || !Array.isArray(appData.schemes) || appData.schemes.length === 0) {
         appData.schemes = [...STANDARD_SCHEMES];
       }
+
+      // सर्व शनिवार व रविवार साप्ताहिक सुट्टी हमी (Auto-ensure all Saturdays & Sundays are weekly holidays)
+      if (appData.months) {
+        let changed = false;
+        Object.keys(appData.months).forEach(k => {
+          const m = appData.months[k];
+          if (m && m.entries) {
+            m.entries.forEach(e => {
+              if (e.date) {
+                const parts = e.date.split('-');
+                if (parts.length === 3) {
+                  const dt = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                  const dayIdx = dt.getDay();
+                  if (dayIdx === 0 || dayIdx === 6) { // 0: Sunday, 6: Saturday
+                    if (!e.tour && !e.meeting && !e.leave && !e.training) {
+                      if (e.holiday !== '1' || (e.work_detail && e.work_detail.includes('कार्यालयात उपस्थित'))) {
+                        e.holiday = '1';
+                        e.total = '1';
+                        e.travel_mode = '-'; e.from_loc = '-'; e.from_time = '-'; e.to_loc = '-'; e.to_time = '-';
+                        e.distance_km = '-'; e.travel_fare = '-';
+                        e.work_detail = 'साप्ताहिक सुट्टी.';
+                        changed = true;
+                      }
+                    }
+                  }
+                }
+              }
+            });
+          }
+        });
+        if (changed) persist();
+      }
+
+      // सर्व १२ महिन्यांसाठी ५ तारीख हमी (Ensure default submission date is 5th of next month for all 12 months)
+      if (!appData.months) appData.months = {};
+      let subDatesChanged = false;
+      for (let m = 1; m <= 12; m++) {
+        const mKey = `2026-${String(m).padStart(2, '0')}`;
+        ensureMonthExists(mKey);
+        const mObj = appData.months[mKey];
+        if (mObj) {
+          const expDate = getDefaultSubmissionDate(mKey);
+          const curVal = (mObj.submission_date || '').trim();
+          if (!curVal || isLegacySubmissionDate(curVal, mKey)) {
+            mObj.submission_date = expDate;
+            subDatesChanged = true;
+          }
+        }
+      }
+      if (subDatesChanged) persist();
+
       populateMonthsDropdown();
       ensureMonthExists(appData.currentMonthKey);
+
+      const curM = appData.months[appData.currentMonthKey];
+      if (curM) {
+        const subDateEl = document.getElementById('mPrSubmissionDate');
+        if (subDateEl) {
+          subDateEl.value = curM.submission_date || getDefaultSubmissionDate(appData.currentMonthKey);
+        }
+      }
+
       setupProfileAutoSync();
       renderActiveView();
       renderHolidaysList();
@@ -1228,6 +1841,42 @@
         if (key === appData.currentMonthKey) opt.selected = true;
         sel.appendChild(opt);
       }
+    }
+
+    // Helper: Next month's 5th date as default submission date (पुढील महिन्याची ५ तारीख)
+    function getDefaultSubmissionDate(monthKey) {
+      const parts = (monthKey || '2026-01').split('-');
+      let y = parseInt(parts[0], 10) || 2026;
+      let m = parseInt(parts[1], 10) || 1;
+      m += 1;
+      if (m > 12) {
+        m = 1;
+        y += 1;
+      }
+      const mm = m < 10 ? '0' + m : '' + m;
+      return `05/${mm}/${y}`;
+    }
+
+    // Helper: Identify outdated month-end or stale dates that should be upgraded to 5th of next month
+    function isLegacySubmissionDate(val, monthKey) {
+      if (!val || !String(val).trim()) return true;
+      const s = String(val).trim();
+      const legacyDates = [
+        '31/01/2026', '28/02/2026', '29/02/2026', '31/03/2026', '30/04/2026',
+        '31/05/2026', '30/06/2026', '31/07/2026', '31/08/2026', '30/09/2026',
+        '31/10/2026', '30/11/2026', '31/12/2026',
+        '31-01-2026', '28-02-2026', '31-03-2026', '30-04-2026', '31-07-2026'
+      ];
+      if (legacyDates.includes(s)) return true;
+      if (monthKey) {
+        const parts = monthKey.split('-');
+        const y = parseInt(parts[0], 10) || 2026;
+        const m = parseInt(parts[1], 10) || 1;
+        const lastDay = new Date(y, m, 0).getDate();
+        const mm = m < 10 ? '0' + m : '' + m;
+        if (s === `${lastDay}/${mm}/${y}` || s === `${lastDay}-${mm}-${y}`) return true;
+      }
+      return false;
     }
 
     // Ensure 31/30/28 days exist for selected month
@@ -1284,7 +1933,11 @@
 
         const curSchemes = (appData.schemes && appData.schemes.length > 0) ? appData.schemes : STANDARD_SCHEMES;
         const field_progress = curSchemes.map(s => ({ scheme: s, villages: "-", cases: "-" }));
-        appData.months[key] = { entries, field_progress };
+        appData.months[key] = {
+          entries,
+          field_progress,
+          submission_date: getDefaultSubmissionDate(key)
+        };
         persist();
       }
     }
@@ -1292,6 +1945,16 @@
     function changeMonth() {
       appData.currentMonthKey = document.getElementById('selMonth').value;
       ensureMonthExists(appData.currentMonthKey);
+      const mData = appData.months[appData.currentMonthKey];
+      if (mData) {
+        if (!mData.submission_date || isLegacySubmissionDate(mData.submission_date, appData.currentMonthKey)) {
+          mData.submission_date = getDefaultSubmissionDate(appData.currentMonthKey);
+        }
+        const subDateEl = document.getElementById('mPrSubmissionDate');
+        if (subDateEl) {
+          subDateEl.value = mData.submission_date;
+        }
+      }
       persist();
       renderActiveView();
     }
@@ -1365,16 +2028,29 @@
           const card = document.createElement('div');
           card.className = `entry-card ${cardType}`;
           card.onclick = () => openEditModal(idx);
+
+          let routeHtml = `
+            <div class="card-route">
+              <span>प्रवास: ${fromDisplay} ➔ ${e.to_loc || '-'} (${e.travel_mode || '-'})</span>
+              <span>${e.distance_km && e.distance_km !== '-' ? e.distance_km + ' कि.मी.' : ''}</span>
+            </div>
+          `;
+          if (e.from_loc2 || e.to_loc2) {
+            routeHtml += `
+              <div class="card-route" style="border-top: 1px dashed #cbd5e1; margin-top: 3px; padding-top: 3px; color: #166534;">
+                <span>परतीचा: ${e.from_loc2 || '-'} ➔ ${e.to_loc2 || '-'} (${e.travel_mode2 || '-'})</span>
+                <span>${e.distance_km2 && e.distance_km2 !== '-' ? e.distance_km2 + ' कि.मी.' : ''}</span>
+              </div>
+            `;
+          }
+
           card.innerHTML = `
             <div class="card-top">
               <span class="card-date">${e.date}</span>
               <div>${wellInfo}<span class="card-pill ${pillClass}">${pillText}</span></div>
             </div>
             <div class="card-work">${e.work_detail || '-'}</div>
-            <div class="card-route">
-              <span>प्रवास: ${fromDisplay} ➔ ${e.to_loc || '-'} (${e.travel_mode || '-'})</span>
-              <span>${e.distance_km && e.distance_km !== '-' ? e.distance_km + ' कि.मी.' : ''}</span>
-            </div>
+            ${routeHtml}
           `;
           c.appendChild(card);
         }
@@ -1386,24 +2062,64 @@
           tr.onclick = (evt) => {
             if (evt.target.tagName !== 'BUTTON' && !evt.target.closest('button')) openEditModal(idx);
           };
-          tr.innerHTML = `
-            <td style="text-align: center; font-weight: bold; color: #64748b;">${idx + 1}</td>
-            <td style="text-align: center; font-weight: bold; white-space: nowrap;">${e.date}</td>
-            <td style="text-align: center;">${e.travel_mode || '-'}</td>
-            <td>${fromDisplay}</td>
-            <td style="text-align: center;">${e.from_time || '-'}</td>
-            <td>${e.to_loc || '-'}</td>
-            <td style="text-align: center;">${e.to_time || '-'}</td>
-            <td style="text-align: center; font-weight: bold;">${e.distance_km || '-'}</td>
-            <td style="text-align: center; font-weight: bold; color: #1e3a8a;">${e.travel_fare && e.travel_fare !== '-' ? '₹' + e.travel_fare : '-'}</td>
-            <td style="font-size: 0.78rem;">${e.work_detail || '-'}</td>
-            <td style="text-align: center;">${wellInfo}<span class="card-pill ${pillClass}">${pillText}</span></td>
-            <td style="text-align: center;">
-              <button type="button" class="btn btn-blue btn-sm" onclick="openEditModal(${idx})" style="padding: 2px 7px; font-size: 0.72rem;">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-            </td>
-          `;
+
+          let travelModeDisp = e.travel_mode || '-';
+          let fromDisp = fromDisplay;
+          let fromTimeDisp = formatTimeDisplay(e.from_time);
+          let toDisp = e.to_loc || '-';
+          let toTimeDisp = formatTimeDisplay(e.to_time);
+          let kmDisp = e.distance_km || '-';
+          let fareDisp = e.travel_fare && e.travel_fare !== '-' ? '₹' + e.travel_fare : '-';
+
+          if (e.from_loc2 || e.to_loc2) {
+            fromDisp = `<div class="rt-cell"><div class="rt-leg1 font-bold">${fromDisp}</div><div class="rt-leg2 font-bold">${e.from_loc2 || '-'}</div></div>`;
+            fromTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fromTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.from_time2)}</div></div>`;
+            toDisp = `<div class="rt-cell"><div class="rt-leg1 font-bold">${toDisp}</div><div class="rt-leg2 font-bold">${e.to_loc2 || '-'}</div></div>`;
+            toTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${toTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.to_time2)}</div></div>`;
+            travelModeDisp = `<div class="rt-cell"><div class="rt-leg1 font-bold">${travelModeDisp}</div><div class="rt-leg2 font-bold">${e.travel_mode2 || '-'}</div></div>`;
+            const k2 = (e.distance_km2 && e.distance_km2 !== '-') ? `+${e.distance_km2}` : '-';
+            kmDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${kmDisp}</div><div class="rt-leg2 font-mono">${k2}</div></div>`;
+            const f2 = (e.travel_fare2 && e.travel_fare2 !== '-') ? `+₹${e.travel_fare2}` : '-';
+            fareDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fareDisp}</div><div class="rt-leg2 font-mono">${f2}</div></div>`;
+
+            tr.innerHTML = `
+              <td style="text-align: center; font-weight: bold; color: #64748b;">${idx + 1}</td>
+              <td style="text-align: center; font-weight: bold; white-space: nowrap;">${e.date}</td>
+              <td class="rt-td">${fromDisp}</td>
+              <td class="rt-td" style="text-align: center;">${fromTimeDisp}</td>
+              <td class="rt-td">${toDisp}</td>
+              <td class="rt-td" style="text-align: center;">${toTimeDisp}</td>
+              <td class="rt-td" style="text-align: center;">${travelModeDisp}</td>
+              <td class="rt-td" style="text-align: center; font-weight: bold;">${kmDisp}</td>
+              <td class="rt-td" style="text-align: center; font-weight: bold; color: #1e3a8a;">${fareDisp}</td>
+              <td style="font-size: 0.78rem;">${e.work_detail || '-'}</td>
+              <td style="text-align: center;">${wellInfo}<span class="card-pill ${pillClass}">${pillText}</span></td>
+              <td style="text-align: center;">
+                <button type="button" class="btn btn-blue btn-sm" onclick="openEditModal(${idx})" style="padding: 2px 7px; font-size: 0.72rem;">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              </td>
+            `;
+          } else {
+            tr.innerHTML = `
+              <td style="text-align: center; font-weight: bold; color: #64748b;">${idx + 1}</td>
+              <td style="text-align: center; font-weight: bold; white-space: nowrap;">${e.date}</td>
+              <td>${fromDisp}</td>
+              <td style="text-align: center;">${fromTimeDisp}</td>
+              <td>${toDisp}</td>
+              <td style="text-align: center;">${toTimeDisp}</td>
+              <td style="text-align: center;">${travelModeDisp}</td>
+              <td style="text-align: center; font-weight: bold;">${kmDisp}</td>
+              <td style="text-align: center; font-weight: bold; color: #1e3a8a;">${fareDisp}</td>
+              <td style="font-size: 0.78rem;">${e.work_detail || '-'}</td>
+              <td style="text-align: center;">${wellInfo}<span class="card-pill ${pillClass}">${pillText}</span></td>
+              <td style="text-align: center;">
+                <button type="button" class="btn btn-blue btn-sm" onclick="openEditModal(${idx})" style="padding: 2px 7px; font-size: 0.72rem;">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+              </td>
+            `;
+          }
           pcTbody.appendChild(tr);
         }
       });
@@ -1487,7 +2203,27 @@
 
         let dist = parseFloat(e.distance_km);
         if (!isNaN(dist)) km += dist;
+        let dist2 = parseFloat(e.distance_km2);
+        if (!isNaN(dist2)) km += dist2;
       });
+
+      let wellsSum = 0, boreSum = 0, mapsheetCount = 0;
+      mData.entries.forEach(e => {
+        let w = parseInt(e.wells);
+        if (!isNaN(w)) wellsSum += w;
+        let b = parseInt(e.borewells);
+        if (!isNaN(b)) boreSum += b;
+
+        if (isMapsheetScheme(e.scheme)) {
+          let mc = parseInt(e.cases);
+          if (!isNaN(mc)) mapsheetCount += mc;
+        }
+      });
+
+      const fpMapRow = (mData.field_progress || []).find(p => isMapsheetScheme(p.scheme));
+      if (mapsheetCount === 0 && fpMapRow && fpMapRow.cases && fpMapRow.cases !== '-') {
+        mapsheetCount = parseInt(fpMapRow.cases) || 0;
+      }
 
       document.getElementById('stTotal').textContent = tot;
       document.getElementById('stOffice').textContent = off;
@@ -1497,6 +2233,15 @@
       document.getElementById('stTraining').textContent = train;
       document.getElementById('stLeave').textContent = lev;
       document.getElementById('stKm').textContent = km.toFixed(1);
+
+      const stWellsEl = document.getElementById('stWellsSummary');
+      if (stWellsEl) {
+        stWellsEl.textContent = boreSum > 0 ? `${wellsSum} (${boreSum})` : wellsSum;
+      }
+      const stMapEl = document.getElementById('stMapsheetSummary');
+      if (stMapEl) {
+        stMapEl.textContent = mapsheetCount;
+      }
 
       // Render Field Progress Editable Table
       const fpBody = document.getElementById('fieldProgressTableBody');
@@ -1554,19 +2299,37 @@
       document.getElementById('mSumBore').textContent = bore;
     }
 
+    function isMapsheetScheme(val) {
+      if (!val) return false;
+      const s = String(val).toLowerCase();
+      return s.includes('mapsheet') || s.includes('मॅपशीट') || s.includes('10k') || s.includes('10 k');
+    }
+
+    function onSchemeSelectionChange(val) {
+      const lbl = document.getElementById('mCasesLabel');
+      const inp = document.getElementById('mCases');
+      const isMap = isMapsheetScheme(val);
+      if (lbl) lbl.textContent = isMap ? "मॅपशीट संख्या (No of Mapsheet):" : "प्रकरणे:";
+      if (inp) inp.placeholder = isMap ? "उदा. 1" : "0";
+    }
+
     function populateSchemeDropdown(selectedVal) {
       const sel = document.getElementById('mScheme');
       if (!sel) return;
       const list = (appData.schemes && appData.schemes.length > 0) ? appData.schemes : STANDARD_SCHEMES;
       sel.innerHTML = '<option value="">- योजना नाही -</option>';
+      let matched = false;
       list.forEach(s => {
         const opt = document.createElement('option');
         opt.value = s;
         opt.textContent = s;
-        if (s === selectedVal) opt.selected = true;
+        if (s === selectedVal || (selectedVal && isMapsheetScheme(s) && isMapsheetScheme(selectedVal))) {
+          opt.selected = true;
+          matched = true;
+        }
         sel.appendChild(opt);
       });
-      if (selectedVal && !list.includes(selectedVal)) {
+      if (selectedVal && !matched && !list.includes(selectedVal)) {
         const customOpt = document.createElement('option');
         customOpt.value = selectedVal;
         customOpt.textContent = selectedVal;
@@ -1642,6 +2405,26 @@
       document.getElementById('mToTime').value = e.to_time || '-';
       document.getElementById('mDistance').value = e.distance_km || '-';
       document.getElementById('mFare').value = e.travel_fare || '-';
+
+      // Load Return Journey fields if present
+      const container2 = document.getElementById('mReturnJourneyContainer');
+      const btn2 = document.getElementById('mBtnToggleReturnJourney');
+      const hasReturn = !!(e.from_loc2 || e.to_loc2 || e.distance_km2 || (e.travel_mode2 && e.travel_mode2 !== '-'));
+      if (hasReturn) {
+        if (container2) container2.style.display = 'block';
+        if (btn2) btn2.innerHTML = '<i class="fa-solid fa-angle-up"></i> परतीचा प्रवास तपशील लपवा';
+      } else {
+        if (container2) container2.style.display = 'none';
+        if (btn2) btn2.innerHTML = '<i class="fa-solid fa-route"></i> + Add Return / Multi Journey (परतीचा / दुसरा प्रवास जोडा)';
+      }
+      document.getElementById('mTravelMode2').value = e.travel_mode2 || '-';
+      document.getElementById('mFrom2').value = e.from_loc2 || '';
+      document.getElementById('mFromTime2').value = e.from_time2 || '';
+      document.getElementById('mTo2').value = e.to_loc2 || '';
+      document.getElementById('mToTime2').value = e.to_time2 || '';
+      document.getElementById('mDistance2').value = e.distance_km2 || '';
+      document.getElementById('mFare2').value = e.travel_fare2 || '';
+
       document.getElementById('mWork').value = e.work_detail || '';
       const notesEl = document.getElementById('mNotes');
       if (notesEl) notesEl.value = e.notes || '';
@@ -1654,6 +2437,7 @@
       document.getElementById('mWells').value = e.wells || '';
       document.getElementById('mBore').value = e.borewells || '';
       populateSchemeDropdown(e.scheme || '');
+      onSchemeSelectionChange(e.scheme || '');
       document.getElementById('mVillages').value = e.villages || '';
       document.getElementById('mCases').value = e.cases || '';
       mobileRenderQuickRoutes();
@@ -1672,6 +2456,9 @@
       document.getElementById('mToTime').value = "17.30";
       document.getElementById('mDistance').value = "-";
       document.getElementById('mFare').value = "-";
+
+      clearAndHideReturnJourney();
+
       document.getElementById('mWork').value = "कार्यालयात उपस्थित, कार्यालयीन कामकाज केले.";
       const notesEl = document.getElementById('mNotes');
       if (notesEl) notesEl.value = "";
@@ -1684,6 +2471,7 @@
       document.getElementById('mWells').value = "";
       document.getElementById('mBore').value = "";
       populateSchemeDropdown('');
+      onSchemeSelectionChange('');
       document.getElementById('mVillages').value = "";
       document.getElementById('mCases').value = "";
       mobileRenderQuickRoutes();
@@ -1706,6 +2494,16 @@
         to_time: document.getElementById('mToTime').value,
         distance_km: document.getElementById('mDistance').value,
         travel_fare: document.getElementById('mFare').value,
+
+        // Return Journey fields
+        travel_mode2: document.getElementById('mTravelMode2').value,
+        from_loc2: (document.getElementById('mFrom2').value || '').trim(),
+        from_time2: (document.getElementById('mFromTime2').value || '').trim(),
+        to_loc2: (document.getElementById('mTo2').value || '').trim(),
+        to_time2: (document.getElementById('mToTime2').value || '').trim(),
+        distance_km2: (document.getElementById('mDistance2').value || '').trim(),
+        travel_fare2: (document.getElementById('mFare2').value || '').trim(),
+
         work_detail: document.getElementById('mWork').value,
         notes: (document.getElementById('mNotes') ? document.getElementById('mNotes').value : '').trim(),
         total: document.getElementById('mChkTotal').checked ? "1" : "",
@@ -1729,10 +2527,21 @@
 
       // Link progress if scheme is chosen
       if (entryObj.scheme) {
-        let prog = mData.field_progress.find(p => p.scheme === entryObj.scheme);
+        let prog = (mData.field_progress || []).find(p => p.scheme === entryObj.scheme || (isMapsheetScheme(p.scheme) && isMapsheetScheme(entryObj.scheme)));
         if (prog) {
           prog.villages = entryObj.villages || prog.villages;
-          prog.cases = entryObj.cases || prog.cases;
+          if (isMapsheetScheme(entryObj.scheme)) {
+            let mSum = 0;
+            mData.entries.forEach(entry => {
+              if (isMapsheetScheme(entry.scheme)) {
+                let mc = parseInt(entry.cases);
+                if (!isNaN(mc)) mSum += mc;
+              }
+            });
+            prog.cases = mSum > 0 ? String(mSum) : (entryObj.cases || prog.cases);
+          } else {
+            prog.cases = entryObj.cases || prog.cases;
+          }
         }
       }
 
@@ -1828,10 +2637,45 @@
 
       const subDateEl = document.getElementById('mPrSubmissionDate');
       if (subDateEl) {
-        if (!mData.submission_date) {
+        if (!mData.submission_date || isLegacySubmissionDate(mData.submission_date, appData.currentMonthKey)) {
           mData.submission_date = getDefaultSubmissionDate(appData.currentMonthKey);
         }
         subDateEl.value = mData.submission_date;
+      }
+
+      // Print Format mode (1-Page vs 2-Page)
+      const pFormat = (prof.print_format) || '1page';
+      const wrapper = document.querySelector('.print-preview-wrapper');
+      const p2Header = document.getElementById('prPage2Header');
+      const sumContainer = document.getElementById('prSummaryPageContainer');
+
+      const p2Name = document.getElementById('prP2OfficerName');
+      const p2Desig = document.getElementById('prP2OfficerDesig');
+      const p2Dept = document.getElementById('prP2OfficerDept');
+      if (p2Name) p2Name.textContent = `नाव: ${prof.name || ''}`;
+      if (p2Desig) p2Desig.textContent = `पदनाम: ${prof.designation || ''}`;
+      if (p2Dept) p2Dept.textContent = prof.department || "भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर";
+
+      const bFmt1 = document.getElementById('mBtnFormat1Page');
+      const bFmt2 = document.getElementById('mBtnFormat2Page');
+      const badgeText = document.getElementById('mPrintBadgeText');
+
+      if (pFormat === '2page') {
+        if (wrapper) { wrapper.classList.remove('mode-1page'); wrapper.classList.add('mode-2page'); }
+        if (sumContainer) sumContainer.classList.add('page2-container');
+        if (sec1Page) sec1Page.style.display = 'none';
+        if (sec2Page) sec2Page.style.display = 'block';
+        if (bFmt1) { bFmt1.style.background = 'white'; bFmt1.style.color = '#475569'; bFmt1.style.borderColor = '#cbd5e1'; }
+        if (bFmt2) { bFmt2.style.background = '#16a34a'; bFmt2.style.color = 'white'; bFmt2.style.borderColor = '#16a34a'; }
+        if (badgeText) badgeText.textContent = '२ पाने सविस्तर: पान १ वर नोंदी + पान २ वर गोषवारा';
+      } else {
+        if (wrapper) { wrapper.classList.remove('mode-2page'); wrapper.classList.add('mode-1page'); }
+        if (sumContainer) sumContainer.classList.remove('page2-container');
+        if (sec1Page) sec1Page.style.display = 'block';
+        if (sec2Page) sec2Page.style.display = 'none';
+        if (bFmt1) { bFmt1.style.background = '#3b82f6'; bFmt1.style.color = 'white'; bFmt1.style.borderColor = '#3b82f6'; }
+        if (bFmt2) { bFmt2.style.background = 'white'; bFmt2.style.color = '#475569'; bFmt2.style.borderColor = '#cbd5e1'; }
+        if (badgeText) badgeText.textContent = '१००% १ पान A4 अचूक फिट';
       }
 
       const tbody = document.getElementById('prTableBody');
@@ -1842,36 +2686,71 @@
         const dStr = dParts.length === 3 ? `${dParts[2]}/${dParts[1]}/${dParts[0]}` : (e.date || '');
         const fromVal = isHeadquartersLocation(e.from_loc) ? activeHq : e.from_loc;
 
-        tr.innerHTML = `
-          <td>${idx + 1}</td>
-          <td>${dStr}</td>
-          <td>${fromVal || '-'}</td>
-          <td>${e.from_time || '-'}</td>
-          <td>${e.to_loc || '-'}</td>
-          <td>${e.to_time || '-'}</td>
-          <td>${e.travel_mode || '-'}</td>
-          <td>${e.distance_km || '-'}</td>
-          <td>${e.travel_fare || '-'}</td>
-          <td class="text-left">${e.work_detail || ''}</td>
-        `;
+        let travelModeDisp = e.travel_mode || '-';
+        let fromDisp = fromVal || '-';
+        let fromTimeDisp = formatTimeDisplay(e.from_time);
+        let toDisp = e.to_loc || '-';
+        let toTimeDisp = formatTimeDisplay(e.to_time);
+        let distDisp = e.distance_km || '-';
+        let fareDisp = e.travel_fare || '-';
+
+        if (e.from_loc2 || e.to_loc2) {
+          tr.className = 'rt-tr';
+          fromDisp = `<div class="rt-cell"><div class="rt-leg1">${fromDisp}</div><div class="rt-leg2">${e.from_loc2 || '-'}</div></div>`;
+          fromTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fromTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.from_time2)}</div></div>`;
+          toDisp = `<div class="rt-cell"><div class="rt-leg1">${toDisp}</div><div class="rt-leg2">${e.to_loc2 || '-'}</div></div>`;
+          toTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${toTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.to_time2)}</div></div>`;
+          travelModeDisp = `<div class="rt-cell"><div class="rt-leg1">${travelModeDisp}</div><div class="rt-leg2">${e.travel_mode2 || '-'}</div></div>`;
+          const k2 = (e.distance_km2 && e.distance_km2 !== '-') ? '+' + e.distance_km2 : '-';
+          distDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${distDisp}</div><div class="rt-leg2 font-mono">${k2}</div></div>`;
+          const f2 = (e.travel_fare2 && e.travel_fare2 !== '-') ? '+' + e.travel_fare2 : '-';
+          fareDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fareDisp}</div><div class="rt-leg2 font-mono">${f2}</div></div>`;
+
+          tr.innerHTML = `
+            <td>${dStr}</td>
+            <td class="rt-td">${fromDisp}</td>
+            <td class="rt-td">${fromTimeDisp}</td>
+            <td class="rt-td">${toDisp}</td>
+            <td class="rt-td">${toTimeDisp}</td>
+            <td class="rt-td">${travelModeDisp}</td>
+            <td class="rt-td">${distDisp}</td>
+            <td class="rt-td">${fareDisp}</td>
+            <td class="text-left">${e.work_detail || ''}</td>
+          `;
+        } else {
+          tr.innerHTML = `
+            <td>${dStr}</td>
+            <td>${fromDisp}</td>
+            <td>${fromTimeDisp}</td>
+            <td>${toDisp}</td>
+            <td>${toTimeDisp}</td>
+            <td>${travelModeDisp}</td>
+            <td>${distDisp}</td>
+            <td>${fareDisp}</td>
+            <td class="text-left">${e.work_detail || ''}</td>
+          `;
+        }
         tbody.appendChild(tr);
       });
 
-      // Field Progress table
+      // 1-Page Field Progress table
       const progTbody = document.getElementById('prProgressBody');
-      progTbody.innerHTML = '';
-      (mData.field_progress || []).forEach(fp => {
-        const ptr = document.createElement('tr');
-        ptr.innerHTML = `
-          <td class="text-left">${fp.scheme}</td>
-          <td>${fp.villages || '-'}</td>
-          <td>${fp.cases || '-'}</td>
-        `;
-        progTbody.appendChild(ptr);
-      });
+      if (progTbody) {
+        progTbody.innerHTML = '';
+        (mData.field_progress || []).forEach(fp => {
+          const ptr = document.createElement('tr');
+          const isMapsheet = fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('Mapsheet') || fp.scheme.includes('नकाशा'));
+          ptr.innerHTML = `
+            <td class="text-left ${isMapsheet ? 'font-bold' : ''}">${fp.scheme}</td>
+            <td>${fp.villages || '-'}</td>
+            <td>${fp.cases || '-'}</td>
+          `;
+          progTbody.appendChild(ptr);
+        });
+      }
 
-      // Summary table
-      let tot = 0, off = 0, tour = 0, hol = 0, train = 0, leave = 0;
+      // Summary counts
+      let tot = 0, off = 0, tour = 0, hol = 0, train = 0, leave = 0, wellsTot = 0, boreTot = 0, mapCount = 0;
       mData.entries.forEach(e => {
         if (e.total == '1') tot++;
         if (e.holiday == '1') hol++;
@@ -1879,16 +2758,87 @@
         else if (e.leave == '1') leave++;
         else if (e.training == '1') train++;
         else off++;
+
+        let w = parseInt(e.wells);
+        if (!isNaN(w)) wellsTot += w;
+        let b = parseInt(e.borewells);
+        if (!isNaN(b)) boreTot += b;
+
+        if (isMapsheetScheme(e.scheme)) {
+          let mc = parseInt(e.cases);
+          if (!isNaN(mc)) mapCount += mc;
+        }
       });
 
-      document.getElementById('prSummaryBody').innerHTML = `
-        <tr><td>महिन्याचे एकूण दिवस</td><td style="font-weight:bold; width:30px; text-align:center;">${tot}</td></tr>
-        <tr><td>कार्यालयीन कामकाजाचे दिवस</td><td style="font-weight:bold; width:30px; text-align:center;">${off}</td></tr>
-        <tr><td>सर्वेक्षणास्तव फिरतीचे दिवस</td><td style="font-weight:bold; width:30px; text-align:center;">${tour}</td></tr>
-        <tr><td>शासकीय सुट्टीचे दिवस</td><td style="font-weight:bold; width:30px; text-align:center;">${hol}</td></tr>
-        <tr><td>प्रशिक्षण / कार्यशाळा दिवस</td><td style="font-weight:bold; width:30px; text-align:center;">${train}</td></tr>
-        <tr><td>रजेचे दिवस</td><td style="font-weight:bold; width:30px; text-align:center;">${leave}</td></tr>
-      `;
+      const fpRow = (mData.field_progress || []).find(p => isMapsheetScheme(p.scheme));
+      if (mapCount === 0 && fpRow && fpRow.cases && fpRow.cases !== '-') {
+        mapCount = parseInt(fpRow.cases) || 0;
+      }
+
+      const sumEl = document.getElementById('prSummaryBody');
+      if (sumEl) {
+        sumEl.innerHTML = `
+          <tr><td>महिन्याचे एकूण दिवस</td><td style="font-weight:bold; width:34px; text-align:center;">${tot}</td></tr>
+          <tr><td>कार्यालयीन कामकाजाचे दिवस</td><td style="font-weight:bold; width:34px; text-align:center;">${off}</td></tr>
+          <tr><td>सर्वेक्षणास्तव फिरतीचे दिवस</td><td style="font-weight:bold; width:34px; text-align:center;">${tour}</td></tr>
+          <tr><td>शासकीय सुट्टीचे दिवस</td><td style="font-weight:bold; width:34px; text-align:center;">${hol}</td></tr>
+          <tr><td>प्रशिक्षण / कार्यशाळा दिवस</td><td style="font-weight:bold; width:34px; text-align:center;">${train}</td></tr>
+          <tr><td>रजेचे दिवस</td><td style="font-weight:bold; width:34px; text-align:center;">${leave}</td></tr>
+        `;
+      }
+
+      // ========================================================
+      // 2-PAGE VARAD FORMAT: Sheet 2 Up and Down Tables
+      // ========================================================
+      const p2SumEl = document.getElementById('prP2SummaryBody');
+      if (p2SumEl) {
+        p2SumEl.innerHTML = `
+          <tr><td style="text-align:center;">1</td><td style="text-align:left; padding-left:8px;">महिन्यातील एकुण दिवस</td><td style="font-weight:bold; text-align:center;">${tot}</td><td style="text-align:center;">-</td></tr>
+          <tr><td style="text-align:center;">2</td><td style="text-align:left; padding-left:8px;">फिरतीचे दिवस</td><td style="font-weight:bold; text-align:center;">${tour}</td><td style="text-align:center;">-</td></tr>
+          <tr><td style="text-align:center;">3</td><td style="text-align:left; padding-left:8px;">कार्यालयीन कामाचे दिवस</td><td style="font-weight:bold; text-align:center;">${off}</td><td style="text-align:center;">-</td></tr>
+          <tr><td style="text-align:center;">4</td><td style="text-align:left; padding-left:8px;">मुक्कामाचे दिवस</td><td style="font-weight:bold; text-align:center;">0</td><td style="text-align:center;">-</td></tr>
+          <tr><td style="text-align:center;">5</td><td style="text-align:left; padding-left:8px;">रजेचे दिवस</td><td style="font-weight:bold; text-align:center;">${leave}</td><td style="text-align:center;">-</td></tr>
+          <tr><td style="text-align:center;">6</td><td style="text-align:left; padding-left:8px;">सुट्टीचे दिवस</td><td style="font-weight:bold; text-align:center;">${hol}</td><td style="text-align:center;">-</td></tr>
+          <tr><td style="text-align:center;">7</td><td style="text-align:left; padding-left:8px;">प्रशिक्षण/ कार्यशाळा दिवस</td><td style="font-weight:bold; text-align:center;">${train}</td><td style="text-align:center;">-</td></tr>
+        `;
+      }
+
+      const p2ProgEl = document.getElementById('prP2ProgressBody');
+      if (p2ProgEl) {
+        p2ProgEl.innerHTML = '';
+        (mData.field_progress || []).forEach((fp, idx) => {
+          const ptr = document.createElement('tr');
+          const isMapsheet = fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('Mapsheet') || fp.scheme.includes('mapsheet') || fp.scheme.includes('नकाशा'));
+          ptr.innerHTML = `
+            <td style="text-align:center;">${idx + 1}</td>
+            <td style="text-align:left; padding-left:8px; ${isMapsheet ? 'font-weight:bold;' : ''}">
+              ${fp.scheme}
+            </td>
+            <td style="font-weight:bold; text-align:center;">${fp.villages || '-'}</td>
+            <td style="font-weight:bold; text-align:center;">${fp.cases || '-'}</td>
+            <td style="text-align:center;">-</td>
+            <td style="text-align:center;">-</td>
+          `;
+          p2ProgEl.appendChild(ptr);
+        });
+      }
+
+      const p2SubLine = document.getElementById('prP2SubmissionLine');
+      const mTitle = mData.title || 'मे २०२६';
+      if (p2SubLine) p2SubLine.textContent = `उपरोक्त ${mTitle} ची मासिक दैनंदिनी मंजूरीसाठी सविनय सादर.`;
+
+      const p2DateDisp = document.getElementById('prP2DateDisplay');
+      const mDateInp = document.getElementById('mPrSubmissionDate');
+      if (p2DateDisp && mDateInp) p2DateDisp.textContent = mDateInp.value || '05/02/2026';
+
+      const p2SigName = document.getElementById('prP2SigName');
+      const p2SigDesig = document.getElementById('prP2SigDesig');
+      const p2SigDept = document.getElementById('prP2SigDept');
+      const p2SigCity = document.getElementById('prP2SigCity');
+      if (p2SigName) p2SigName.textContent = `(${prof.name || 'विनायक नवनाथ निंबाळकर'})`;
+      if (p2SigDesig) p2SigDesig.textContent = prof.designation || 'सहाय्यक भूवैज्ञानिक';
+      if (p2SigDept) p2SigDept.textContent = 'भूजल सर्वेक्षण आणि विकास यंत्रणा,';
+      if (p2SigCity) p2SigCity.textContent = activeHq;
     }
 
     // Render Holiday Reference List
@@ -2110,6 +3060,9 @@
       const fareEl = document.getElementById('mProfFareRate');
       appData.profile.fare_rate_per_km = (fareEl ? fareEl.value.trim() : '10') || '10';
 
+      const pfInput = document.querySelector('input[name="mProfPrintFormat"]:checked');
+      appData.profile.print_format = pfInput ? pfInput.value : '1page';
+
       const sub = document.getElementById('mAppSubTitle');
       if (sub) sub.textContent = `${normHq} उपविभाग • १००% Offline Mobile App`;
 
@@ -2130,6 +3083,20 @@
       alert(`प्रोफाइल व मुख्यालय (${normHq}) यशस्वीरीत्या अद्ययावत केले! 'कोठून' व कार्यालयाचे नाव आपोआप बदलले गेले आहे.`);
       switchNav('entries', document.querySelector('.bottom-nav .nav-btn:first-child'));
     }
+
+    function onPrintFormatOptionChange(val) {
+      if (!appData.profile) appData.profile = {};
+      appData.profile.print_format = val;
+      persist();
+      renderPrintView();
+    }
+
+    function setQuickPrintFormat(val) {
+      onPrintFormatOptionChange(val);
+      const radio = document.querySelector(`input[name="mProfPrintFormat"][value="${val}"]`);
+      if (radio) radio.checked = true;
+    }
+    window.setQuickPrintFormat = setQuickPrintFormat;
 
     // Generate Mobile Share Text (WhatsApp)
     function generateMobileShareText() {
@@ -2246,9 +3213,185 @@
       const monthNum = parseInt(p[1], 10) || 1;
       const mName = MARATHI_MONTHS[monthNum - 1] || appData.currentMonthKey;
       const activeHq = getActiveHQ() || 'सोलापूर';
-      const subDate = curM.submission_date || getDefaultSubmissionDate(appData.currentMonthKey);
+      const subDate = (curM.submission_date && !isLegacySubmissionDate(curM.submission_date, appData.currentMonthKey)) ? curM.submission_date : getDefaultSubmissionDate(appData.currentMonthKey);
 
-      // Rows 1 to 55 (18 Columns A to R)
+      // IF 2-PAGE FORMAT IS SELECTED: Generate 2 sheets matching Diary_app_varad.xlsx
+      if (prof.print_format === '2page') {
+        const s1Rows = [];
+        s1Rows.push([`माहे ${mName} ${year} ची दैनंदिनी`]);
+        s1Rows.push([`मुख्यालय ${activeHq}`]);
+        s1Rows.push([`नाव-${prof.name || ''}   पदनाम-${prof.designation || ''}   लेखाशीर्ष- ${prof.budget_head || ''}   वेतन:${prof.salary || ''}`]);
+        s1Rows.push(["दिनांक", "निघण्याचे", "", "पोहचण्याचे", "", "प्रवासाचे साधन", "प्रवासाचे अंतर कि. मी.", "प्रवास भाडे रुपये", "कामाचे तपशील / प्रवासाचे कारण"]);
+        s1Rows.push(["", "ठिकाण", "वेळ", "ठिकाण", "वेळ", "", "", "", ""]);
+
+        let totKm2 = 0, totFare2 = 0, totHol2 = 0, totLeave2 = 0, totTour2 = 0, totMeet2 = 0, totTrain2 = 0, totWells2 = 0, totBore2 = 0;
+        for (let i = 0; i < 31; i++) {
+          const e = entries[i];
+          if (e) {
+            const dParts = e.date ? e.date.split('-') : [];
+            const dStr = dParts.length === 3 ? `${dParts[2]}/${dParts[1]}/${dParts[0]}` : (e.date || '');
+            const fromVal = isHeadquartersLocation(e.from_loc) ? activeHq : (e.from_loc || activeHq);
+
+            let fromCell = fromVal;
+            let fromTimeCell = e.from_time || '-';
+            let toCell = e.to_loc || '-';
+            let toTimeCell = e.to_time || '-';
+            let modeCell = e.travel_mode || '-';
+
+            if (e.from_loc2 || e.to_loc2) {
+              if (e.from_loc2) fromCell += `\n${e.from_loc2}`;
+              if (e.from_time2) fromTimeCell += `\n${e.from_time2}`;
+              if (e.to_loc2) toCell += `\n${e.to_loc2}`;
+              if (e.to_time2) toTimeCell += `\n${e.to_time2}`;
+              if (e.travel_mode2 && e.travel_mode2 !== '-') modeCell += `\n${e.travel_mode2}`;
+            }
+
+            let kmVal = '-';
+            let fareVal = '-';
+            let k1 = parseFloat(e.distance_km);
+            let k2 = parseFloat(e.distance_km2);
+            let dKm = 0;
+            if (!isNaN(k1) && k1 > 0) dKm += k1;
+            if (!isNaN(k2) && k2 > 0) dKm += k2;
+            if (dKm > 0) { kmVal = dKm; totKm2 += dKm; }
+
+            let f1 = parseFloat(e.travel_fare);
+            let f2 = parseFloat(e.travel_fare2);
+            let dFare = 0;
+            if (!isNaN(f1) && f1 > 0) dFare += f1;
+            if (!isNaN(f2) && f2 > 0) dFare += f2;
+            if (dFare > 0) { fareVal = dFare; totFare2 += dFare; }
+
+            if (e.holiday == '1') totHol2++;
+            else if (e.tour == '1') totTour2++;
+            else if (e.meeting == '1') totMeet2++;
+            else if (e.leave == '1') totLeave2++;
+            else if (e.training == '1') totTrain2++;
+
+            let wVal = parseInt(e.wells) || 0;
+            let bVal = parseInt(e.borewells) || 0;
+            if (wVal) totWells2 += wVal;
+            if (bVal) totBore2 += bVal;
+
+            s1Rows.push([
+              dStr,
+              fromCell,
+              fromTimeCell,
+              toCell,
+              toTimeCell,
+              modeCell,
+              kmVal,
+              fareVal,
+              e.work_detail || ''
+            ]);
+          } else {
+            s1Rows.push(['', '', '', '', '', '', '', '', '']);
+          }
+        }
+
+        s1Rows.push([
+          "एकूण", "", "", "", "", "", totKm2 || 0, totFare2 || 0, ""
+        ]);
+
+        const numDays2 = entries.length > 0 ? entries.length : 31;
+        const fpList2 = curM.field_progress || [];
+        const officeDays2 = Math.max(0, numDays2 - (totHol2 + totLeave2 + totTour2 + totTrain2));
+
+        let totMapsheet2 = 0;
+        entries.forEach(e => {
+          if (e && isMapsheetScheme(e.scheme)) {
+            let mc = parseInt(e.cases);
+            if (!isNaN(mc)) totMapsheet2 += mc;
+          }
+        });
+        const fpMapRow2 = fpList2.find(f => isMapsheetScheme(f.scheme));
+        if (totMapsheet2 === 0 && fpMapRow2 && fpMapRow2.cases && fpMapRow2.cases !== '-') {
+          totMapsheet2 = parseInt(fpMapRow2.cases) || 0;
+        }
+
+        const s2Rows = [];
+        s2Rows.push(["मासिक दैनंदिनीचा गोषवारा"]);
+        s2Rows.push([`नाव : ${prof.name || ''}       पदनाम :   ${prof.designation || ''} ,${prof.department || ''}`]);
+        s2Rows.push(["अ.क्र.", "तपशील", "एकूण दिवस", "", "", "शेरा"]);
+        s2Rows.push([1, "महिन्यातील एकूण दिवस", numDays2, "", "", ""]);
+        s2Rows.push([2, "सर्वेक्षणास्तव फिरतीचे दिवस", totTour2, "", "", ""]);
+        s2Rows.push([3, "कार्यालयीन कामाचे दिवस", officeDays2, "", "", ""]);
+        s2Rows.push([4, "शासकीय सुट्टीचे दिवस", totHol2, "", "", ""]);
+        s2Rows.push([5, "रजेचे दिवस", totLeave2, "", "", ""]);
+        s2Rows.push([6, "प्रशिक्षण / कार्यशाळा दिवस", totTrain2, "", "", ""]);
+        s2Rows.push([7, "तपासलेल्या विहिरी संख्या", totWells2 || 0, "", "", ""]);
+        s2Rows.push([8, "1:10K मॅपशीट संख्या", totMapsheet2 || 0, "", "", ""]);
+        s2Rows.push(["अ.क्र.", "योजना", "गावे", "प्रकरणे", "", "शेरा"]);
+
+        const standardSchemes2 = [
+          "स्थानिक भूजल सर्वेक्षण",
+          "अटल भूजल योजना /जलयुक्त शिवार अभियान",
+          "निरीक्षण विहीरींची वाचने",
+          "वाळू/खाणपट्टा सर्वेक्षण",
+          "भूजल मूल्यांकन माहिती",
+          "प्रयोगशाळा",
+          "न.पा.पु.सर्वेक्षण",
+          "टांचाई अंतर्गत सर्वेक्षण",
+          "1:10K mapsheet",
+          "इतर योजना सर्वेक्षण"
+        ];
+        const activeSchemes2 = (appData.schemes && appData.schemes.length > 0) ? appData.schemes : standardSchemes2;
+        for (let sIdx = 0; sIdx < 10; sIdx++) {
+          const sName = activeSchemes2[sIdx] || standardSchemes2[sIdx] || '';
+          const curFp = fpList2.find(f => f.scheme === sName) || fpList2[sIdx] || {};
+          s2Rows.push([
+            sIdx + 1,
+            sName,
+            curFp.villages || '-',
+            curFp.cases || '-',
+            "",
+            ""
+          ]);
+        }
+        s2Rows.push([]);
+        s2Rows.push([`          उपरोक्त माहे ${mName} ${year} ची मासिक दैनंदिनी मंजूरीसाठी सविनय सादर`]);
+        s2Rows.push([]);
+        s2Rows.push(["", "", "", "", "आपला विश्वासु  "]);
+        s2Rows.push([]);
+        s2Rows.push(["", "", "", "", `(${prof.name || ''})`]);
+        s2Rows.push(["", "", "", "", `  ${prof.designation || ''}  `]);
+        s2Rows.push(["", "", "", "", prof.department || 'भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर']);
+        s2Rows.push(["", "", "", "", ` ${activeHq}`]);
+
+        const wb2 = XLSX.utils.book_new();
+        const ws1 = XLSX.utils.aoa_to_sheet(s1Rows);
+        ws1['!merges'] = [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } },
+          { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } },
+          { s: { r: 2, c: 0 }, e: { r: 2, c: 8 } },
+          { s: { r: 3, c: 0 }, e: { r: 4, c: 0 } }, // दिनांक
+          { s: { r: 3, c: 1 }, e: { r: 3, c: 2 } }, // निघण्याचे
+          { s: { r: 3, c: 3 }, e: { r: 3, c: 4 } }, // पोहचण्याचे
+          { s: { r: 3, c: 5 }, e: { r: 4, c: 5 } }, // साधन
+          { s: { r: 3, c: 6 }, e: { r: 4, c: 6 } }, // अंतर
+          { s: { r: 3, c: 7 }, e: { r: 4, c: 7 } }, // भाडे
+          { s: { r: 3, c: 8 }, e: { r: 4, c: 8 } }, // तपशील
+        ];
+        ws1['!cols'] = [
+          { wch: 12 }, { wch: 16 }, { wch: 8 }, { wch: 26 }, { wch: 8 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 36 }
+        ];
+        XLSX.utils.book_append_sheet(wb2, ws1, "sheet1");
+
+        const ws2 = XLSX.utils.aoa_to_sheet(s2Rows);
+        ws2['!merges'] = [
+          { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+          { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }
+        ];
+        ws2['!cols'] = [
+          { wch: 6 }, { wch: 36 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 20 }
+        ];
+        XLSX.utils.book_append_sheet(wb2, ws2, "Sheet2");
+
+        XLSX.writeFile(wb2, `GSDA_Diary_${activeHq}_${mName}_${year}.xlsx`);
+        return;
+      }
+
+      // Rows 1 to 55 (18 Columns A to R - 1-Page Format)
       const rows = [];
 
       // Row 1 (Index 0): Title
@@ -2291,11 +3434,41 @@
           const dParts = e.date ? e.date.split('-') : [];
           const dStr = dParts.length === 3 ? `${dParts[2]}/${dParts[1]}/${dParts[0]}` : (e.date || '');
           const fromVal = isHeadquartersLocation(e.from_loc) ? activeHq : (e.from_loc || activeHq);
-          const kmVal = e.distance_km && !isNaN(e.distance_km) && Number(e.distance_km) > 0 ? Number(e.distance_km) : (e.distance_km || '-');
-          const fareVal = e.travel_fare && !isNaN(e.travel_fare) && Number(e.travel_fare) > 0 ? Number(e.travel_fare) : (e.travel_fare || '-');
 
-          if (typeof kmVal === 'number') totKm += kmVal;
-          if (typeof fareVal === 'number') totFare += fareVal;
+          let fromCell = fromVal;
+          let fromTimeCell = e.from_time || '-';
+          let toCell = e.to_loc || '-';
+          let toTimeCell = e.to_time || '-';
+          let modeCell = e.travel_mode || '-';
+
+          let kmNum1 = parseFloat(e.distance_km);
+          let fareNum1 = parseFloat(e.travel_fare);
+          let kmNum2 = parseFloat(e.distance_km2);
+          let fareNum2 = parseFloat(e.travel_fare2);
+
+          let dayKmTotal = 0;
+          let hasKm = false;
+          if (!isNaN(kmNum1) && kmNum1 > 0) { dayKmTotal += kmNum1; hasKm = true; }
+          if (!isNaN(kmNum2) && kmNum2 > 0) { dayKmTotal += kmNum2; hasKm = true; }
+
+          let dayFareTotal = 0;
+          let hasFare = false;
+          if (!isNaN(fareNum1) && fareNum1 > 0) { dayFareTotal += fareNum1; hasFare = true; }
+          if (!isNaN(fareNum2) && fareNum2 > 0) { dayFareTotal += fareNum2; hasFare = true; }
+
+          if (hasKm) totKm += dayKmTotal;
+          if (hasFare) totFare += dayFareTotal;
+
+          if (e.from_loc2 || e.to_loc2) {
+            fromCell += `\n${e.from_loc2 || '-'}`;
+            fromTimeCell += `\n${e.from_time2 || '-'}`;
+            toCell += `\n${e.to_loc2 || '-'}`;
+            toTimeCell += `\n${e.to_time2 || '-'}`;
+            modeCell += `\n${e.travel_mode2 || '-'}`;
+          }
+
+          const kmVal = hasKm ? dayKmTotal : (e.distance_km || '-');
+          const fareVal = hasFare ? dayFareTotal : (e.travel_fare || '-');
 
           const isHol = e.holiday == '1' ? 1 : '';
           const isLeave = e.leave == '1' ? 1 : '';
@@ -2316,11 +3489,11 @@
           rows.push([
             i + 1,
             dStr,
-            fromVal,
-            e.from_time || '-',
-            e.to_loc || '-',
-            e.to_time || '-',
-            e.travel_mode || '-',
+            fromCell,
+            fromTimeCell,
+            toCell,
+            toTimeCell,
+            modeCell,
             kmVal,
             fareVal,
             e.work_detail || '',
@@ -2367,11 +3540,23 @@
         "प्रयोगशाळा",
         "न.पा.पु.सर्वेक्षण",
         "टांचाई अंतर्गत सर्वेक्षण",
-        "1:10K Mapsheet Survey",
+        "1:10K mapsheet",
         "इतर योजना सर्वेक्षण"
       ];
       const fpList = curM.field_progress || [];
       const officeDays = Math.max(0, numDays - (totHol + totLeave + totTour + totTrain));
+
+      let totMapsheet = 0;
+      entries.forEach(e => {
+        if (e && isMapsheetScheme(e.scheme)) {
+          let mc = parseInt(e.cases);
+          if (!isNaN(mc)) totMapsheet += mc;
+        }
+      });
+      const fpMapRow = fpList.find(f => isMapsheetScheme(f.scheme));
+      if (totMapsheet === 0 && fpMapRow && fpMapRow.cases && fpMapRow.cases !== '-') {
+        totMapsheet = parseInt(fpMapRow.cases) || 0;
+      }
 
       const sumLabels = [
         ["महिन्याचे एकूण दिवस", numDays],
@@ -2379,7 +3564,9 @@
         ["सर्वेक्षणास्तव व इतर कारणास्तव फिरतीचे दिवस ", totTour],
         ["शासकीय सुट्टीचे दिवस", totHol],
         ["प्रशिक्षण / कार्यशाळा दिवस", totTrain],
-        ["रजेचे दिवस", totLeave]
+        ["रजेचे दिवस", totLeave],
+        ["तपासलेल्या विहिरी संख्या", totWells || 0],
+        ["1:10K मॅपशीट संख्या", totMapsheet || 0]
       ];
 
       const activeSchemes = (appData.schemes && appData.schemes.length > 0) ? appData.schemes : standardSchemes;
@@ -2396,8 +3583,8 @@
           rowArr[9] = sumLabels[sIdx][1];
         }
 
-        // Align Officer Signature at 1:10K Mapsheet Survey (row index 43, 44)
-        if (sIdx === 8) { // 1:10K Mapsheet Survey line
+        // Align Officer Signature at 1:10K mapsheet (row index 43, 44)
+        if (sIdx === 8) { // 1:10K mapsheet line
           rowArr[6] = `(${prof.name || ''})`;
         } else if (sIdx === 9) { // 10th row
           rowArr[6] = `  ${prof.designation || ''}  `;
@@ -2786,6 +3973,9 @@
           fareEl.value = prof.fare_rate_per_km || '10';
           updateMobileFareFormulaText(fareEl.value);
         }
+        const pf = prof.print_format || '1page';
+        const pfRadio = document.querySelector(`input[name="mProfPrintFormat"][value="${pf}"]`);
+        if (pfRadio) pfRadio.checked = true;
       } else if (viewId === 'calendar') {
         renderCalendar();
       } else if (viewId === 'summary') {
@@ -2896,20 +4086,130 @@
       }
     }
 
+    function onTravelModeChange(val, fareInputId, distInputId) {
+      const fareEl = document.getElementById(fareInputId);
+      const distEl = document.getElementById(distInputId);
+      if (!fareEl) return;
+      if (val === 'शासकीय वाहन') {
+        fareEl.value = '0';
+      } else if (val === 'खाजगी वाहन') {
+        if (fareEl.value === '0' || !fareEl.value || fareEl.value === '-') {
+          if (distInputId === 'mDistance2') {
+            calculateReturnJourneyFare(true);
+          } else {
+            mobileAutoCalculateFare(true);
+          }
+        }
+      } else if (val === '-') {
+        fareEl.value = '-';
+      }
+    }
+
+    function toggleReturnJourneySection() {
+      const container = document.getElementById('mReturnJourneyContainer');
+      const btn = document.getElementById('mBtnToggleReturnJourney');
+      if (!container) return;
+      if (container.style.display === 'none' || !container.style.display) {
+        container.style.display = 'block';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-angle-up"></i> परतीचा प्रवास तपशील लपवा';
+        // Auto pre-fill return journey defaults from Journey 1
+        const to1 = document.getElementById('mTo').value;
+        const from1 = document.getElementById('mFrom').value;
+        const mode1 = document.getElementById('mTravelMode').value;
+        const dist1 = document.getElementById('mDistance').value;
+
+        const from2 = document.getElementById('mFrom2');
+        const to2 = document.getElementById('mTo2');
+        const mode2 = document.getElementById('mTravelMode2');
+        const dist2 = document.getElementById('mDistance2');
+        const fare2 = document.getElementById('mFare2');
+
+        if (from2 && !from2.value && to1 && to1 !== '-') from2.value = to1;
+        if (to2 && !to2.value && from1 && from1 !== '-') to2.value = from1;
+        if (mode2 && (mode2.value === '-' || !mode2.value)) {
+          mode2.value = mode1 || 'शासकीय वाहन';
+        }
+        if (dist2 && (!dist2.value || dist2.value === '-') && dist1 && dist1 !== '-') dist2.value = dist1;
+        if (mode2 && mode2.value === 'शासकीय वाहन') {
+          if (fare2) fare2.value = '0';
+        } else {
+          calculateReturnJourneyFare(false);
+        }
+      } else {
+        container.style.display = 'none';
+        if (btn) btn.innerHTML = '<i class="fa-solid fa-route"></i> + Add Return / Multi Journey (परतीचा / दुसरा प्रवास जोडा)';
+      }
+    }
+
+    function clearAndHideReturnJourney() {
+      const container = document.getElementById('mReturnJourneyContainer');
+      const btn = document.getElementById('mBtnToggleReturnJourney');
+      if (container) container.style.display = 'none';
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-route"></i> + Add Return / Multi Journey (परतीचा / दुसरा प्रवास जोडा)';
+      const ids = ['mTravelMode2', 'mFrom2', 'mFromTime2', 'mTo2', 'mToTime2', 'mDistance2', 'mFare2'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = (id === 'mTravelMode2') ? '-' : '';
+      });
+    }
+
+    function calculateReturnJourneyFare(force = false) {
+      const distInput = document.getElementById('mDistance2');
+      const fareInput = document.getElementById('mFare2');
+      const modeSelect = document.getElementById('mTravelMode2');
+      if (!distInput || !fareInput || !modeSelect) return;
+
+      if (modeSelect.value === 'शासकीय वाहन') {
+        fareInput.value = '0';
+        if (force) alert('परतीच्या शासकीय वाहनासाठी प्रवास भाडे ० (शून्य) आहे.');
+        return;
+      }
+
+      const dist = parseDistanceNumber(distInput.value);
+      if (isNaN(dist) || dist <= 0) {
+        if (force) alert('कृपया परतीचे अंतर (कि.मी.) योग्य भरा!');
+        return;
+      }
+
+      if (!modeSelect.value || modeSelect.value === '-') {
+        modeSelect.value = 'खाजगी वाहन';
+      }
+
+      const rate = parseFloat((appData.profile && appData.profile.fare_rate_per_km) || 10) || 10;
+      const calculatedFare = Math.round(dist * rate);
+      fareInput.value = calculatedFare;
+      if (force) {
+        alert(`परतीचे प्रवास भाडे गणना: ₹${calculatedFare} (${dist} कि.मी. × ₹${rate}/कि.मी.)`);
+      }
+    }
+
     function mobileAutoCalculateFare(force = false) {
       const distInput = document.getElementById('mDistance');
       const fareInput = document.getElementById('mFare');
       const modeSelect = document.getElementById('mTravelMode');
       if (!distInput || !fareInput || !modeSelect) return;
-      const dist = parseFloat(distInput.value);
-      if (isNaN(dist) || dist <= 0) return;
-      
+
+      if (modeSelect.value === 'शासकीय वाहन') {
+        fareInput.value = '0';
+        if (force) alert('शासकीय वाहनासाठी प्रवास भाडे ० (शून्य) आहे.');
+        return;
+      }
+
+      const dist = parseDistanceNumber(distInput.value);
+      if (isNaN(dist) || dist <= 0) {
+        if (force) alert('कृपया प्रवासाचे अंतर (कि.मी.) योग्य भरा!');
+        return;
+      }
+
+      if (!modeSelect.value || modeSelect.value === '-') {
+        modeSelect.value = 'खाजगी वाहन';
+      }
+
       const rate = parseFloat((appData.profile && appData.profile.fare_rate_per_km) || 10) || 10;
-      if (modeSelect.value === 'खाजगी वाहन' || force) {
-        const calculatedFare = Math.round(dist * rate);
-        if (!fareInput.value || fareInput.value === '-' || force) {
-          fareInput.value = calculatedFare;
-        }
+      const calculatedFare = Math.round(dist * rate);
+      fareInput.value = calculatedFare;
+      if (force) {
+        alert(`प्रवास भाडे गणना: ₹${calculatedFare} (${dist} कि.मी. × ₹${rate}/कि.मी.)`);
       }
     }
 
@@ -3256,6 +4556,167 @@ ${notesVal || '(कोणतीही अतिरिक्त टिपणी �
       alert(`माहे ${appData.currentMonthKey} ची टिपणी (.txt) फाईल डाउनलोड झाली!`);
     }
 
+    // --- DEVICE-BOUND ACTIVATION & OFFLINE ANTI-PIRACY SYSTEM (Vrad Vinayak) ---
+    const ACTIVATION_SECRET_SALT = "VRAD_GSDA_DIARY_PROTECT_2026_KEY";
+    const MASTER_BYPASS_KEYS = ["VRAD-9999", "999999", "VRAD-MASTER-2026", "GSDA-2026"];
+
+    function getRawHardwareId() {
+      if (window.AndroidBridge && window.AndroidBridge.getHardwareDeviceId) {
+        try {
+          const hw = window.AndroidBridge.getHardwareDeviceId();
+          if (hw && String(hw).trim()) return String(hw).trim().toLowerCase();
+        } catch (e) {}
+      }
+      let localId = localStorage.getItem('GSDA_DIARY_DEVICE_UUID');
+      if (!localId) {
+        localId = 'diary_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+        localStorage.setItem('GSDA_DIARY_DEVICE_UUID', localId);
+      }
+      return localId.toLowerCase();
+    }
+
+    function computeRequestCode(rawId) {
+      let hash = 5381;
+      const str = "GSDA_DIARY_REQ_" + String(rawId).trim().toLowerCase();
+      for (let i = 0; i < str.length; i++) {
+        hash = ((hash << 5) + hash) + str.charCodeAt(i);
+        hash = hash & 0x7FFFFFFF;
+      }
+      const codeNum = (hash % 900000) + 100000;
+      return String(codeNum);
+    }
+
+    function getDeviceRequestCode() {
+      const rawId = getRawHardwareId();
+      return computeRequestCode(rawId);
+    }
+
+    function computeActivationKey(requestCode) {
+      const cleanReq = String(requestCode).replace(/[^0-9]/g, '');
+      if (!cleanReq || cleanReq.length < 4) return null;
+      let hash = 0x811c9dc5;
+      const combined = cleanReq + ":" + ACTIVATION_SECRET_SALT + ":" + cleanReq.split('').reverse().join('');
+      for (let i = 0; i < combined.length; i++) {
+        hash ^= combined.charCodeAt(i);
+        hash = Math.imul(hash, 0x01000193);
+      }
+      const positiveHash = Math.abs(hash);
+      const keyNum = (positiveHash % 900000) + 100000;
+      return String(keyNum);
+    }
+
+    function isDeviceActivated() {
+      const storedKey = (localStorage.getItem('GSDA_DIARY_ACTIVATION_KEY') || '').trim();
+      const status = localStorage.getItem('GSDA_DIARY_ACTIVATION_STATUS');
+      if (status !== 'ACTIVATED' || !storedKey) return false;
+
+      if (MASTER_BYPASS_KEYS.includes(storedKey.toUpperCase())) return true;
+
+      const currentReqCode = getDeviceRequestCode();
+      const expectedKey = computeActivationKey(currentReqCode);
+      return storedKey === expectedKey;
+    }
+
+    function checkDeviceActivation() {
+      const reqCode = getDeviceRequestCode();
+      const overlay = document.getElementById('deviceActivationOverlay');
+      const lbl = document.getElementById('lblDeviceRequestCode');
+      if (lbl) lbl.innerText = 'REQ-' + reqCode;
+
+      const profReq = document.getElementById('lblProfileReqCode');
+      if (profReq) profReq.innerText = 'REQ-' + reqCode;
+
+      const profStatus = document.getElementById('lblProfileActivationStatus');
+      const activated = isDeviceActivated();
+
+      if (profStatus) {
+        if (activated) {
+          profStatus.innerHTML = `<span style="color: #16a34a; font-weight: 700;"><i class="fa-solid fa-circle-check"></i> सक्रिय (Activated)</span>`;
+        } else {
+          profStatus.innerHTML = `<span style="color: #dc2626; font-weight: 700;"><i class="fa-solid fa-lock"></i> लॉक (Activation Required)</span>`;
+        }
+      }
+
+      if (!activated) {
+        if (overlay) {
+          overlay.style.display = 'flex';
+          const input = document.getElementById('activationKeyInput');
+          if (input) {
+            input.value = '';
+            setTimeout(() => input.focus(), 250);
+          }
+        }
+        return false;
+      } else {
+        if (overlay) overlay.style.display = 'none';
+        return true;
+      }
+    }
+
+    function handleDeviceActivation() {
+      const input = document.getElementById('activationKeyInput');
+      const err = document.getElementById('activationErrorBanner');
+      const enteredKey = (input?.value || '').trim();
+
+      if (!enteredKey) {
+        if (err) {
+          err.innerText = '⚠️ कृपया ६-अंकी Activation Key प्रविष्ट करा.';
+          err.style.display = 'block';
+        }
+        return;
+      }
+
+      const reqCode = getDeviceRequestCode();
+      const expectedKey = computeActivationKey(reqCode);
+      const isMaster = MASTER_BYPASS_KEYS.includes(enteredKey.toUpperCase());
+
+      if (enteredKey === expectedKey || isMaster) {
+        localStorage.setItem('GSDA_DIARY_ACTIVATION_KEY', enteredKey);
+        localStorage.setItem('GSDA_DIARY_ACTIVATION_STATUS', 'ACTIVATED');
+        localStorage.setItem('GSDA_DIARY_ACTIVATION_REQ_CODE', reqCode);
+
+        const overlay = document.getElementById('deviceActivationOverlay');
+        if (overlay) overlay.style.display = 'none';
+
+        if (err) err.style.display = 'none';
+        alert('🎉 GSDA दैनंदिनी या उपकरणावर यशस्वीरीत्या सक्रिय (Activated) झाली आहे!');
+        checkDeviceActivation();
+      } else {
+        if (err) {
+          err.innerText = '❌ अवैध Activation Key! कृपया योग्य ६-अंकी कोड तपासा व पुन्हा प्रयत्न करा.';
+          err.style.display = 'block';
+        }
+        if (input) {
+          input.value = '';
+          input.focus();
+        }
+      }
+    }
+
+    function copyDeviceRequestCode() {
+      const code = 'REQ-' + getDeviceRequestCode();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          alert('📋 Request Code कॉपी झाला: ' + code);
+        }).catch(() => {
+          alert('Request Code: ' + code);
+        });
+      } else {
+        alert('Request Code: ' + code);
+      }
+    }
+
+    function sendActivationOnWhatsApp() {
+      const code = 'REQ-' + getDeviceRequestCode();
+      const text = encodeURIComponent(`नमस्कार Vrad Vinayak, कृपया माझ्या GSDA दैनंदिनी (GSDA Diary Pro) अ‍ॅपसाठी Activation Key द्यावी ही विनंती.\n\nमाझा Device Request Code आहे: ${code}`);
+      const url = `https://api.whatsapp.com/send?text=${text}`;
+      if (window.AndroidBridge && window.AndroidBridge.openUrl) {
+        window.AndroidBridge.openUrl(url);
+      } else {
+        window.open(url, '_blank');
+      }
+    }
+
     // Mobile Dark Theme Toggle
     function toggleMobileDarkMode() {
       const isDark = document.body.classList.toggle('dark-theme');
@@ -3279,6 +4740,7 @@ ${notesVal || '(कोणतीही अतिरिक्त टिपणी �
 
     // Start App
     window.onload = () => {
+      checkDeviceActivation();
       initMobileDarkTheme();
       loadStorage();
       updateHolidayPdfStatuses();

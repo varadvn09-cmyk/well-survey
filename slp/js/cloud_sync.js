@@ -30,8 +30,32 @@ window.DraftCalcCloudSync = (function() {
 
   // --- Getters / Setters ---
   function getSyncKey() {
-    const raw = localStorage.getItem(STORAGE_KEYS.SYNC_KEY) || '';
-    return raw.replace(/\D/g, '').trim();
+    const path = (window.location.pathname || '').toLowerCase();
+    let raw = '';
+    if (path.includes('/slp')) {
+      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP') || '9822114400';
+    } else if (path.includes('/ltr')) {
+      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_LTR') || '9822114402';
+    } else if (path.includes('/kop')) {
+      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_KOP') || '9822114401';
+    } else {
+      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP') || localStorage.getItem(STORAGE_KEYS.SYNC_KEY) || '9822114400';
+    }
+    const clean = (raw || '').replace(/\D/g, '').trim();
+    return clean || '9822114400';
+  }
+
+  function isRecordBelongsToDistrict(r, roomKey) {
+    if (!r) return false;
+    const d = (r.district || '').toLowerCase().trim();
+    const t = (r.taluka || '').toLowerCase().trim();
+    const laturTalukas = ['latur', 'ausa', 'renapur', 'nilanga', 'shirur anantpal', 'deoni', 'udgir', 'jalkot', 'chakur', 'ahmedpur'];
+    if (roomKey === '9822114400') {
+      if (d === 'latur' || laturTalukas.includes(t)) return false;
+    } else if (roomKey === '9822114402') {
+      if (d === 'solapur') return false;
+    }
+    return true;
   }
 
   function setSyncKey(phoneStr) {
@@ -359,6 +383,30 @@ window.DraftCalcCloudSync = (function() {
     }
 
     const localRecords = (typeof getStoredRecords === 'function') ? getStoredRecords() : [];
+      // Cross-District Isolation Guard: Auto-purge any records from wrong district in this room
+      let cleanedLocal = [];
+      let purgedCrossDistrict = 0;
+      localRecords.forEach(r => {
+        if (!isRecordBelongsToDistrict(r, key)) {
+          purgedCrossDistrict++;
+        } else {
+          cleanedLocal.push(r);
+        }
+      });
+      if (purgedCrossDistrict > 0) {
+        console.log(`DraftCalc Cloud Sync - Purged ${purgedCrossDistrict} non-${key} records from local device.`);
+        localRecords.length = 0;
+        localRecords.push(...cleanedLocal);
+        const activeStorageKey = getActiveStorageKey();
+        localStorage.setItem(activeStorageKey, JSON.stringify(localRecords));
+        if (window.AndroidBridge && window.AndroidBridge.persistBackup) {
+          window.AndroidBridge.persistBackup(JSON.stringify(localRecords));
+        }
+        if (typeof renderRecords === 'function') renderRecords();
+        if (typeof renderRecordCards === 'function') renderRecordCards();
+        if (typeof updateHomeDashboard === 'function') updateHomeDashboard();
+        if (typeof updateBadge === 'function') updateBadge();
+      }
     if (localRecords.length === 0) {
       // Never wipe cloud room when local device is empty!
       // A fresh device (Phone / PC2) should pull remote records, not destroy them!
@@ -375,7 +423,8 @@ window.DraftCalcCloudSync = (function() {
       const dbUrl = getDbUrl();
       const recordsMap = {};
 
-      for (const r of localRecords) {
+      const districtLocalRecords = localRecords.filter(r => isRecordBelongsToDistrict(r, key));
+      for (const r of districtLocalRecords) {
         const copy = { ...r };
         if (copy.photoData) {
           copy.photoData = await compressPhoto(copy.photoData);
@@ -552,7 +601,9 @@ window.DraftCalcCloudSync = (function() {
             console.warn('DraftCalc Cloud Sync - Remote encrypted record skipped (locked or wrong password)');
           }
         } else if (item) {
-          remoteRecords.push(item);
+          if (isRecordBelongsToDistrict(item, key)) {
+            remoteRecords.push(item);
+          }
         }
       }
 
