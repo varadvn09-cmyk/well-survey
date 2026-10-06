@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>GSDA दैनंदिनी - मोबाईल ऍप (Universal Offline)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,6 +193,7 @@
         overflow: visible !important;
       }
       header, .controls, .summary-strip, .bottom-nav, .no-print, .desktop-nav, #printMobileHelpBanner { display: none !important; }
+      .view-panel:not(#view-print) { display: none !important; }
       .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
       #view-print { display: block !important; margin: 0 !important; padding: 0 !important; }
       .print-preview-wrapper { overflow: visible !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
@@ -200,9 +204,9 @@
         width: 100% !important;
         min-width: 0 !important;
         max-width: 100% !important;
-        height: 282mm !important;
-        min-height: 282mm !important;
-        max-height: 282mm !important;
+        height: 279mm !important;
+        min-height: 279mm !important;
+        max-height: 279mm !important;
         box-shadow: none !important;
         margin: 0 !important;
         overflow: hidden !important;
@@ -234,13 +238,17 @@
         break-inside: avoid !important;
       }
       .print-table th, .print-table td {
-        height: 4.9mm !important;
+        min-height: 4.8mm !important;
+        height: auto !important;
         padding: 0.5px 1.5px !important;
         font-size: 7.0pt !important;
         line-height: 1.1 !important;
+        vertical-align: middle !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
       }
       .print-table th {
-        height: 5.1mm !important;
+        min-height: 5.1mm !important;
         font-size: 7.2pt !important;
       }
       .print-sig-officer {
@@ -276,7 +284,7 @@
         font-size: 9pt !important;
         padding: 3px 5px !important;
       }
-      @page { size: A4 portrait; margin: 5mm 4mm 3mm 6mm; }
+      @page { size: A4 portrait; margin: 10mm 4mm 3mm 15mm; }
     }
 
     .mode-2page .print-table th,
@@ -349,37 +357,92 @@
       min-height: auto;
     }
     .print-table .rt-leg1 {
-      height: 5.1mm !important;
-      min-height: 5.1mm !important;
-      max-height: 5.1mm !important;
-      padding: 0.2mm 0.5mm !important;
+      min-height: 4.8mm !important;
+      height: auto !important;
+      max-height: none !important;
+      padding: 0.3mm 0.5mm !important;
       font-size: 6.8pt !important;
-      line-height: 1.0 !important;
+      line-height: 1.05 !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: center !important;
       align-items: center !important;
       text-align: center !important;
-      overflow: hidden !important;
+      overflow: visible !important;
       box-sizing: border-box !important;
     }
     .print-table .rt-leg2 {
-      height: 4.5mm !important;
       min-height: 4.5mm !important;
-      max-height: 4.5mm !important;
+      height: auto !important;
+      max-height: none !important;
       border-top: 0.75px solid #000000 !important; /* solid unbroken black dividing line in print */
-      padding: 0.2mm 0.5mm !important;
+      padding: 0.3mm 0.5mm !important;
       font-size: 6.8pt !important;
-      line-height: 1.0 !important;
+      line-height: 1.05 !important;
       color: #000000 !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: center !important;
       align-items: center !important;
       text-align: center !important;
-      overflow: hidden !important;
+      overflow: visible !important;
       box-sizing: border-box !important;
       font-weight: normal !important;
+    }
+    /* Travel Mode with Vehicle Number: Type on top, dividing line, vehicle number below */
+    .mode-with-veh {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      line-height: 1.1;
+      padding: 0.5px 0;
+      box-sizing: border-box;
+    }
+    .mode-with-veh .mode-title {
+      display: block;
+      font-size: 6.8pt;
+      font-weight: normal; /* शासकीय/खाजगी वाहन साध्या अक्षरांत (Normal) */
+      white-space: nowrap;
+    }
+    .mode-with-veh .mode-sep {
+      display: block;
+      width: 85%;
+      border-top: 0.65px solid #000000;
+      margin: 1px 0;
+    }
+    .mode-with-veh .mode-vnum {
+      display: block;
+      font-size: 6.0pt;
+      font-weight: bold;
+      letter-spacing: 0.2px;
+      white-space: nowrap;
+    }
+    .cell-time {
+      white-space: nowrap !important;
+      font-size: 6.9pt !important;
+      letter-spacing: -0.1px !important;
+      padding: 0.5px 0.5px !important;
+      text-align: center !important;
+    }
+    /* Dynamic wrapping for multi-village arrival and work details */
+    .cell-multi-loc {
+      font-size: 6.2pt !important;
+      line-height: 1.05 !important;
+      word-break: break-word !important;
+      overflow-wrap: break-word !important;
+      white-space: normal !important;
+      padding: 0.5px 1px !important;
+      text-align: center !important;
+    }
+    .cell-work-wrap {
+      word-break: break-word !important;
+      overflow-wrap: break-word !important;
+      white-space: normal !important;
+      line-height: 1.15 !important;
+      padding: 1.5px 3px !important;
+      text-align: left !important;
     }
 
     .print-preview-wrapper {
@@ -408,7 +471,7 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.12);
     }
     .print-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin: 2px 0; }
-    .print-table th, .print-table td { border: 0.75px solid #000; padding: 1.5px 2px; text-align: center; vertical-align: middle; height: 5.4mm; }
+    .print-table th, .print-table td { border: 0.75px solid #000; padding: 1.5px 2px; text-align: center; vertical-align: middle; min-height: 5.2mm; height: auto; word-break: break-word; overflow-wrap: break-word; }
     .print-table th { background: #f1f5f9; font-weight: bold; height: 5.6mm; font-size: 7.6pt; }
     .text-left { text-align: left !important; }
     
@@ -540,7 +603,7 @@
       <button class="btn btn-green btn-sm" onclick="saveAllMobileData()" title="डेटा जतन करा"><i class="fa-solid fa-floppy-disk"></i> जतन करा</button>
       <button class="btn btn-amber btn-sm" onclick="openShareModal()" title="WhatsApp वर पाठवा"><i class="fa-solid fa-share-nodes"></i> शेअर</button>
       <button class="btn btn-sm" onclick="switchNav('profile', document.getElementById('dNavProfile'))" style="background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 0.72rem; padding: 4px 8px; font-weight: bold; cursor: pointer;" title="अधिकारी प्रोफाइल (Profile Manager)"><i class="fa-solid fa-user-gear"></i> <span>प्रोफाइल</span></button>
-      <span class="badge">Offline OK</span>
+      <span class="badge" title="आवृत्ती v2.6 (Calculation Fixed)">v2.6 OK</span>
     </div>
   </header>
 
@@ -749,40 +812,54 @@
 
       <div class="print-preview-wrapper">
         <div class="print-sheet">
-        <!-- Merged Header Title (A1:J1) -->
-        <div style="text-align: center; font-weight: bold; font-size: 8.8pt; text-decoration: underline; padding-top: 3px; margin-bottom: 4px;">
-          <span id="prMonthTitle">माहे जानेवारी २०२६ ची दैनंदिनी</span>
-        </div>
+        <!-- Top Section (Header & Main Table Grouped to prevent Flex space-between gap) -->
+        <div id="prTopSection">
+          <!-- Merged Header Title (A1:J1) -->
+          <div style="text-align: center; font-weight: bold; font-size: 10.2pt; text-decoration: underline; padding-top: 2px; margin-bottom: 9px;">
+            <span id="prMonthTitle">माहे जानेवारी २०२६ ची दैनंदिनी</span>
+          </div>
 
-        <!-- Officer Meta (A2:J2) -->
-        <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 3px; font-size: 6.8pt;">
-          <span id="prOfficerName">नाव-विनायक नवनाथ निंबाळकर</span>
-          <span id="prOfficerDesig">पदनाम- सहाय्यक भूवैज्ञानिक</span>
-          <span id="prOfficerBudget">लेखाशीर्ष- २७०२</span>
-          <span id="prOfficerSalary">वेतन:६४०००/-</span>
-        </div>
+          <!-- Officer Meta (A2:J2) -->
+          <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 3px; margin-bottom: 3px; font-size: 9.8pt;">
+            <span id="prOfficerName">नाव-विनायक नवनाथ निंबाळकर</span>
+            <span id="prOfficerDesig">पदनाम- सहाय्यक भूवैज्ञानिक</span>
+            <span id="prOfficerBudget">लेखाशीर्ष- २७०२</span>
+            <span id="prOfficerSalary">वेतन:६४०००/-</span>
+          </div>
 
-        <!-- Table A1 to J35 (100% Proportional Widths matching Varad Excel Sheet 1) -->
-        <table class="print-table" id="prTable">
-          <thead>
-            <tr>
-              <th rowspan="2" style="width: 10%;">दिनांक</th>
-              <th colspan="2" style="width: 15%;">निघण्याचे</th>
-              <th colspan="2" style="width: 25%;">पोहचण्याचे</th>
-              <th rowspan="2" style="width: 10%;">प्रवासाचे साधन</th>
-              <th rowspan="2" style="width: 7%;">प्रवासाचे अंतर कि. मी.</th>
-              <th rowspan="2" style="width: 6%;">प्रवास भाडे रुपये</th>
-              <th rowspan="2" style="width: 27%; text-align: left;">कामाचे तपशील / प्रवासाचे कारण</th>
-            </tr>
-            <tr>
-              <th style="width: 9.5%;">ठिकाण</th>
-              <th style="width: 5.5%;">वेळ</th>
-              <th style="width: 19.5%;">ठिकाण</th>
-              <th style="width: 5.5%;">वेळ</th>
-            </tr>
-          </thead>
-          <tbody id="prTableBody"></tbody>
-        </table>
+          <!-- Table A1 to J35 (100% Proportional Widths matching Varad Excel Sheet 1) -->
+          <table class="print-table" id="prTable">
+            <colgroup>
+              <col style="width: 9.5%;">  <!-- दिनांक -->
+              <col style="width: 9.0%;">  <!-- निघण्याचे ठिकाण -->
+              <col style="width: 5.0%;">  <!-- निघण्याची वेळ -->
+              <col style="width: 20.5%;"> <!-- पोहचण्याचे ठिकाण -->
+              <col style="width: 5.0%;">  <!-- पोहचण्याची वेळ -->
+              <col style="width: 10.0%;"> <!-- प्रवासाचे साधन -->
+              <col style="width: 6.5%;">  <!-- प्रवासाचे अंतर -->
+              <col style="width: 5.5%;">  <!-- प्रवास भाडे -->
+              <col style="width: 29.0%;"> <!-- कामाचे तपशील / प्रवासाचे कारण -->
+            </colgroup>
+            <thead>
+              <tr>
+                <th rowspan="2" style="width: 9.5%;">दिनांक</th>
+                <th colspan="2" style="width: 14.0%;">निघण्याचे</th>
+                <th colspan="2" style="width: 25.5%;">पोहचण्याचे</th>
+                <th rowspan="2" style="width: 10.0%;">प्रवासाचे साधन</th>
+                <th rowspan="2" style="width: 6.5%;">प्रवासाचे अंतर कि. मी.</th>
+                <th rowspan="2" style="width: 5.5%;">प्रवास भाडे रुपये</th>
+                <th rowspan="2" style="width: 29.0%; text-align: left;">कामाचे तपशील / प्रवासाचे कारण</th>
+              </tr>
+              <tr>
+                <th style="width: 9.0%;">ठिकाण</th>
+                <th style="width: 5.0%;">वेळ</th>
+                <th style="width: 20.5%;">ठिकाण</th>
+                <th style="width: 5.0%;">वेळ</th>
+              </tr>
+            </thead>
+            <tbody id="prTableBody"></tbody>
+          </table>
+        </div>
 
         <!-- Bottom Summary Section (Sheet 2: Goshwara, Pragati & Signatures) -->
         <div id="prSummaryPageContainer">
@@ -791,16 +868,18 @@
           <!-- 1-PAGE COMPACT FORMAT: Side-by-Side Tables               -->
           <!-- ======================================================== -->
           <div id="prSummary1PageContainer">
+            <!-- Sheet 1 Goshwara Header Title -->
+            <div id="pr1PageGoshwaraTitle" style="text-align: center; font-weight: bold; font-size: 7.8pt; text-decoration: underline; margin-top: 4px; margin-bottom: 3px;">मासिक दैनंदिनीचा गोषवारा</div>
             <!-- Bottom Grid: Left Progress | Right Summary -->
-            <div id="prBottomSummaryGrid" style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 4px; margin-top: 5px; font-size: 6.6pt; border-top: 1px solid #000; padding-top: 3px;">
+            <div id="prBottomSummaryGrid" style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 4px; font-size: 6.6pt; border-top: 1px solid #000; padding-top: 3px;">
               <div>
-                <div style="font-weight: bold; text-align: center; background: #f1f5f9; border: 0.75px solid #000; padding: 1.5px 0;">क्षे्त्रिय प्रगती</div>
+                <div style="font-weight: bold; text-align: center; background: #f1f5f9; border: 0.75px solid #000; padding: 1.5px 0;">क्षेत्रीय प्रगती</div>
                 <table class="print-table" style="margin: 0;">
                   <thead>
                     <tr>
                       <th style="text-align: left; padding: 2px 3px;">योजना प्रकार</th>
-                      <th style="width: 32px; padding: 2px 1px;">गावे/न.प.</th>
-                      <th style="width: 32px; padding: 2px 1px;">प्रकरणे/विहिरी</th>
+                      <th style="width: 38px; padding: 2px 1px;">गावे / मॅपशीट</th>
+                      <th style="width: 38px; padding: 2px 1px;">प्रकरणे / विहिरी</th>
                     </tr>
                   </thead>
                   <tbody id="prProgressBody"></tbody>
@@ -852,8 +931,8 @@
           <div id="prSummary2PageContainer" style="display: none;" class="page2-container">
             <!-- Sheet 2 Title Header -->
             <div style="text-align: center; margin-bottom: 8px;">
-              <div style="font-weight: bold; font-size: 8.8pt; text-decoration: underline; margin-bottom: 3px;">मासिक दैनंदिनीचा गोषवारा</div>
-              <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px; font-size: 6.8pt;">
+              <div style="font-weight: bold; font-size: 10.2pt; text-decoration: underline; margin-bottom: 9px;">मासिक दैनंदिनीचा गोषवारा</div>
+              <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px; font-size: 9.8pt;">
                 <span id="prP2OfficerName">नाव : विनायक नवनाथ निंबाळकर</span>
                 <span id="prP2OfficerDesig">पदनाम : सहाय्यक भूवैज्ञानिक</span>
                 <span id="prP2OfficerDept">भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर</span>
@@ -893,12 +972,12 @@
             </div>
 
             <!-- Submission Line -->
-            <div style="font-size: 6.8pt; margin-top: 6px; border-top: 0.75px solid #000; padding-top: 3px; font-weight: bold; line-height: 1.35;">
+            <div style="font-size: 10pt; margin-top: 6px; border-top: 0.75px solid #000; padding-top: 3px; font-weight: bold; line-height: 1.35;">
               <p id="prP2SubmissionLine">उपरोक्त माहे ची मासिक दैनंदिनी मंजूरीसाठी सविनय सादर.</p>
             </div>
 
             <!-- Date on Left, Signature on Right -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 6.8pt; font-weight: bold; margin-top: 6px; padding-top: 2px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 10pt; font-weight: bold; margin-top: 6px; padding-top: 2px;">
               <div>
                 <span>दिनांक: </span><span id="prP2DateDisplay" style="font-family: monospace;">05/08/2026</span>
               </div>
@@ -1283,6 +1362,7 @@
             <option value="एस.टी. / बस">एस.टी. / बस</option>
             <option value="रेल्वे">रेल्वे</option>
           </select>
+          <input type="text" id="mVehNo" placeholder="वाहन क्र. (उदा. MH-13 EK 1894)" style="margin-top: 4px; font-size: 0.78rem;">
         </div>
       </div>
 
@@ -1347,6 +1427,7 @@
               <option value="एस.टी. / बस">एस.टी. / बस</option>
               <option value="रेल्वे">रेल्वे</option>
             </select>
+            <input type="text" id="mVehNo2" placeholder="परतीचा वाहन क्र. (उदा. MH-13 EK 1894)" style="margin-top: 4px; font-size: 0.72rem;">
           </div>
 
           <div class="form-row">
@@ -1643,6 +1724,97 @@
       return s;
     }
 
+    // Helper to format travel mode with vehicle number (Type on top, black dividing line, vehicle number below)
+    function formatTravelModeDisplay(mode, vehNo) {
+      if (!mode || mode === '-') return '-';
+      let actualMode = String(mode).trim();
+      let actualVeh = vehNo ? String(vehNo).trim() : '';
+
+      if (!actualVeh) {
+        const mMatch = actualMode.match(/^(.+?)(?:[\/\-\(]|\s+)(MH[\s\-0-9A-Za-z]+)\)?$/i);
+        if (mMatch) {
+          actualMode = mMatch[1].trim();
+          actualVeh = mMatch[2].trim();
+        }
+      }
+
+      if (actualVeh) {
+        return `<div class="mode-with-veh"><span class="mode-title">${actualMode}</span><span class="mode-sep"></span><span class="mode-vnum">${actualVeh}</span></div>`;
+      }
+      return actualMode;
+    }
+
+    function extractVehicleNo(mode) {
+      if (!mode) return '';
+      const mMatch = String(mode).match(/(MH[\s\-0-9A-Za-z]+)/i);
+      return mMatch ? mMatch[1].trim() : '';
+    }
+
+    // Auto-inserting colon (:) and standardizing time inputs (e.g. 1030 -> 10:30, 10 -> 10:00)
+    function setupTimeAutoFormatting(inputId) {
+      const el = document.getElementById(inputId);
+      if (!el) return;
+
+      const devToEng = s => String(s || '').replace(/[०-९]/g, d => "०१२३४५६७८९".indexOf(d));
+
+      el.addEventListener('input', function() {
+        let val = this.value;
+        if (val.includes('(')) return;
+
+        let raw = devToEng(val).trim();
+        if (/^\d{4}$/.test(raw)) {
+          let hh = raw.substring(0, 2);
+          let mm = raw.substring(2, 4);
+          if (parseInt(hh, 10) <= 24 && parseInt(mm, 10) <= 59) {
+            this.value = `${hh}:${mm}`;
+          }
+        }
+      });
+
+      el.addEventListener('blur', function() {
+        let val = this.value.trim();
+        if (!val || val === '-') return;
+
+        let note = '';
+        let matchNote = val.match(/\s*(\([^\)]+\))\s*$/);
+        if (matchNote) {
+          note = ' ' + matchNote[1];
+          val = val.substring(0, matchNote.index).trim();
+        }
+
+        let raw = devToEng(val).replace('.', ':');
+        if (/^\d{1,2}$/.test(raw)) {
+          let num = parseInt(raw, 10);
+          if (num >= 0 && num <= 24) {
+            this.value = `${String(num).padStart(2, '0')}:00${note}`;
+            return;
+          }
+        }
+        if (/^\d{3}$/.test(raw)) {
+          let hh = raw.substring(0, 1).padStart(2, '0');
+          let mm = raw.substring(1, 3);
+          if (parseInt(hh, 10) <= 24 && parseInt(mm, 10) <= 59) {
+            this.value = `${hh}:${mm}${note}`;
+            return;
+          }
+        }
+        if (/^\d{4}$/.test(raw)) {
+          let hh = raw.substring(0, 2);
+          let mm = raw.substring(2, 4);
+          if (parseInt(hh, 10) <= 24 && parseInt(mm, 10) <= 59) {
+            this.value = `${hh}:${mm}${note}`;
+            return;
+          }
+        }
+        if (/^\d{1,2}[:\.]\d{1,2}$/.test(raw)) {
+          let parts = raw.split(/[:\.]/);
+          let hh = parts[0].padStart(2, '0');
+          let mm = parts[1].padStart(2, '0');
+          this.value = `${hh}:${mm}${note}`;
+        }
+      });
+    }
+
     // Helper to extract clean numeric value from English or Marathi numeral input
     function parseDistanceNumber(val) {
       if (!val) return NaN;
@@ -1703,19 +1875,24 @@
     ];
 
     // Local Storage State
+    const DEFAULT_OFFICER_PROFILE = {
+      name: "विनायक नवनाथ निंबाळकर",
+      designation: "सहाय्यक भूवैज्ञानिक",
+      department: "भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर",
+      headquarters: "सोलापूर",
+      budget_head: "२७०२",
+      salary: "६४०००/-",
+      controlling_officer: "वरिष्ठ भूवैज्ञानिक, भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर",
+      fare_rate_per_km: "10",
+      print_format: "1page"
+    };
+
     let appData = {
-      profile: {
-        name: "विनायक नवनाथ निंबाळकर",
-        designation: "सहाय्यक भूवैज्ञानिक",
-        department: "भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर",
-        headquarters: "सोलापूर",
-        budget_head: "२७०२",
-        salary: "६४०००/-",
-        controlling_officer: "वरिष्ठ भूवैज्ञानिक, भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर"
-      },
+      profile: Object.assign({}, DEFAULT_OFFICER_PROFILE),
       currentMonthKey: "2026-01",
       months: {}
     };
+    window.appData = appData;
 
     // Load from localStorage
     function loadStorage() {
@@ -1723,8 +1900,11 @@
       if (saved) {
         try {
           appData = JSON.parse(saved);
+          window.appData = appData;
         } catch(e) {}
       }
+      appData.profile = Object.assign({}, DEFAULT_OFFICER_PROFILE, appData.profile || {});
+
       if (!appData.schemes || !Array.isArray(appData.schemes) || appData.schemes.length === 0) {
         appData.schemes = [...STANDARD_SCHEMES];
       }
@@ -1761,6 +1941,17 @@
         if (changed) persist();
       }
 
+      // योजनानिहाय फील्ड प्रगती ऑटो-सिंक (Auto-sync scheme-wise progress and protect 1:10K Mapsheet)
+      if (appData.months) {
+        Object.keys(appData.months).forEach(k => {
+          const m = appData.months[k];
+          if (m && m.entries) {
+            syncFieldProgressFromEntries(m);
+          }
+        });
+        persist();
+      }
+
       // सर्व १२ महिन्यांसाठी ५ तारीख हमी (Ensure default submission date is 5th of next month for all 12 months)
       if (!appData.months) appData.months = {};
       let subDatesChanged = false;
@@ -1790,13 +1981,44 @@
         }
       }
 
+      populateProfileFields();
       setupProfileAutoSync();
       renderActiveView();
       renderHolidaysList();
     }
 
+    // Populate profile inputs from appData.profile
+    function populateProfileFields() {
+      const prof = appData.profile || DEFAULT_OFFICER_PROFILE;
+      const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = (val !== undefined && val !== null) ? val : '';
+      };
+      setVal('mProfName', prof.name);
+      setVal('mProfDesig', prof.designation);
+      setVal('mProfSalary', prof.salary);
+      setVal('mProfDept', prof.department);
+      setVal('mProfHQ', prof.headquarters || 'सोलापूर');
+      setVal('mProfBudget', prof.budget_head);
+      setVal('mProfControlling', prof.controlling_officer);
+      const fareEl = document.getElementById('mProfFareRate');
+      if (fareEl) {
+        fareEl.value = prof.fare_rate_per_km || '10';
+        updateMobileFareFormulaText(fareEl.value);
+      }
+      const pf = prof.print_format || '1page';
+      const pfRadio = document.querySelector(`input[name="mProfPrintFormat"][value="${pf}"]`);
+      if (pfRadio) pfRadio.checked = true;
+
+      const sub = document.getElementById('mAppSubTitle');
+      if (sub && prof.headquarters) {
+        sub.textContent = `${prof.headquarters} उपविभाग • १००% Offline Web App (Mobile & PC)`;
+      }
+    }
+
     // Save to localStorage
     function persist() {
+      window.appData = appData;
       localStorage.setItem('GSDA_DIARY_MOBILE', JSON.stringify(appData));
     }
 
@@ -2063,7 +2285,7 @@
             if (evt.target.tagName !== 'BUTTON' && !evt.target.closest('button')) openEditModal(idx);
           };
 
-          let travelModeDisp = e.travel_mode || '-';
+          let travelModeDisp = formatTravelModeDisplay(e.travel_mode, e.vehicle_no);
           let fromDisp = fromDisplay;
           let fromTimeDisp = formatTimeDisplay(e.from_time);
           let toDisp = e.to_loc || '-';
@@ -2076,7 +2298,7 @@
             fromTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fromTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.from_time2)}</div></div>`;
             toDisp = `<div class="rt-cell"><div class="rt-leg1 font-bold">${toDisp}</div><div class="rt-leg2 font-bold">${e.to_loc2 || '-'}</div></div>`;
             toTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${toTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.to_time2)}</div></div>`;
-            travelModeDisp = `<div class="rt-cell"><div class="rt-leg1 font-bold">${travelModeDisp}</div><div class="rt-leg2 font-bold">${e.travel_mode2 || '-'}</div></div>`;
+            travelModeDisp = `<div class="rt-cell"><div class="rt-leg1 font-bold">${travelModeDisp}</div><div class="rt-leg2 font-bold">${formatTravelModeDisplay(e.travel_mode2, e.vehicle_no2)}</div></div>`;
             const k2 = (e.distance_km2 && e.distance_km2 !== '-') ? `+${e.distance_km2}` : '-';
             kmDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${kmDisp}</div><div class="rt-leg2 font-mono">${k2}</div></div>`;
             const f2 = (e.travel_fare2 && e.travel_fare2 !== '-') ? `+₹${e.travel_fare2}` : '-';
@@ -2086,9 +2308,9 @@
               <td style="text-align: center; font-weight: bold; color: #64748b;">${idx + 1}</td>
               <td style="text-align: center; font-weight: bold; white-space: nowrap;">${e.date}</td>
               <td class="rt-td">${fromDisp}</td>
-              <td class="rt-td" style="text-align: center;">${fromTimeDisp}</td>
+              <td class="rt-td" style="text-align: center; white-space: nowrap;">${fromTimeDisp}</td>
               <td class="rt-td">${toDisp}</td>
-              <td class="rt-td" style="text-align: center;">${toTimeDisp}</td>
+              <td class="rt-td" style="text-align: center; white-space: nowrap;">${toTimeDisp}</td>
               <td class="rt-td" style="text-align: center;">${travelModeDisp}</td>
               <td class="rt-td" style="text-align: center; font-weight: bold;">${kmDisp}</td>
               <td class="rt-td" style="text-align: center; font-weight: bold; color: #1e3a8a;">${fareDisp}</td>
@@ -2105,9 +2327,9 @@
               <td style="text-align: center; font-weight: bold; color: #64748b;">${idx + 1}</td>
               <td style="text-align: center; font-weight: bold; white-space: nowrap;">${e.date}</td>
               <td>${fromDisp}</td>
-              <td style="text-align: center;">${fromTimeDisp}</td>
+              <td style="text-align: center; white-space: nowrap;">${fromTimeDisp}</td>
               <td>${toDisp}</td>
-              <td style="text-align: center;">${toTimeDisp}</td>
+              <td style="text-align: center; white-space: nowrap;">${toTimeDisp}</td>
               <td style="text-align: center;">${travelModeDisp}</td>
               <td style="text-align: center; font-weight: bold;">${kmDisp}</td>
               <td style="text-align: center; font-weight: bold; color: #1e3a8a;">${fareDisp}</td>
@@ -2207,23 +2429,20 @@
         if (!isNaN(dist2)) km += dist2;
       });
 
+      syncFieldProgressFromEntries(mData);
+
       let wellsSum = 0, boreSum = 0, mapsheetCount = 0;
       mData.entries.forEach(e => {
-        let w = parseInt(e.wells);
-        if (!isNaN(w)) wellsSum += w;
-        let b = parseInt(e.borewells);
-        if (!isNaN(b)) boreSum += b;
+        let w = parseCleanInt(e.wells);
+        if (w > 0) wellsSum += w;
+        let b = parseCleanInt(e.borewells);
+        if (b > 0) boreSum += b;
 
-        if (isMapsheetScheme(e.scheme)) {
-          let mc = parseInt(e.cases);
-          if (!isNaN(mc)) mapsheetCount += mc;
+        if (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail))) {
+          let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
+          if (mc > 0) mapsheetCount += mc;
         }
       });
-
-      const fpMapRow = (mData.field_progress || []).find(p => isMapsheetScheme(p.scheme));
-      if (mapsheetCount === 0 && fpMapRow && fpMapRow.cases && fpMapRow.cases !== '-') {
-        mapsheetCount = parseInt(fpMapRow.cases) || 0;
-      }
 
       document.getElementById('stTotal').textContent = tot;
       document.getElementById('stOffice').textContent = off;
@@ -2249,14 +2468,58 @@
         fpBody.innerHTML = '';
         (mData.field_progress || []).forEach((fp, idx) => {
           const tr = document.createElement('tr');
+          const isMapsheet = isMapsheetScheme(fp.scheme) || (fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('नकाशा')));
+          let valVillages = (fp.villages && fp.villages !== '-') ? fp.villages : '';
+          let valCases = (fp.cases && fp.cases !== '-') ? fp.cases : '';
           tr.innerHTML = `
             <td style="font-weight: 600;">${fp.scheme}</td>
-            <td><input type="text" id="fpVillages_${idx}" value="${fp.villages && fp.villages !== '-' ? fp.villages : ''}" placeholder="-"></td>
-            <td><input type="text" id="fpCases_${idx}" value="${fp.cases && fp.cases !== '-' ? fp.cases : ''}" placeholder="-"></td>
+            <td>
+              ${isMapsheet ? '<div style="font-size: 0.68rem; color: #4338ca; font-weight: bold; margin-bottom: 2px;">मॅपशीट:</div>' : ''}
+              <input type="text" id="fpVillages_${idx}" value="${valVillages}" placeholder="${isMapsheet ? 'मॅपशीट संख्या' : '-'}" oninput="onFieldProgressInput()" onchange="onFieldProgressInput()">
+            </td>
+            <td>
+              ${isMapsheet ? '<div style="font-size: 0.68rem; color: #4338ca; font-weight: bold; margin-bottom: 2px;">विहिरी:</div>' : ''}
+              <input type="text" id="fpCases_${idx}" value="${valCases}" placeholder="${isMapsheet ? 'विहिरी संख्या' : '-'}" oninput="onFieldProgressInput()" onchange="onFieldProgressInput()">
+            </td>
           `;
           fpBody.appendChild(tr);
         });
       }
+    }
+
+    function onFieldProgressInput() {
+      const mData = appData.months[appData.currentMonthKey];
+      if (!mData || !mData.field_progress) return;
+      mData.field_progress.forEach((fp, idx) => {
+        const vInput = document.getElementById(`fpVillages_${idx}`);
+        const cInput = document.getElementById(`fpCases_${idx}`);
+        if (vInput) fp.villages = vInput.value.trim() !== '' ? vInput.value.trim() : '-';
+        if (cInput) fp.cases = cInput.value.trim() !== '' ? cInput.value.trim() : '-';
+      });
+      persist();
+
+      let wellsSum = 0, boreSum = 0, mapsheetCount = 0;
+      mData.entries.forEach(e => {
+        let w = parseCleanInt(e.wells);
+        if (w > 0) wellsSum += w;
+        let b = parseCleanInt(e.borewells);
+        if (b > 0) boreSum += b;
+        if (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail))) {
+          let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
+          if (mc > 0) mapsheetCount += mc;
+        }
+      });
+      const fpMapRow = (mData.field_progress || []).find(p => isMapsheetScheme(p.scheme));
+      if (fpMapRow) {
+        let fpV = parseCleanInt(fpMapRow.villages);
+        if (fpV > 0) mapsheetCount = Math.max(mapsheetCount, fpV);
+        let fpW = parseCleanInt(fpMapRow.cases);
+        if (fpW > 0) wellsSum = Math.max(wellsSum, fpW);
+      }
+      const stWellsEl = document.getElementById('stWellsSummary');
+      if (stWellsEl) stWellsEl.textContent = boreSum > 0 ? `${wellsSum} (${boreSum})` : wellsSum;
+      const stMapEl = document.getElementById('stMapsheetSummary');
+      if (stMapEl) stMapEl.textContent = mapsheetCount;
     }
 
     function saveFieldProgress() {
@@ -2269,6 +2532,8 @@
         if (cInput) fp.cases = cInput.value.trim() || '-';
       });
       persist();
+      renderSummaryView();
+      renderSummaryStrip();
       renderPrintView();
       alert('क्षेत्रीय प्रगती माहिती यशस्वीरीत्या जतन केली!');
     }
@@ -2285,9 +2550,15 @@
         else if (e.leave == '1') lev++;
         else off++;
 
-        wells += parseInt(e.wells) || 0;
-        bore += parseInt(e.borewells) || 0;
+        wells += parseCleanInt(e.wells);
+        bore += parseCleanInt(e.borewells);
       });
+
+      const fpMap = (mData.field_progress || []).find(p => isMapsheetScheme(p.scheme));
+      if (fpMap) {
+        let fpW = parseCleanInt(fpMap.cases);
+        if (fpW > 0) wells = Math.max(wells, fpW);
+      }
 
       document.getElementById('mSumTotal').textContent = tot;
       document.getElementById('mSumOffice').textContent = off;
@@ -2299,10 +2570,78 @@
       document.getElementById('mSumBore').textContent = bore;
     }
 
+    function parseCleanInt(val) {
+      if (val === undefined || val === null) return 0;
+      let s = String(val).trim();
+      if (!s || s === '-') return 0;
+      const marathiDigits = ['०', '१', '२', '३', '४', '५', '६', '७', '८', '९'];
+      marathiDigits.forEach((ch, idx) => {
+        s = s.replaceAll(ch, String(idx));
+      });
+      const match = s.match(/[0-9]+/);
+      return match ? parseInt(match[0], 10) : 0;
+    }
+
     function isMapsheetScheme(val) {
       if (!val) return false;
       const s = String(val).toLowerCase();
-      return s.includes('mapsheet') || s.includes('मॅपशीट') || s.includes('10k') || s.includes('10 k');
+      return s.includes('mapsheet') || s.includes('मॅपशीट') || s.includes('10k') || s.includes('10 k') ||
+             s.includes('1:10') || s.includes('१:१०') || s.includes('नकाशा') || s.includes('नकाशे') ||
+             s.includes('10000') || s.includes('10,000') || s.includes('१०,०००') || s.includes('१०k') || s.includes('१० k');
+    }
+
+    // प्रत्येक योजनेची विहिरी/गावे प्रगती स्वतंत्रपणे अचूक मोजणे (Sync scheme-wise progress and protect 1:10K mapsheet)
+    function syncFieldProgressFromEntries(mData) {
+      if (!mData || !mData.entries) return;
+      if (!mData.field_progress) mData.field_progress = [];
+
+      const curSchemes = (appData.schemes && appData.schemes.length > 0) ? appData.schemes : STANDARD_SCHEMES;
+      curSchemes.forEach(s => {
+        if (!mData.field_progress.some(fp => fp.scheme === s)) {
+          mData.field_progress.push({ scheme: s, villages: "-", cases: "-" });
+        }
+      });
+
+      const schemeAgg = {};
+      let mapVillageSum = 0;
+      let mapWellSum = 0;
+
+      mData.entries.forEach(e => {
+        const isMap = isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail));
+        if (isMap) {
+          let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
+          if (mc > 0) mapVillageSum += mc;
+          let mw = parseCleanInt(e.wells);
+          if (mw > 0) mapWellSum += mw;
+        } else if (e.scheme) {
+          if (!schemeAgg[e.scheme]) {
+            schemeAgg[e.scheme] = { villages: 0, cases: 0 };
+          }
+          let v = parseCleanInt(e.villages);
+          if (v > 0) schemeAgg[e.scheme].villages += v;
+          let c = parseCleanInt(e.cases) || parseCleanInt(e.wells);
+          if (c > 0) schemeAgg[e.scheme].cases += c;
+        }
+      });
+
+      mData.field_progress.forEach(fp => {
+        const isMap = isMapsheetScheme(fp.scheme) || (fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('नकाशा')));
+        if (isMap) {
+          if (mapVillageSum > 0) fp.villages = String(mapVillageSum);
+          else if (!fp.villages || fp.villages === '0') fp.villages = "-";
+
+          if (mapWellSum > 0) fp.cases = String(mapWellSum);
+          else if (fp.cases && isMapsheetScheme(fp.cases)) fp.cases = "-";
+          else if (!fp.cases || fp.cases === '0') fp.cases = "-";
+        } else if (fp.scheme) {
+          const agg = schemeAgg[fp.scheme];
+          if (agg && agg.villages > 0) fp.villages = String(agg.villages);
+          else if (!fp.villages || fp.villages === '0') fp.villages = "-";
+
+          if (agg && agg.cases > 0) fp.cases = String(agg.cases);
+          else if (!fp.cases || fp.cases === '0') fp.cases = "-";
+        }
+      });
     }
 
     function onSchemeSelectionChange(val) {
@@ -2399,6 +2738,7 @@
       document.getElementById('mModalTitle').textContent = `नोंद संपादन: ${e.date}`;
       document.getElementById('mDate').value = e.date;
       document.getElementById('mTravelMode').value = e.travel_mode || '-';
+      document.getElementById('mVehNo').value = e.vehicle_no || extractVehicleNo(e.travel_mode) || '';
       document.getElementById('mFrom').value = isHeadquartersLocation(e.from_loc) ? activeHq : e.from_loc;
       document.getElementById('mFromTime').value = e.from_time || '-';
       document.getElementById('mTo').value = e.to_loc || '-';
@@ -2409,7 +2749,7 @@
       // Load Return Journey fields if present
       const container2 = document.getElementById('mReturnJourneyContainer');
       const btn2 = document.getElementById('mBtnToggleReturnJourney');
-      const hasReturn = !!(e.from_loc2 || e.to_loc2 || e.distance_km2 || (e.travel_mode2 && e.travel_mode2 !== '-'));
+      const hasReturn = !!(e.from_loc2 || e.to_loc2 || e.distance_km2 || (e.travel_mode2 && e.travel_mode2 !== '-') || e.vehicle_no2);
       if (hasReturn) {
         if (container2) container2.style.display = 'block';
         if (btn2) btn2.innerHTML = '<i class="fa-solid fa-angle-up"></i> परतीचा प्रवास तपशील लपवा';
@@ -2418,6 +2758,7 @@
         if (btn2) btn2.innerHTML = '<i class="fa-solid fa-route"></i> + Add Return / Multi Journey (परतीचा / दुसरा प्रवास जोडा)';
       }
       document.getElementById('mTravelMode2').value = e.travel_mode2 || '-';
+      document.getElementById('mVehNo2').value = e.vehicle_no2 || extractVehicleNo(e.travel_mode2) || '';
       document.getElementById('mFrom2').value = e.from_loc2 || '';
       document.getElementById('mFromTime2').value = e.from_time2 || '';
       document.getElementById('mTo2').value = e.to_loc2 || '';
@@ -2450,6 +2791,7 @@
       document.getElementById('mModalTitle').textContent = "नवीन दैनिक नोंद";
       document.getElementById('mDate').value = "";
       document.getElementById('mTravelMode').value = "-";
+      document.getElementById('mVehNo').value = "";
       document.getElementById('mFrom').value = activeHq;
       document.getElementById('mFromTime').value = "10.00";
       document.getElementById('mTo').value = "";
@@ -2488,6 +2830,7 @@
       const entryObj = {
         date: document.getElementById('mDate').value,
         travel_mode: document.getElementById('mTravelMode').value,
+        vehicle_no: (document.getElementById('mVehNo').value || '').trim(),
         from_loc: document.getElementById('mFrom').value,
         from_time: document.getElementById('mFromTime').value,
         to_loc: document.getElementById('mTo').value,
@@ -2497,6 +2840,7 @@
 
         // Return Journey fields
         travel_mode2: document.getElementById('mTravelMode2').value,
+        vehicle_no2: (document.getElementById('mVehNo2').value || '').trim(),
         from_loc2: (document.getElementById('mFrom2').value || '').trim(),
         from_time2: (document.getElementById('mFromTime2').value || '').trim(),
         to_loc2: (document.getElementById('mTo2').value || '').trim(),
@@ -2525,25 +2869,8 @@
         mData.entries.push(entryObj);
       }
 
-      // Link progress if scheme is chosen
-      if (entryObj.scheme) {
-        let prog = (mData.field_progress || []).find(p => p.scheme === entryObj.scheme || (isMapsheetScheme(p.scheme) && isMapsheetScheme(entryObj.scheme)));
-        if (prog) {
-          prog.villages = entryObj.villages || prog.villages;
-          if (isMapsheetScheme(entryObj.scheme)) {
-            let mSum = 0;
-            mData.entries.forEach(entry => {
-              if (isMapsheetScheme(entry.scheme)) {
-                let mc = parseInt(entry.cases);
-                if (!isNaN(mc)) mSum += mc;
-              }
-            });
-            prog.cases = mSum > 0 ? String(mSum) : (entryObj.cases || prog.cases);
-          } else {
-            prog.cases = entryObj.cases || prog.cases;
-          }
-        }
-      }
+      // योजनानिहाय फील्ड प्रगती ऑटो-सिंक (Auto-sync scheme-wise progress and protect 1:10K mapsheet)
+      syncFieldProgressFromEntries(mData);
 
       persist();
       closeModal();
@@ -2588,12 +2915,15 @@
       if (subDateEl && subDateEl.value) {
         onMobileSubDateChange(subDateEl.value);
       }
+      if (document.getElementById('mProfName')) {
+        saveMobileProfile(true);
+      }
       persist();
       const modal = document.getElementById('modalSaveSuccess');
       if (modal) {
         modal.classList.add('open');
       } else {
-        alert('सर्व नोंदी यशस्वीरीत्या जतन (Save) झाल्या आहेत!');
+        alert('सर्व नोंदी व प्रोफाइल यशस्वीरीत्या जतन (Save) झाले आहे!');
       }
     }
 
@@ -2607,6 +2937,7 @@
       const prof = appData.profile;
       const mData = appData.months[appData.currentMonthKey];
       if (!mData) return;
+      syncFieldProgressFromEntries(mData);
 
       const activeHq = getActiveHQ();
       const p = appData.currentMonthKey.split('-');
@@ -2659,6 +2990,8 @@
       const bFmt1 = document.getElementById('mBtnFormat1Page');
       const bFmt2 = document.getElementById('mBtnFormat2Page');
       const badgeText = document.getElementById('mPrintBadgeText');
+      const sec1Page = document.getElementById('prSummary1PageContainer');
+      const sec2Page = document.getElementById('prSummary2PageContainer');
 
       if (pFormat === '2page') {
         if (wrapper) { wrapper.classList.remove('mode-1page'); wrapper.classList.add('mode-2page'); }
@@ -2686,10 +3019,13 @@
         const dStr = dParts.length === 3 ? `${dParts[2]}/${dParts[1]}/${dParts[0]}` : (e.date || '');
         const fromVal = isHeadquartersLocation(e.from_loc) ? activeHq : e.from_loc;
 
-        let travelModeDisp = e.travel_mode || '-';
+        let travelModeDisp = formatTravelModeDisplay(e.travel_mode, e.vehicle_no);
         let fromDisp = fromVal || '-';
         let fromTimeDisp = formatTimeDisplay(e.from_time);
         let toDisp = e.to_loc || '-';
+        if (e.to_loc && (e.to_loc.includes(',') || e.to_loc.length > 18)) {
+          toDisp = `<div class="cell-multi-loc">${toDisp}</div>`;
+        }
         let toTimeDisp = formatTimeDisplay(e.to_time);
         let distDisp = e.distance_km || '-';
         let fareDisp = e.travel_fare || '-';
@@ -2698,9 +3034,13 @@
           tr.className = 'rt-tr';
           fromDisp = `<div class="rt-cell"><div class="rt-leg1">${fromDisp}</div><div class="rt-leg2">${e.from_loc2 || '-'}</div></div>`;
           fromTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fromTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.from_time2)}</div></div>`;
-          toDisp = `<div class="rt-cell"><div class="rt-leg1">${toDisp}</div><div class="rt-leg2">${e.to_loc2 || '-'}</div></div>`;
+          let toDisp2 = e.to_loc2 || '-';
+          if (e.to_loc2 && (e.to_loc2.includes(',') || e.to_loc2.length > 18)) {
+            toDisp2 = `<div class="cell-multi-loc">${toDisp2}</div>`;
+          }
+          toDisp = `<div class="rt-cell"><div class="rt-leg1">${toDisp}</div><div class="rt-leg2">${toDisp2}</div></div>`;
           toTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${toTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.to_time2)}</div></div>`;
-          travelModeDisp = `<div class="rt-cell"><div class="rt-leg1">${travelModeDisp}</div><div class="rt-leg2">${e.travel_mode2 || '-'}</div></div>`;
+          travelModeDisp = `<div class="rt-cell"><div class="rt-leg1">${travelModeDisp}</div><div class="rt-leg2">${formatTravelModeDisplay(e.travel_mode2, e.vehicle_no2)}</div></div>`;
           const k2 = (e.distance_km2 && e.distance_km2 !== '-') ? '+' + e.distance_km2 : '-';
           distDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${distDisp}</div><div class="rt-leg2 font-mono">${k2}</div></div>`;
           const f2 = (e.travel_fare2 && e.travel_fare2 !== '-') ? '+' + e.travel_fare2 : '-';
@@ -2709,45 +3049,29 @@
           tr.innerHTML = `
             <td>${dStr}</td>
             <td class="rt-td">${fromDisp}</td>
-            <td class="rt-td">${fromTimeDisp}</td>
+            <td class="rt-td cell-time">${fromTimeDisp}</td>
             <td class="rt-td">${toDisp}</td>
-            <td class="rt-td">${toTimeDisp}</td>
+            <td class="rt-td cell-time">${toTimeDisp}</td>
             <td class="rt-td">${travelModeDisp}</td>
             <td class="rt-td">${distDisp}</td>
             <td class="rt-td">${fareDisp}</td>
-            <td class="text-left">${e.work_detail || ''}</td>
+            <td class="text-left cell-work-wrap">${e.work_detail || ''}</td>
           `;
         } else {
           tr.innerHTML = `
             <td>${dStr}</td>
             <td>${fromDisp}</td>
-            <td>${fromTimeDisp}</td>
+            <td class="cell-time">${fromTimeDisp}</td>
             <td>${toDisp}</td>
-            <td>${toTimeDisp}</td>
+            <td class="cell-time">${toTimeDisp}</td>
             <td>${travelModeDisp}</td>
             <td>${distDisp}</td>
             <td>${fareDisp}</td>
-            <td class="text-left">${e.work_detail || ''}</td>
+            <td class="text-left cell-work-wrap">${e.work_detail || ''}</td>
           `;
         }
         tbody.appendChild(tr);
       });
-
-      // 1-Page Field Progress table
-      const progTbody = document.getElementById('prProgressBody');
-      if (progTbody) {
-        progTbody.innerHTML = '';
-        (mData.field_progress || []).forEach(fp => {
-          const ptr = document.createElement('tr');
-          const isMapsheet = fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('Mapsheet') || fp.scheme.includes('नकाशा'));
-          ptr.innerHTML = `
-            <td class="text-left ${isMapsheet ? 'font-bold' : ''}">${fp.scheme}</td>
-            <td>${fp.villages || '-'}</td>
-            <td>${fp.cases || '-'}</td>
-          `;
-          progTbody.appendChild(ptr);
-        });
-      }
 
       // Summary counts
       let tot = 0, off = 0, tour = 0, hol = 0, train = 0, leave = 0, wellsTot = 0, boreTot = 0, mapCount = 0;
@@ -2759,20 +3083,41 @@
         else if (e.training == '1') train++;
         else off++;
 
-        let w = parseInt(e.wells);
-        if (!isNaN(w)) wellsTot += w;
-        let b = parseInt(e.borewells);
-        if (!isNaN(b)) boreTot += b;
+        let w = parseCleanInt(e.wells);
+        if (w > 0) wellsTot += w;
+        let b = parseCleanInt(e.borewells);
+        if (b > 0) boreTot += b;
 
-        if (isMapsheetScheme(e.scheme)) {
-          let mc = parseInt(e.cases);
-          if (!isNaN(mc)) mapCount += mc;
+        if (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail))) {
+          let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
+          if (mc > 0) mapCount += mc;
         }
       });
 
-      const fpRow = (mData.field_progress || []).find(p => isMapsheetScheme(p.scheme));
-      if (mapCount === 0 && fpRow && fpRow.cases && fpRow.cases !== '-') {
-        mapCount = parseInt(fpRow.cases) || 0;
+      // 1-Page Field Progress table
+      const progTbody = document.getElementById('prProgressBody');
+      if (progTbody) {
+        progTbody.innerHTML = '';
+        (mData.field_progress || []).forEach(fp => {
+          const ptr = document.createElement('tr');
+          const isMapsheet = isMapsheetScheme(fp.scheme) || (fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('नकाशा')));
+          const vVal = fp.villages || '-';
+          const cVal = fp.cases || '-';
+          if (isMapsheet) {
+            ptr.innerHTML = `
+              <td class="text-left font-bold">${fp.scheme}</td>
+              <td style="font-weight: bold;">${vVal}</td>
+              <td style="font-weight: bold;">${cVal}</td>
+            `;
+          } else {
+            ptr.innerHTML = `
+              <td class="text-left">${fp.scheme}</td>
+              <td>${vVal}</td>
+              <td>${cVal}</td>
+            `;
+          }
+          progTbody.appendChild(ptr);
+        });
       }
 
       const sumEl = document.getElementById('prSummaryBody');
@@ -2808,17 +3153,38 @@
         p2ProgEl.innerHTML = '';
         (mData.field_progress || []).forEach((fp, idx) => {
           const ptr = document.createElement('tr');
-          const isMapsheet = fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('Mapsheet') || fp.scheme.includes('mapsheet') || fp.scheme.includes('नकाशा'));
-          ptr.innerHTML = `
-            <td style="text-align:center;">${idx + 1}</td>
-            <td style="text-align:left; padding-left:8px; ${isMapsheet ? 'font-weight:bold;' : ''}">
-              ${fp.scheme}
-            </td>
-            <td style="font-weight:bold; text-align:center;">${fp.villages || '-'}</td>
-            <td style="font-weight:bold; text-align:center;">${fp.cases || '-'}</td>
-            <td style="text-align:center;">-</td>
-            <td style="text-align:center;">-</td>
-          `;
+          const isMapsheet = isMapsheetScheme(fp.scheme) || (fp.scheme && (fp.scheme.includes('1:10') || fp.scheme.includes('नकाशा')));
+          const vVal = fp.villages || '-';
+          const cVal = fp.cases || '-';
+          if (isMapsheet) {
+            ptr.innerHTML = `
+              <td style="text-align:center;">${idx + 1}</td>
+              <td style="text-align:left; padding-left:8px; font-weight:bold;">
+                ${fp.scheme}
+              </td>
+              <td style="font-weight:bold; text-align:center; vertical-align: middle; line-height: 1.15; padding: 1.5px 2px;">
+                <div style="font-size: 5.8pt; color: #475569; font-weight: normal; margin-bottom: 1px;">मॅपशीट</div>
+                <span>${vVal}</span>
+              </td>
+              <td style="font-weight:bold; text-align:center; vertical-align: middle; line-height: 1.15; padding: 1.5px 2px;">
+                <div style="font-size: 5.8pt; color: #475569; font-weight: normal; margin-bottom: 1px;">विहिरी</div>
+                <span>${cVal}</span>
+              </td>
+              <td style="text-align:center;">-</td>
+              <td style="text-align:center;">-</td>
+            `;
+          } else {
+            ptr.innerHTML = `
+              <td style="text-align:center;">${idx + 1}</td>
+              <td style="text-align:left; padding-left:8px;">
+                ${fp.scheme}
+              </td>
+              <td style="font-weight:bold; text-align:center;">${vVal}</td>
+              <td style="font-weight:bold; text-align:center;">${cVal}</td>
+              <td style="text-align:center;">-</td>
+              <td style="text-align:center;">-</td>
+            `;
+          }
           p2ProgEl.appendChild(ptr);
         });
       }
@@ -2837,7 +3203,7 @@
       const p2SigCity = document.getElementById('prP2SigCity');
       if (p2SigName) p2SigName.textContent = `(${prof.name || 'विनायक नवनाथ निंबाळकर'})`;
       if (p2SigDesig) p2SigDesig.textContent = prof.designation || 'सहाय्यक भूवैज्ञानिक';
-      if (p2SigDept) p2SigDept.textContent = 'भूजल सर्वेक्षण आणि विकास यंत्रणा,';
+      if (p2SigDept) p2SigDept.textContent = prof.department || 'भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर';
       if (p2SigCity) p2SigCity.textContent = activeHq;
     }
 
@@ -3046,42 +3412,69 @@
     }
 
     // Save Mobile Profile
-    function saveMobileProfile() {
-      const rawHq = document.getElementById('mProfHQ').value.trim() || 'सोलापूर';
+    function saveMobileProfile(silent = false) {
+      if (!appData.profile) appData.profile = Object.assign({}, DEFAULT_OFFICER_PROFILE);
+      const hqInput = document.getElementById('mProfHQ');
+      const rawHq = (hqInput ? hqInput.value.trim() : '') || (appData.profile.headquarters || 'सोलापूर');
       const normHq = normalizeDistrictName(rawHq);
 
-      appData.profile.name = document.getElementById('mProfName').value.trim();
-      appData.profile.designation = document.getElementById('mProfDesig').value.trim();
-      appData.profile.salary = document.getElementById('mProfSalary').value.trim();
-      appData.profile.department = document.getElementById('mProfDept').value.trim();
-      appData.profile.headquarters = normHq;
-      appData.profile.budget_head = document.getElementById('mProfBudget').value.trim();
-      appData.profile.controlling_officer = document.getElementById('mProfControlling').value.trim();
+      const nameEl = document.getElementById('mProfName');
+      const desigEl = document.getElementById('mProfDesig');
+      const salaryEl = document.getElementById('mProfSalary');
+      const deptEl = document.getElementById('mProfDept');
+      const budgetEl = document.getElementById('mProfBudget');
+      const contEl = document.getElementById('mProfControlling');
       const fareEl = document.getElementById('mProfFareRate');
-      appData.profile.fare_rate_per_km = (fareEl ? fareEl.value.trim() : '10') || '10';
-
       const pfInput = document.querySelector('input[name="mProfPrintFormat"]:checked');
-      appData.profile.print_format = pfInput ? pfInput.value : '1page';
+
+      if (nameEl && nameEl.value.trim()) appData.profile.name = nameEl.value.trim();
+      if (desigEl && desigEl.value.trim()) appData.profile.designation = desigEl.value.trim();
+      if (salaryEl && salaryEl.value.trim()) appData.profile.salary = salaryEl.value.trim();
+      if (deptEl && deptEl.value.trim()) appData.profile.department = deptEl.value.trim();
+      appData.profile.headquarters = normHq;
+      if (budgetEl && budgetEl.value.trim()) appData.profile.budget_head = budgetEl.value.trim();
+      if (contEl && contEl.value.trim()) appData.profile.controlling_officer = contEl.value.trim();
+      if (fareEl) appData.profile.fare_rate_per_km = (fareEl.value.trim() || '10');
+      if (pfInput) appData.profile.print_format = pfInput.value || '1page';
 
       const sub = document.getElementById('mAppSubTitle');
-      if (sub) sub.textContent = `${normHq} उपविभाग • १००% Offline Mobile App`;
+      if (sub) sub.textContent = `${normHq} उपविभाग • १००% Offline Web App (Mobile & PC)`;
 
-      // Update all entries across all months to reflect new HQ
-      Object.keys(appData.months).forEach(k => {
-        const m = appData.months[k];
-        if (m && m.entries) {
-          m.entries.forEach(e => {
-            if (isHeadquartersLocation(e.from_loc)) {
-              e.from_loc = normHq;
-            }
-          });
-        }
-      });
+      // Update working entries across all months to reflect new HQ
+      if (appData.months) {
+        Object.keys(appData.months).forEach(k => {
+          const m = appData.months[k];
+          if (m && m.entries) {
+            m.entries.forEach(e => {
+              if (e.from_loc && e.from_loc !== '-' && isHeadquartersLocation(e.from_loc)) {
+                e.from_loc = normHq;
+              }
+            });
+          }
+        });
+      }
 
       persist();
       renderActiveView();
-      alert(`प्रोफाइल व मुख्यालय (${normHq}) यशस्वीरीत्या अद्ययावत केले! 'कोठून' व कार्यालयाचे नाव आपोआप बदलले गेले आहे.`);
-      switchNav('entries', document.querySelector('.bottom-nav .nav-btn:first-child'));
+
+      // Background sync with /api/profile if backend server is running
+      try {
+        if (location.protocol === 'http:' || location.protocol === 'https:') {
+          fetch('/api/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(appData.profile)
+          }).catch(() => {});
+        }
+      } catch(e) {}
+
+      if (!silent) {
+        alert(`प्रोफाइल व मुख्यालय (${normHq}) यशस्वीरीत्या अद्ययावत केले! 'कोठून' व कार्यालयाचे नाव आपोआप बदलले गेले आहे.`);
+        const activeBtn = (window.innerWidth >= 768)
+          ? document.getElementById('dNavEntries')
+          : (document.querySelector('.bottom-nav .nav-btn:first-child') || document.getElementById('dNavEntries'));
+        switchNav('entries', activeBtn);
+      }
     }
 
     function onPrintFormatOptionChange(val) {
@@ -3206,6 +3599,7 @@
         }
       }
       const curM = appData.months[appData.currentMonthKey] || {};
+      syncFieldProgressFromEntries(curM);
       const entries = curM.entries || [];
       const prof = appData.profile || {};
       const p = (appData.currentMonthKey || '2026-01').split('-');
@@ -3237,13 +3631,20 @@
             let toCell = e.to_loc || '-';
             let toTimeCell = e.to_time || '-';
             let modeCell = e.travel_mode || '-';
+            if (e.vehicle_no && modeCell !== '-') {
+              modeCell += `\n${e.vehicle_no}`;
+            }
 
             if (e.from_loc2 || e.to_loc2) {
               if (e.from_loc2) fromCell += `\n${e.from_loc2}`;
               if (e.from_time2) fromTimeCell += `\n${e.from_time2}`;
               if (e.to_loc2) toCell += `\n${e.to_loc2}`;
               if (e.to_time2) toTimeCell += `\n${e.to_time2}`;
-              if (e.travel_mode2 && e.travel_mode2 !== '-') modeCell += `\n${e.travel_mode2}`;
+              if (e.travel_mode2 && e.travel_mode2 !== '-') {
+                let m2 = e.travel_mode2;
+                if (e.vehicle_no2) m2 += `\n${e.vehicle_no2}`;
+                modeCell += `\n${m2}`;
+              }
             }
 
             let kmVal = '-';
@@ -3299,14 +3700,15 @@
 
         let totMapsheet2 = 0;
         entries.forEach(e => {
-          if (e && isMapsheetScheme(e.scheme)) {
-            let mc = parseInt(e.cases);
-            if (!isNaN(mc)) totMapsheet2 += mc;
+          if (e && (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail)))) {
+            let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
+            if (mc > 0) totMapsheet2 += mc;
           }
         });
         const fpMapRow2 = fpList2.find(f => isMapsheetScheme(f.scheme));
-        if (totMapsheet2 === 0 && fpMapRow2 && fpMapRow2.cases && fpMapRow2.cases !== '-') {
-          totMapsheet2 = parseInt(fpMapRow2.cases) || 0;
+        if (fpMapRow2) {
+          let v = parseCleanInt(fpMapRow2.villages);
+          if (v > 0) totMapsheet2 = Math.max(totMapsheet2, v);
         }
 
         const s2Rows = [];
@@ -3339,11 +3741,13 @@
         for (let sIdx = 0; sIdx < 10; sIdx++) {
           const sName = activeSchemes2[sIdx] || standardSchemes2[sIdx] || '';
           const curFp = fpList2.find(f => f.scheme === sName) || fpList2[sIdx] || {};
+          const vDisp = curFp.villages || '-';
+          const cDisp = curFp.cases || '-';
           s2Rows.push([
             sIdx + 1,
             sName,
-            curFp.villages || '-',
-            curFp.cases || '-',
+            vDisp,
+            cDisp,
             "",
             ""
           ]);
@@ -3440,6 +3844,9 @@
           let toCell = e.to_loc || '-';
           let toTimeCell = e.to_time || '-';
           let modeCell = e.travel_mode || '-';
+          if (e.vehicle_no && modeCell !== '-') {
+            modeCell += `\n${e.vehicle_no}`;
+          }
 
           let kmNum1 = parseFloat(e.distance_km);
           let fareNum1 = parseFloat(e.travel_fare);
@@ -3464,7 +3871,11 @@
             fromTimeCell += `\n${e.from_time2 || '-'}`;
             toCell += `\n${e.to_loc2 || '-'}`;
             toTimeCell += `\n${e.to_time2 || '-'}`;
-            modeCell += `\n${e.travel_mode2 || '-'}`;
+            let m2 = e.travel_mode2 || '-';
+            if (e.vehicle_no2 && m2 !== '-') {
+              m2 += `\n${e.vehicle_no2}`;
+            }
+            modeCell += `\n${m2}`;
           }
 
           const kmVal = hasKm ? dayKmTotal : (e.distance_km || '-');
@@ -3514,7 +3925,7 @@
       // Row 35 (Index 34): Totals Row
       const numDays = entries.length > 0 ? entries.length : 31;
       const rTot = new Array(18).fill('');
-      rTot[0] = "क्षे्त्रिय प्रगती ";
+      rTot[0] = "क्षेत्रीय प्रगती ";
       rTot[4] = "गावे";
       rTot[5] = "प्रकरणे";
       rTot[6] = "मासिक गोषवारा ";
@@ -3548,14 +3959,15 @@
 
       let totMapsheet = 0;
       entries.forEach(e => {
-        if (e && isMapsheetScheme(e.scheme)) {
-          let mc = parseInt(e.cases);
-          if (!isNaN(mc)) totMapsheet += mc;
+        if (e && (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail)))) {
+          let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
+          if (mc > 0) totMapsheet += mc;
         }
       });
       const fpMapRow = fpList.find(f => isMapsheetScheme(f.scheme));
-      if (totMapsheet === 0 && fpMapRow && fpMapRow.cases && fpMapRow.cases !== '-') {
-        totMapsheet = parseInt(fpMapRow.cases) || 0;
+      if (fpMapRow) {
+        let v = parseCleanInt(fpMapRow.villages);
+        if (v > 0) totMapsheet = Math.max(totMapsheet, v);
       }
 
       const sumLabels = [
@@ -3574,9 +3986,11 @@
         const rowArr = new Array(18).fill('');
         const sName = activeSchemes[sIdx] || standardSchemes[sIdx] || '';
         const curFp = fpList.find(f => f.scheme === sName) || fpList[sIdx] || {};
+        const vDisp1 = curFp.villages || '-';
+        const cDisp1 = curFp.cases || '-';
         rowArr[0] = sName;
-        rowArr[4] = curFp.villages || '-';
-        rowArr[5] = curFp.cases || '-';
+        rowArr[4] = vDisp1;
+        rowArr[5] = cDisp1;
 
         if (sIdx < sumLabels.length) {
           rowArr[6] = sumLabels[sIdx][0];
@@ -3691,7 +4105,7 @@
       const merges = [
         { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } }, // A1:J1 Title
         { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } }, // A2:J2 Officer Meta
-        { s: { r: 34, c: 0 }, e: { r: 34, c: 3 } }, // A35:D35 क्षे्त्रिय प्रगती
+        { s: { r: 34, c: 0 }, e: { r: 34, c: 3 } }, // A35:D35 क्षेत्रीय प्रगती
         { s: { r: 34, c: 6 }, e: { r: 34, c: 9 } }  // G35:J35 मासिक गोषवारा
       ];
 
@@ -3960,35 +4374,27 @@
       matchingBtns.forEach(b => b.classList.add('active'));
 
       if (viewId === 'profile') {
-        const prof = appData.profile;
-        document.getElementById('mProfName').value = prof.name;
-        document.getElementById('mProfDesig').value = prof.designation;
-        document.getElementById('mProfSalary').value = prof.salary;
-        document.getElementById('mProfDept').value = prof.department;
-        document.getElementById('mProfHQ').value = prof.headquarters || 'सोलापूर';
-        document.getElementById('mProfBudget').value = prof.budget_head;
-        document.getElementById('mProfControlling').value = prof.controlling_officer;
-        const fareEl = document.getElementById('mProfFareRate');
-        if (fareEl) {
-          fareEl.value = prof.fare_rate_per_km || '10';
-          updateMobileFareFormulaText(fareEl.value);
-        }
-        const pf = prof.print_format || '1page';
-        const pfRadio = document.querySelector(`input[name="mProfPrintFormat"][value="${pf}"]`);
-        if (pfRadio) pfRadio.checked = true;
+        populateProfileFields();
       } else if (viewId === 'calendar') {
         renderCalendar();
       } else if (viewId === 'summary') {
         renderSummaryView();
       } else if (viewId === 'holidays') {
         updateHolidayPdfStatuses();
+      } else if (viewId === 'print') {
+        renderPrintView();
       }
     }
 
     function triggerPrint() {
-      switchNav('print', document.querySelectorAll('.bottom-nav .nav-btn')[3]);
+      switchNav('print', document.getElementById('dNavPrint') || document.querySelectorAll('.bottom-nav .nav-btn')[3]);
+      renderPrintView();
       setTimeout(() => window.print(), 200);
     }
+
+    window.addEventListener('beforeprint', () => {
+      renderPrintView();
+    });
 
     // Export / Backup data
     function exportData() {
@@ -4019,8 +4425,8 @@
           const imported = JSON.parse(e.target.result);
           if (imported && (imported.months || imported.profile)) {
             appData = imported;
-            saveStorage();
-            initApp();
+            persist();
+            loadStorage();
             alert('डेटा बॅकअप यशस्वीरित्या रिस्टोअर (Restore) झाला आहे!');
           } else {
             alert('अवैध बॅकअप फाईल. कृपया योग्य GSDA बॅकअप फाईल निवडा.');
@@ -4146,7 +4552,7 @@
       const btn = document.getElementById('mBtnToggleReturnJourney');
       if (container) container.style.display = 'none';
       if (btn) btn.innerHTML = '<i class="fa-solid fa-route"></i> + Add Return / Multi Journey (परतीचा / दुसरा प्रवास जोडा)';
-      const ids = ['mTravelMode2', 'mFrom2', 'mFromTime2', 'mTo2', 'mToTime2', 'mDistance2', 'mFare2'];
+      const ids = ['mTravelMode2', 'mVehNo2', 'mFrom2', 'mFromTime2', 'mTo2', 'mToTime2', 'mDistance2', 'mFare2'];
       ids.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = (id === 'mTravelMode2') ? '-' : '';
@@ -4325,6 +4731,7 @@
       }
 
       document.getElementById('mTravelMode').value = target.travel_mode || '-';
+      document.getElementById('mVehNo').value = target.vehicle_no || extractVehicleNo(target.travel_mode) || '';
       document.getElementById('mFrom').value = target.from_loc || '';
       document.getElementById('mFromTime').value = target.from_time || '';
       document.getElementById('mTo').value = target.to_loc || '';
@@ -4744,6 +5151,10 @@ ${notesVal || '(कोणतीही अतिरिक्त टिपणी �
       initMobileDarkTheme();
       loadStorage();
       updateHolidayPdfStatuses();
+      setupTimeAutoFormatting('mFromTime');
+      setupTimeAutoFormatting('mToTime');
+      setupTimeAutoFormatting('mFromTime2');
+      setupTimeAutoFormatting('mToTime2');
       const savedMode = localStorage.getItem('gsda_entry_view_mode');
       if (savedMode) {
         setEntryViewMode(savedMode);
