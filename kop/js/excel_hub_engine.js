@@ -130,7 +130,26 @@
     'shrur anantpal': 'shrur_anantpal',
     'shruranantpal': 'shrur_anantpal',
     'shrur_anantpal': 'shrur_anantpal',
-    'udgir': 'udgir'
+    'udgir': 'udgir',
+    'ajra': 'ajra',
+    'bhudargad': 'bhudargad',
+    'bhadargad': 'bhudargad',
+    'chandgad': 'chandgad',
+    'gadhinglaj': 'gadhinglaj',
+    'gaganbavda': 'gaganbavda',
+    'gaganbawda': 'gaganbavda',
+    'gagan bavda': 'gaganbavda',
+    'hatkangale': 'hatkangale',
+    'hatkanangle': 'hatkangale',
+    'hatkanangale': 'hatkangale',
+    'kagal': 'kagal',
+    'karvir': 'karvir',
+    'kolhapur': 'karvir',
+    'kolhapur city': 'karvir',
+    'panhala': 'panhala',
+    'radhanagari': 'radhanagari',
+    'shahuwadi': 'shahuwadi',
+    'shirol': 'shirol'
   };
 
   function normalizeTalukaSlug(talukaName) {
@@ -149,10 +168,8 @@
 
     let distSlug = (district || '').toString().trim().toLowerCase();
     if (distSlug.includes('kolhapur') || distSlug.includes('kop')) {
-      // Kolhapur has no cadastral parcels layer, preserve user-entered Gat No.
-      return null;
-    }
-    if (distSlug.includes('latur') || distSlug.includes('ltr')) {
+      distSlug = 'kolhapur';
+    } else if (distSlug.includes('latur') || distSlug.includes('ltr')) {
       distSlug = 'latur';
     } else {
       distSlug = 'solapur';
@@ -160,7 +177,12 @@
 
     let talukaSlug = normalizeTalukaSlug(taluka);
     if (!talukaSlug) {
-      if (distSlug === 'solapur') {
+      if (distSlug === 'kolhapur') {
+        if (lat > 16.8) talukaSlug = (lon < 74.0) ? 'shahuwadi' : ((lon < 74.3) ? 'panhala' : 'hatkangale');
+        else if (lat > 16.5) talukaSlug = (lon < 74.0) ? 'gaganbavda' : ((lon < 74.3) ? 'karvir' : 'shirol');
+        else if (lat > 16.2) talukaSlug = (lon < 74.1) ? 'radhanagari' : ((lon < 74.3) ? 'kagal' : 'gadhinglaj');
+        else talukaSlug = (lon < 74.2) ? 'bhudargad' : ((lon < 74.4) ? 'ajra' : 'chandgad');
+      } else if (distSlug === 'solapur') {
         if (lat > 18.0) talukaSlug = (lon < 75.3) ? 'karmala' : ((lon < 75.7) ? 'madha' : 'barshi');
         else if (lat < 17.4) talukaSlug = (lon < 75.4) ? 'sangola' : ((lon < 75.8) ? 'mangalvedha' : 'akkalkot');
         else talukaSlug = (lon < 75.3) ? 'malshiras' : ((lon < 75.6) ? 'pandharpur' : ((lon < 75.8) ? 'mohol' : 'solapur_s'));

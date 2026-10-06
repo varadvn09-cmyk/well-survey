@@ -128,5 +128,91 @@
       "villages": 95,
       "sizeKb": 561.9
     }
+  ],
+  "kolhapur": [
+    {
+      "taluka": "ajra",
+      "file": "data/cadastral/kolhapur/ajra.json",
+      "parcels": 48918,
+      "villages": 99,
+      "sizeKb": 1336.2
+    },
+    {
+      "taluka": "bhudargad",
+      "file": "data/cadastral/kolhapur/bhudargad.json",
+      "parcels": 56415,
+      "villages": 107,
+      "sizeKb": 1543.9
+    },
+    {
+      "taluka": "chandgad",
+      "file": "data/cadastral/kolhapur/chandgad.json",
+      "parcels": 74918,
+      "villages": 148,
+      "sizeKb": 2050.4
+    },
+    {
+      "taluka": "gadhinglaj",
+      "file": "data/cadastral/kolhapur/gadhinglaj.json",
+      "parcels": 72156,
+      "villages": 93,
+      "sizeKb": 1975.1
+    },
+    {
+      "taluka": "gaganbavda",
+      "file": "data/cadastral/kolhapur/gaganbavda.json",
+      "parcels": 11487,
+      "villages": 39,
+      "sizeKb": 312.4
+    },
+    {
+      "taluka": "hatkangale",
+      "file": "data/cadastral/kolhapur/hatkangale.json",
+      "parcels": 63295,
+      "villages": 61,
+      "sizeKb": 1744.3
+    },
+    {
+      "taluka": "kagal",
+      "file": "data/cadastral/kolhapur/kagal.json",
+      "parcels": 88348,
+      "villages": 85,
+      "sizeKb": 2432.3
+    },
+    {
+      "taluka": "karvir",
+      "file": "data/cadastral/kolhapur/karvir.json",
+      "parcels": 88839,
+      "villages": 133,
+      "sizeKb": 2430.8
+    },
+    {
+      "taluka": "panhala",
+      "file": "data/cadastral/kolhapur/panhala.json",
+      "parcels": 68909,
+      "villages": 126,
+      "sizeKb": 1882.7
+    },
+    {
+      "taluka": "radhanagari",
+      "file": "data/cadastral/kolhapur/radhanagari.json",
+      "parcels": 72353,
+      "villages": 121,
+      "sizeKb": 1980.1
+    },
+    {
+      "taluka": "shahuwadi",
+      "file": "data/cadastral/kolhapur/shahuwadi.json",
+      "parcels": 75540,
+      "villages": 144,
+      "sizeKb": 2062.3
+    },
+    {
+      "taluka": "shirol",
+      "file": "data/cadastral/kolhapur/shirol.json",
+      "parcels": 48792,
+      "villages": 54,
+      "sizeKb": 1338.1
+    }
   ]
 }
