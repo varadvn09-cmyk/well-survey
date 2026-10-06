@@ -6301,11 +6301,12 @@ window.DraftCalcCloudSync = (function() {
                       <th style="padding: 10px 12px;">SWL (m)</th>
                       <th style="padding: 10px 12px;">Dia (m)</th>
                       <th style="padding: 10px 12px;">Total Draft (Ham)</th>
+                      <th style="padding: 10px 12px; text-align: center;">Action</th>
                     </tr>
                   </thead>
                   <tbody id="hubPreviewTableBody">
                     <tr>
-                      <td colspan="14" style="text-align: center; padding: 36px 12px; color: var(--text-muted); font-size: 0.9rem;">
+                      <td colspan="15" style="text-align: center; padding: 36px 12px; color: var(--text-muted); font-size: 0.9rem;">
                         No survey records loaded. Click <strong>"1. Download Template"</strong> to fill field data, or <strong>"2. Upload Survey Excel"</strong> to process surveys.
                       </td>
                     </tr>
@@ -25116,7 +25117,7 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     }
 
     function renderHubPreview() {
-      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      const records = (window.hubUploadedRecords && window.hubUploadedRecords.length > 0) ? window.hubUploadedRecords : getStoredRecords();
       const tbody = document.getElementById('hubPreviewTableBody');
       const pageInd = document.getElementById('hubPageIndicator');
       if (!tbody) return;
@@ -25124,8 +25125,8 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
       if (!records || records.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="9" style="padding: 30px; text-align: center; color: var(--text-muted); font-size: 0.84rem;">
-              No survey records loaded yet. Upload your field Excel sheet above to view and export.
+            <td colspan="15" style="padding: 36px 12px; text-align: center; color: var(--text-muted); font-size: 0.88rem;">
+              No survey records loaded yet. Upload your field Excel sheet above or click <strong>"Save, Calculate &amp; Dedup All Records"</strong> to calculate existing surveys.
             </td>
           </tr>
         `;
@@ -25145,23 +25146,32 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
 
       let html = '';
       pageItems.forEach((r, i) => {
-        const isPws = (r.surveyCategory === 'PWS');
-        const catBadge = isPws
-          ? `<span style="background: rgba(2,132,199,0.15); color: #0284c7; padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 0.72rem;">PWS</span>`
-          : `<span style="background: rgba(16,185,129,0.15); color: #059669; padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 0.72rem;">Irrigation</span>`;
+        const latVal = parseFloat(r.latitude);
+        const lonVal = parseFloat(r.longitude);
+        const latDisp = !isNaN(latVal) && latVal !== 0 ? latVal.toFixed(6) : '-';
+        const lonDisp = !isNaN(lonVal) && lonVal !== 0 ? lonVal.toFixed(6) : '-';
+        const draftVal = parseFloat(r.totalDraftHam !== undefined && r.totalDraftHam !== null && r.totalDraftHam !== '' ? r.totalDraftHam : (r.annualDraftHam || r.pdfAnnualDraftHam || 0));
+        const draftDisp = !isNaN(draftVal) ? draftVal.toFixed(4) : '0.0000';
+        const wellIdDisp = r.smartWellId || r.technicalWellId || (r.censusNo ? `${r.censusNo}-${r.gatNo || ''}` : '-');
 
         html += `
           <tr style="border-bottom: 1px solid var(--border-color); hover: background var(--card-subtle);">
-            <td style="padding: 10px 14px; font-weight: 800; color: var(--primary);">${r.srNo || (start + i + 1)}</td>
-            <td style="padding: 10px 14px;">${r.geologistName || 'Geologist'}</td>
-            <td style="padding: 10px 14px; font-weight: 600;">${r.ownerName || 'Well Owner'}</td>
-            <td style="padding: 10px 14px;">${r.villageName || '-'}</td>
-            <td style="padding: 10px 14px; font-weight: 700;">${r.gatNo || '-'}</td>
-            <td style="padding: 10px 14px;"><code style="background: var(--card-subtle); padding: 2px 6px; border-radius: 4px;">${r.gridCode || r.mapsheetNo || '-'}</code></td>
-            <td style="padding: 10px 14px;">${r.wellType || 'Dug Well'}</td>
-            <td style="padding: 10px 14px;">${catBadge}</td>
-            <td style="padding: 10px 14px;">
-              <button type="button" class="btn-sm" onclick="editRecord('${r.srNo || (start + i + 1)}'); switchTab('newEntry');" style="padding: 4px 8px; font-size: 0.74rem; border-radius: 6px; background: var(--card-subtle); color: var(--text-main); border: 1px solid var(--border-color); cursor: pointer;">View / Edit</button>
+            <td style="padding: 10px 12px; font-weight: 800; color: var(--primary);">${r.srNo || (start + i + 1)}</td>
+            <td style="padding: 10px 12px; font-weight: 700; font-size: 0.76rem;"><code style="background: var(--card-subtle); padding: 2px 5px; border-radius: 4px; color: var(--text-main);">${wellIdDisp}</code></td>
+            <td style="padding: 10px 12px;">${r.geologistName || 'Geologist'}</td>
+            <td style="padding: 10px 12px; font-weight: 600;">${r.villageName || '-'}</td>
+            <td style="padding: 10px 12px;">${r.taluka || '-'}</td>
+            <td style="padding: 10px 12px; font-weight: 700;">${r.gatNo || '-'}</td>
+            <td style="padding: 10px 12px; font-family: monospace;">${latDisp}</td>
+            <td style="padding: 10px 12px; font-family: monospace;">${lonDisp}</td>
+            <td style="padding: 10px 12px; font-weight: 700; color: #10b981;">${r.gridCode || r.mapsheetNo || '-'}</td>
+            <td style="padding: 10px 12px;">${r.toposheet || r.toposheet50k || '-'}</td>
+            <td style="padding: 10px 12px; font-weight: 600;">${r.depthWell || r.depth || '-'}</td>
+            <td style="padding: 10px 12px;">${r.swlWinter || '-'}</td>
+            <td style="padding: 10px 12px;">${r.diaEffective || r.diaTop || '-'}</td>
+            <td style="padding: 10px 12px; font-weight: 800; color: #059669;">${draftDisp}</td>
+            <td style="padding: 10px 12px; text-align: center;">
+              <button type="button" class="btn-sm" onclick="editRecord('${r.srNo || (start + i + 1)}'); switchTab('newEntry');" style="padding: 4px 8px; font-size: 0.74rem; border-radius: 6px; background: var(--card-subtle); color: var(--text-main); border: 1px solid var(--border-color); cursor: pointer;">Edit</button>
             </td>
           </tr>
         `;
@@ -25178,7 +25188,7 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     }
 
     function hubNextPage() {
-      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      const records = (window.hubUploadedRecords && window.hubUploadedRecords.length > 0) ? window.hubUploadedRecords : getStoredRecords();
       const totalPages = Math.ceil(records.length / HUB_PAGE_SIZE) || 1;
       if (window.hubCurrentPage < totalPages) {
         window.hubCurrentPage++;
@@ -25187,7 +25197,7 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     }
 
     async function downloadHub4TabWorkbook(districtCode) {
-      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      const records = (window.hubUploadedRecords && window.hubUploadedRecords.length > 0) ? window.hubUploadedRecords : getStoredRecords();
       if (!records || records.length === 0) {
         showToast("⚠️ No survey records available to export.");
         return;
@@ -25198,7 +25208,7 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     }
 
     async function downloadHubMrsacSheet(districtCode) {
-      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      const records = (window.hubUploadedRecords && window.hubUploadedRecords.length > 0) ? window.hubUploadedRecords : getStoredRecords();
       if (!records || records.length === 0) {
         showToast("⚠️ No records to export.");
         return;
@@ -25212,7 +25222,7 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     }
 
     function batchPrintAllFormsPdf(districtCode) {
-      const records = window.hubUploadedRecords.length > 0 ? window.hubUploadedRecords : getStoredRecords();
+      const records = (window.hubUploadedRecords && window.hubUploadedRecords.length > 0) ? window.hubUploadedRecords : getStoredRecords();
       if (!records || records.length === 0) {
         showToast("⚠️ No records to print.");
         return;
@@ -25222,37 +25232,47 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     }
 
     async function syncAndSaveHubRecordsToDatabase() {
-      let records = [];
+      let rawRecords = [];
       if (window.hubUploadedRecords && window.hubUploadedRecords.length > 0) {
         const existing = getStoredRecords();
         const map = new Map();
         existing.forEach(r => map.set(String(r.srNo), r));
         window.hubUploadedRecords.forEach(r => map.set(String(r.srNo), r));
-        records = Array.from(map.values());
+        rawRecords = Array.from(map.values());
       } else {
-        records = getStoredRecords();
+        rawRecords = getStoredRecords();
       }
 
-      if (!records || records.length === 0) {
-        showToast("⚠️ No survey records available to save or sync.");
+      if (!rawRecords || rawRecords.length === 0) {
+        showToast("⚠️ No survey records available to calculate or save.");
         return;
       }
 
       // 1. Create Pre-Dedup Backup
       try {
         const backupKey = 'SURVEY_BACKUP_BEFORE_DEDUP_' + Date.now();
-        localStorage.setItem(backupKey, JSON.stringify(records));
-        localStorage.setItem('SURVEY_HUB_PRE_DEDUP_BACKUP', JSON.stringify(records));
+        localStorage.setItem(backupKey, JSON.stringify(rawRecords));
+        localStorage.setItem('SURVEY_HUB_PRE_DEDUP_BACKUP', JSON.stringify(rawRecords));
+        localStorage.setItem('HYDROGEO_BACKUP_BEFORE_DEDUP', JSON.stringify(rawRecords));
       } catch (e) {
         console.warn('Backup error:', e);
       }
 
-      // 2. Deduplicate records based on coordinates
+      // 2. Identify District
+      const currentDist = (window.location.pathname.includes('/ltr') ? 'Latur' : (window.location.pathname.includes('/kop') ? 'Kolhapur' : 'Solapur'));
+
+      // 3. EXECUTE FULL 124 GSDA PARAMETER & 10K SPATIAL CALCULATION ENGINE
+      let calculatedRecords = rawRecords;
+      if (window.UnifiedExcelHub && typeof window.UnifiedExcelHub.enrichSurveyRecords === 'function') {
+        calculatedRecords = window.UnifiedExcelHub.enrichSurveyRecords(rawRecords, currentDist);
+      }
+
+      // 4. Safe Deduplication using Coordinates & Technical Well ID
       const seen = new Map();
       const unique = [];
       let dupCount = 0;
 
-      records.forEach(r => {
+      calculatedRecords.forEach(r => {
         let lat = parseFloat(r.latitude);
         let lon = parseFloat(r.longitude);
         if (isNaN(lat) || isNaN(lon)) {
@@ -25262,37 +25282,92 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
             lon = parseFloat(parts[1]);
           }
         }
+        const wellId = r.technicalWellId || r.smartWellId || '';
+        const gatClean = (r.gatNo || '').toString().trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+        
+        let key = '';
         if (!isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0) {
-          const key = `${lat.toFixed(5)}_${lon.toFixed(5)}`;
-          if (seen.has(key)) {
-            dupCount++;
-          } else {
-            seen.set(key, r);
-            unique.push(r);
-          }
+          key = `COORD_${lat.toFixed(5)}_${lon.toFixed(5)}`;
+        } else if (wellId) {
+          key = `ID_${wellId}_GAT_${gatClean}`;
         } else {
+          key = `SR_${r.srNo}`;
+        }
+
+        if (seen.has(key)) {
+          dupCount++;
+        } else {
+          seen.set(key, r);
           unique.push(r);
         }
       });
 
-      // 3. Save to database
+      // 5. Save to database
       await saveStoredRecords(unique);
       window.hubUploadedRecords = unique;
+      window.hubCurrentPage = 1;
 
-      // 4. Update UI
+      // 6. Update UI & Dashboards
       renderHubPreview();
       if (typeof renderRecords === 'function') renderRecords();
       if (typeof updateBadge === 'function') updateBadge();
+      if (typeof updateHomeDashboard === 'function') updateHomeDashboard();
       if (typeof pushLocalToRemote === 'function') pushLocalToRemote();
+
+      // 7. Calculate summary statistics
+      let totalDraftSum = 0;
+      let irrCount = 0;
+      let pwsCount = 0;
+      unique.forEach(r => {
+        const dVal = parseFloat(r.totalDraftHam !== undefined && r.totalDraftHam !== null && r.totalDraftHam !== '' ? r.totalDraftHam : (r.annualDraftHam || r.pdfAnnualDraftHam || 0));
+        if (!isNaN(dVal)) totalDraftSum += dVal;
+        if (r.surveyCategory === 'PWS') pwsCount++;
+        else irrCount++;
+      });
+
+      // 8. Render calculated results alert banner in the Hub
+      const alertBox = document.getElementById('hubStatusAlert');
+      if (alertBox) {
+        alertBox.style.display = 'block';
+        alertBox.style.background = 'rgba(16,185,129,0.12)';
+        alertBox.style.color = '#059669';
+        alertBox.style.border = '1.5px solid rgba(16,185,129,0.4)';
+        alertBox.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div style="font-size: 0.98rem; font-weight: 900; color: #047857; display: flex; align-items: center; gap: 6px;">
+                <span>✅</span> Database Calculated &amp; Synchronized!
+              </div>
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-main); margin-top: 3px;">
+                All <strong>${unique.length} wells</strong> computed with 124 GSDA parameters, 10K Toposheet Grids, Technical Well IDs &amp; Annual Draft.${dupCount > 0 ? ` <span style="color: #d97706; font-weight: 800;">(${dupCount} duplicates removed).</span>` : ''}
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span style="background: rgba(5,150,105,0.15); color: #047857; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.78rem;">
+                🌾 ${irrCount} Irrigation / 💧 ${pwsCount} PWS
+              </span>
+              <span style="background: #047857; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.78rem;">
+                Total Draft: ${totalDraftSum.toFixed(4)} Ham
+              </span>
+            </div>
+          </div>
+        `;
+      }
 
       const countBadge = document.getElementById('hubCountBadge');
       if (countBadge) countBadge.innerText = `📊 ${unique.length} Wells`;
 
-      showToast(`💾 Saved ${unique.length} records! (${dupCount} duplicate coordinates filtered, backup saved)`);
+      const catBadge = document.getElementById('hubCategoryBadge');
+      if (catBadge) catBadge.innerText = `🌾 ${irrCount} Irrigation / 💧 ${pwsCount} PWS`;
+
+      const restoreBtn = document.getElementById('btnRestoreHubBackup');
+      if (restoreBtn) restoreBtn.style.display = 'inline-flex';
+
+      showToast(`✅ Calculated & Saved ${unique.length} wells! (Total Draft: ${totalDraftSum.toFixed(3)} Ham)`);
     }
 
-    function restoreHubBackupFromDatabase() {
-      let backupJson = localStorage.getItem('SURVEY_HUB_PRE_DEDUP_BACKUP');
+    async function restoreHubBackupFromDatabase() {
+      let backupJson = localStorage.getItem('SURVEY_HUB_PRE_DEDUP_BACKUP') || localStorage.getItem('HYDROGEO_BACKUP_BEFORE_DEDUP');
       if (!backupJson) {
         const keys = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -25319,22 +25394,38 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
           return;
         }
 
-        const proceed = confirm(`↩️ Found Pre-Dedup Backup containing ${backupRecords.length} wells.\n\nDo you want to restore these records and overwrite the current database?`);
+        const proceed = confirm(`↩️ Found Pre-Dedup Backup containing ${backupRecords.length} wells.\n\nDo you want to restore these records and recalculate all parameters?`);
         if (!proceed) return;
 
-        saveStoredRecords(backupRecords);
-        window.hubUploadedRecords = backupRecords;
+        const currentDist = (window.location.pathname.includes('/ltr') ? 'Latur' : (window.location.pathname.includes('/kop') ? 'Kolhapur' : 'Solapur'));
+        let calculated = backupRecords;
+        if (window.UnifiedExcelHub && typeof window.UnifiedExcelHub.enrichSurveyRecords === 'function') {
+          calculated = window.UnifiedExcelHub.enrichSurveyRecords(backupRecords, currentDist);
+        }
+
+        await saveStoredRecords(calculated);
+        window.hubUploadedRecords = calculated;
         window.hubCurrentPage = 1;
 
         renderHubPreview();
         if (typeof renderRecords === 'function') renderRecords();
         if (typeof updateBadge === 'function') updateBadge();
+        if (typeof updateHomeDashboard === 'function') updateHomeDashboard();
         if (typeof pushLocalToRemote === 'function') pushLocalToRemote();
 
         const countBadge = document.getElementById('hubCountBadge');
-        if (countBadge) countBadge.innerText = `📊 ${backupRecords.length} Wells`;
+        if (countBadge) countBadge.innerText = `📊 ${calculated.length} Wells`;
 
-        showToast(`✅ Successfully restored ${backupRecords.length} wells from Pre-Dedup Backup!`);
+        const alertBox = document.getElementById('hubStatusAlert');
+        if (alertBox) {
+          alertBox.style.display = 'block';
+          alertBox.style.background = 'rgba(16,185,129,0.12)';
+          alertBox.style.color = '#059669';
+          alertBox.style.border = '1.5px solid rgba(16,185,129,0.4)';
+          alertBox.innerHTML = `↩️ <strong>Backup Restored!</strong> Successfully restored &amp; calculated all ${calculated.length} wells from original backup.`;
+        }
+
+        showToast(`✅ Successfully restored ${calculated.length} wells from Pre-Dedup Backup!`);
       } catch (e) {
         showToast("❌ Error parsing backup data: " + e.message);
       }
@@ -25343,7 +25434,12 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     function refreshHubFromDatabase() {
       window.hubUploadedRecords = [];
       window.hubCurrentPage = 1;
-      const records = getStoredRecords();
+      const currentDist = (window.location.pathname.includes('/ltr') ? 'Latur' : (window.location.pathname.includes('/kop') ? 'Kolhapur' : 'Solapur'));
+      let records = getStoredRecords();
+      if (window.UnifiedExcelHub && typeof window.UnifiedExcelHub.enrichSurveyRecords === 'function') {
+        records = window.UnifiedExcelHub.enrichSurveyRecords(records, currentDist);
+        window.hubUploadedRecords = records;
+      }
 
       const countBadge = document.getElementById('hubCountBadge');
       if (countBadge) countBadge.innerText = `📊 ${records.length} Wells`;
@@ -25354,7 +25450,7 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
       if (catBadge) catBadge.innerText = `🌾 ${irrCount} Irrigation / 💧 ${pwsCount} PWS`;
 
       renderHubPreview();
-      showToast(`🔄 Reloaded ${records.length} wells from App database.`);
+      showToast(`🔄 Reloaded & calculated ${records.length} wells from App database.`);
     }
 
     function saveHubRecordsToDatabase() {
