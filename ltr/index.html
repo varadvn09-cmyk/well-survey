@@ -13,6 +13,7 @@
   
   <!-- Inbuilt Databases and Master Template -->
   <script src="js/inbuilt_data.js"></script>
+  <script src="js/gis_village_codes.js"></script>
   <!-- SheetJS for reading Databases fast -->
   <script src="js/xlsx.full.min.js"></script>
   <!-- ExcelJS for perfect formatting retention during Template writing -->
@@ -30,6 +31,7 @@
   <script src="js/crypto_e2ee.js"></script>
   <script src="js/admin_telemetry.js"></script>
   <script src="js/excel_hub_engine.js"></script>
+  <script src="js/spatial_diagram_tools.js"></script>
   <!-- Inlined Real-Time Cloud Synchronization Engine -->
   <script>
 /**
@@ -4294,7 +4296,13 @@ window.DraftCalcCloudSync = (function() {
               <div class="field-group"><label>Taluka</label><select id="taluka" name="taluka" onchange="onTalukaChange()"></select></div>
               <div class="field-group"><label>Village Name</label><select id="village" name="village" onchange="onVillageChange()"></select></div>
               <div class="field-group"><label>G.P. Name</label><input type="text" id="gpName" name="gpName" placeholder="Gram Panchayat" /></div>
-              <div class="field-group"><label>Census No. 2011</label><input type="text" id="censusNo" name="censusNo" placeholder="Census No." /></div>
+              <div class="field-group">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <label style="margin:0;">Census No. 2011</label>
+                  <span id="lblGisCodeBadge" style="font-size:0.75rem; color:var(--primary); font-weight:700;" title="18-digit GIS Village Code"></span>
+                </div>
+                <input type="text" id="censusNo" name="censusNo" placeholder="Census No. or 18-digit GIS Code" oninput="if(typeof onCensusNoInput==='function') onCensusNoInput(this.value);" />
+              </div>
               <div class="field-group"><label>Population</label><input type="number" inputmode="numeric" pattern="[0-9]*" id="population" name="population" placeholder="e.g. 1500" oninput="updatePwsCalculations()" /></div>
               <div class="field-group full-width" style="background:var(--card-subtle); padding:12px 14px; border-radius:12px; border:1.5px solid var(--border-color);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
@@ -5101,16 +5109,22 @@ window.DraftCalcCloudSync = (function() {
                 </div>
               </div>
 
-              <!-- Quick Layer Action Buttons (Add Stratum Layer, Red Bole, Dyke, Reset) -->
+              <!-- Quick Layer Action Buttons (Add Stratum Layer, Red Bole, Dyke, Aquifer, Laterite, Reset) -->
               <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; margin-top: 10px; align-items: center;">
                 <button type="button" class="btn-sm" onclick="addStratumLayer('general')" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; font-weight: 800; padding: 7px 13px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.76rem; box-shadow: 0 2px 6px rgba(2,132,199,0.25);">
                   <span>➕</span> Add Stratum Layer
                 </button>
-                <button type="button" class="btn-sm" onclick="addStratumLayer('redbole')" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: #fff; border: none; font-weight: 800; padding: 7px 13px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.76rem; box-shadow: 0 2px 6px rgba(220,38,38,0.25);">
-                  <span>🧱</span> + Add Red Bole
+                <button type="button" class="btn-sm" onclick="addStratumLayer('redbole')" style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); color: #fff; border: none; font-weight: 800; padding: 7px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.76rem; box-shadow: 0 2px 6px rgba(220,38,38,0.25);">
+                  <span>🧱</span> + Red Bole
                 </button>
-                <button type="button" class="btn-sm" onclick="addStratumLayer('dyke')" style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: #fff; border: none; font-weight: 800; padding: 7px 13px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.76rem; box-shadow: 0 2px 6px rgba(124,58,237,0.25);">
-                  <span>🟣</span> + Add Dyke
+                <button type="button" class="btn-sm" onclick="addStratumLayer('dyke')" style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: #fff; border: none; font-weight: 800; padding: 7px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.76rem; box-shadow: 0 2px 6px rgba(124,58,237,0.25);">
+                  <span>🟣</span> + Dyke
+                </button>
+                <button type="button" class="btn-sm" onclick="addStratumLayer('aquifer')" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; font-weight: 800; padding: 7px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.76rem; box-shadow: 0 2px 6px rgba(2,132,199,0.25);">
+                  <span>💧</span> + Aquifer Zone
+                </button>
+                <button type="button" class="btn-sm" onclick="addStratumLayer('laterite')" style="background: linear-gradient(135deg, #b45309 0%, #78350f 100%); color: #fff; border: none; font-weight: 800; padding: 7px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 0.76rem; box-shadow: 0 2px 6px rgba(180,83,9,0.25);">
+                  <span>🪨</span> + Laterite
                 </button>
                 <button type="button" class="btn-sm" onclick="resetStratumLayersToDefault()" style="background: var(--card-subtle); border: 1px solid var(--border-color); color: var(--text-muted); font-weight: 700; padding: 7px 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.74rem; margin-left: auto;" title="Reset back to standard 5 strata">
                   <span>↺</span> Reset 5 Layers
@@ -5336,6 +5350,30 @@ window.DraftCalcCloudSync = (function() {
             <span id="geoPdfOpacityVal" style="font-weight: 800; font-size: 0.74rem; min-width: 32px; color: #38bdf8;">70%</span>
           </div>
           <div id="geoPdfResolutionBadge" style="font-weight: 800; color: var(--text-muted);">Scale: 1:10,000</div>
+        </div>
+
+        <!-- Spatial Diagram & Batch Coordinates Toolbar -->
+        <div style="background: var(--card-subtle); border-radius: 10px; border: 1.5px solid var(--border-color); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;">
+          <!-- Top Row: Diagram Toggle + Batch Coords Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <label style="display: inline-flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.12); color: #1d4ed8; padding: 6px 12px; border-radius: 8px; border: 1.5px solid rgba(59, 130, 246, 0.35); font-size: 0.78rem; font-weight: 800; cursor: pointer; user-select: none;" title="Toggle built-in study area boundary & 3 drainage paths">
+              <input type="checkbox" id="chkToggleStudyAreaDiagram" onchange="toggleStudyAreaDiagram(this.checked)" style="accent-color: #2563eb; width: 16px; height: 16px; cursor: pointer;" />
+              <span>📐 Show Study Area / Toposheet Grid Diagram</span>
+            </label>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <span id="batchCoordsBadge" style="display: none; font-size: 0.72rem; font-weight: 800; padding: 3px 8px; border-radius: 12px; background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3);"></span>
+              <button type="button" class="btn-sm" onclick="pasteSampleCoordinates()" style="background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 5px 9px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;" title="Paste 10 sample coordinates">📋 10 Sample Coords</button>
+              <button type="button" class="btn-sm" onclick="clearBatchCoordinates()" style="background: transparent; color: #ef4444; border: 1px solid rgba(239,68,68,0.4); padding: 5px 9px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer;">🗑️ Clear Pins</button>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Multi-Line Coordinates Input + Quick Plot Button -->
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <textarea id="batchCoordsInput" rows="2" placeholder="Paste 10+ Lat/Long coordinates from WhatsApp / Excel, e.g.:&#10;17.5929, 76.1052&#10;17.5934, 76.1215" style="flex: 1; min-width: 250px; padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--input-bg, #fff); color: var(--text-main); font-size: 0.78rem; font-family: monospace; resize: vertical; outline: none;"></textarea>
+            <button type="button" onclick="plotBatchCoordinates()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 800; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 6px rgba(16,185,129,0.3); align-self: stretch;">
+              <span>📌</span> Plot on Map
+            </button>
+          </div>
         </div>
 
         <!-- Map Container: Leaflet Satellite Behind & Canvas Stage (Concept 2: Full-Screen GIS Satellite & Cadastral Overlay) -->
@@ -5639,8 +5677,8 @@ window.DraftCalcCloudSync = (function() {
             </div>
             <div style="background: var(--card-subtle); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px;">
               <div style="font-weight: 800; color: var(--text-main); margin-bottom: 2px;">🏷️ Surveyor Team Prefix</div>
-              <div style="color: var(--text-muted); font-size: 0.72rem; margin-bottom: 6px;">Current Prefix: <strong id="lblSettingPrefix" style="color:var(--primary);">VN</strong> (Auto: VN-001, VN-002)</div>
-              <button type="button" onclick="openSurveyorPrefixModal()" style="background: var(--primary); color: #fff; border: none; padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 0.72rem; cursor: pointer;">Change Prefix</button>
+              <div style="color: var(--text-muted); font-size: 0.72rem; margin-bottom: 6px;">Current Prefix: <strong id="lblSettingPrefix" style="color:var(--primary);">VN</strong> (Auto-derived from Geologist Profile)</div>
+              <span style="background: rgba(2,132,199,0.12); color: var(--primary); padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 0.72rem;">● Auto-managed (Geologist Initials)</span>
             </div>
             <div style="background: var(--card-subtle); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px;">
               <div style="font-weight: 800; color: var(--text-main); margin-bottom: 2px;">📦 Offline 7/12 Land Cache</div>
@@ -6185,62 +6223,70 @@ window.DraftCalcCloudSync = (function() {
         <div class="tab-panel" id="excelSheetTab" style="display: none; padding-bottom: 90px;">
           <div style="display: flex; flex-direction: column; gap: 16px; max-width: 1200px; margin: 0 auto; padding: 10px;">
             
-            <!-- Header Card -->
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: var(--card-bg); padding: 18px 22px; border-radius: 16px; border: 1.5px solid var(--border-color); box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
-              <div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <span style="font-size: 1.8rem;">📊</span>
-                  <div>
-                    <h2 style="margin: 0; font-size: 1.35rem; font-weight: 900; color: var(--text-main);">Excel Survey &amp; Forms Hub</h2>
-                    <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
-                      High-speed background batch processing • Zero browser memory freezes • Auto spatial calculations
-                    </div>
+            <!-- Compact Mobile Header Card -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; background: var(--card-bg); padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--border-color); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.25rem;">📊</span>
+                <div>
+                  <h2 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-main);">Excel Survey &amp; Forms Hub</h2>
+                  <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 1px;">
+                    Background Batch Engine • Auto Spatial &amp; Yield Calculations
                   </div>
                 </div>
               </div>
-              <div style="display: flex; gap: 8px; align-items: center;">
-                <span id="hubRecordCountBadge" style="font-size: 0.82rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3);">
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <span id="hubRecordCountBadge" style="font-size: 0.76rem; font-weight: 800; padding: 4px 10px; border-radius: 16px; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.3);">
                   ⚡ 0 Wells Loaded
                 </span>
               </div>
             </div>
 
-            <!-- 5-Button Action Hub Grid -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+            <!-- Sleek Compact 5-Action Hub Bar (Mobile Friendly, No Oversized Icons) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px;">
               <!-- Button 1: Download Field Template -->
-              <button type="button" onclick="downloadDistrictFieldTemplate()" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(2,132,199,0.3); transition: transform 0.15s ease;">
-                <span style="font-size: 1.8rem;">📥</span>
-                <strong style="font-size: 0.95rem;">1. Download Template</strong>
-                <span style="font-size: 0.75rem; opacity: 0.9;">20-Column Field Survey (.xlsx)</span>
+              <button type="button" onclick="downloadDistrictFieldTemplate()" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #fff; border: none; border-radius: 10px; padding: 10px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: left; box-shadow: 0 2px 6px rgba(2,132,199,0.25);">
+                <span style="font-size: 1.15rem; flex-shrink: 0;">📥</span>
+                <div style="display: flex; flex-direction: column;">
+                  <strong style="font-size: 0.82rem; line-height: 1.15;">1. Template</strong>
+                  <span style="font-size: 0.68rem; opacity: 0.88;">20-Col Field XLSX</span>
+                </div>
               </button>
 
               <!-- Button 2: Upload Survey Excel -->
-              <label style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(16,185,129,0.3); transition: transform 0.15s ease;">
-                <span style="font-size: 1.8rem;">📤</span>
-                <strong style="font-size: 0.95rem;">2. Upload Survey Excel</strong>
-                <span style="font-size: 0.75rem; opacity: 0.9;">Batch process (.xlsx / .xls)</span>
+              <label style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #fff; border-radius: 10px; padding: 10px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: left; box-shadow: 0 2px 6px rgba(16,185,129,0.25); margin: 0;">
+                <span style="font-size: 1.15rem; flex-shrink: 0;">📤</span>
+                <div style="display: flex; flex-direction: column;">
+                  <strong style="font-size: 0.82rem; line-height: 1.15;">2. Upload Excel</strong>
+                  <span style="font-size: 0.68rem; opacity: 0.88;">Batch Process XLSX</span>
+                </div>
                 <input type="file" id="surveyExcelFileInput" accept=".xlsx, .xls, .csv" style="display: none;" onchange="onSurveyExcelFileSelected(event)" />
               </label>
 
-              <!-- Button 3: Download Complete Master Workbook -->
-              <button type="button" onclick="downloadHub4TabWorkbook()" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #fff; border: none; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(99,102,241,0.3); transition: transform 0.15s ease;">
-                <span style="font-size: 1.8rem;">📑</span>
-                <strong style="font-size: 0.95rem;">3. Master Workbook</strong>
-                <span style="font-size: 0.75rem; opacity: 0.9;">All 4 Sheets in 1 File (.xlsx)</span>
+              <!-- Button 3: Master Workbook -->
+              <button type="button" onclick="downloadHub4TabWorkbook()" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: #fff; border: none; border-radius: 10px; padding: 10px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: left; box-shadow: 0 2px 6px rgba(99,102,241,0.25);">
+                <span style="font-size: 1.15rem; flex-shrink: 0;">📑</span>
+                <div style="display: flex; flex-direction: column;">
+                  <strong style="font-size: 0.82rem; line-height: 1.15;">3. Master Data</strong>
+                  <span style="font-size: 0.68rem; opacity: 0.88;">5 Tabs In 1 File</span>
+                </div>
               </button>
 
-              <!-- Button 4: Export MRSAC Format -->
-              <button type="button" onclick="downloadHubMrsacSheet()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; border: none; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(245,158,11,0.3); transition: transform 0.15s ease;">
-                <span style="font-size: 1.8rem;">📊</span>
-                <strong style="font-size: 0.95rem;">4. MRSAC Format</strong>
-                <span style="font-size: 0.75rem; opacity: 0.9;">Official GIS Submission (.xlsx)</span>
+              <!-- Button 4: MRSAC Format -->
+              <button type="button" onclick="downloadHubMrsacSheet()" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; border: none; border-radius: 10px; padding: 10px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: left; box-shadow: 0 2px 6px rgba(245,158,11,0.25);">
+                <span style="font-size: 1.15rem; flex-shrink: 0;">📊</span>
+                <div style="display: flex; flex-direction: column;">
+                  <strong style="font-size: 0.82rem; line-height: 1.15;">4. MRSAC Format</strong>
+                  <span style="font-size: 0.68rem; opacity: 0.88;">Official Submission</span>
+                </div>
               </button>
 
               <!-- Button 5: Print All / PDF Booklet -->
-              <button type="button" onclick="printHubBooklet()" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); color: #fff; border: none; border-radius: 14px; padding: 18px 16px; cursor: pointer; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; box-shadow: 0 4px 12px rgba(71,85,105,0.3); transition: transform 0.15s ease;">
-                <span style="font-size: 1.8rem;">🖨️</span>
-                <strong style="font-size: 0.95rem;">5. Print All / PDF</strong>
-                <span style="font-size: 0.75rem; opacity: 0.9;">High-Res Printable Forms</span>
+              <button type="button" onclick="printHubBooklet()" style="background: linear-gradient(135deg, #475569 0%, #334155 100%); color: #fff; border: none; border-radius: 10px; padding: 10px 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: left; box-shadow: 0 2px 6px rgba(71,85,105,0.25);">
+                <span style="font-size: 1.15rem; flex-shrink: 0;">🖨️</span>
+                <div style="display: flex; flex-direction: column;">
+                  <strong style="font-size: 0.82rem; line-height: 1.15;">5. Print All / PDF</strong>
+                  <span style="font-size: 0.68rem; opacity: 0.88;">Legal Tech Forms</span>
+                </div>
               </button>
             </div>
 
@@ -7279,7 +7325,10 @@ window.DraftCalcCloudSync = (function() {
 
   <script>
     // Live MahaBhunaksha 7/12 Google Apps Script Proxy Backend
-    window.BHUNAKSHA_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzibm7AyMQQTIXSju2uT-lRhMPxWcyu0-D2L3QAnbvk8pCutQOyJJGbzFErFA7vineaoQ/exec';
+        // Live MahaBhunaksha 7/12 Proxy Backend
+    window.BHUNAKSHA_PROXY_URL = (typeof window !== 'undefined' && window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.port))
+      ? (window.location.origin + '/api/bhunaksha')
+      : 'https://script.google.com/macros/s/AKfycbzibm7AyMQQTIXSju2uT-lRhMPxWcyu0-D2L3QAnbvk8pCutQOyJJGbzFErFA7vineaoQ/exec';
 
     let CROP_LISTS = (function() {
       if (window.INBUILT_CROPS && window.INBUILT_CROPS.Kharif && window.INBUILT_CROPS.Kharif.length > 0) {
@@ -12017,9 +12066,122 @@ window.DraftCalcCloudSync = (function() {
     // ==========================================
     // MAHABHUNAKSHA 7/12 OWNER AUTO-FETCH ENGINE
     // ==========================================
+    // ==========================================
+    // MAHABHUNAKSHA 7/12 OWNER AUTO-FETCH ENGINE
+    // Enhanced with 2011 Census Code (censusNo) & Cadastral Fallback
+    // ==========================================
+    // ==========================================
+    // MAHABHUNAKSHA 7/12 OWNER AUTO-FETCH ENGINE
+    // Enhanced with 2011 Census Code (censusNo) & Instant Cadastral Fast-Path
+    // ==========================================
     let currentBhunakshaOwners = [];
     let currentBhunakshaData = null;
     let bhunakshaModalPreferredLang = 'en';
+
+    async function lookupOfflineCadastralParcel(district, taluka, villageName, censusNo, gatNo) {
+      if (!gatNo) return null;
+      let distSlug = (district || '').toString().trim().toLowerCase();
+      if (distSlug.includes('kolhapur') || distSlug.includes('kop')) distSlug = 'kolhapur';
+      else if (distSlug.includes('latur') || distSlug.includes('ltr')) distSlug = 'latur';
+      else distSlug = 'solapur';
+
+      let talukaSlug = (taluka || '').toString().trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (talukaSlug.includes('hatkan')) talukaSlug = 'hatkangale';
+      else if (talukaSlug === 'gaganbavda' || talukaSlug === 'bavda') talukaSlug = 'gaganbavda';
+      else if (talukaSlug.includes('karv') || talukaSlug.includes('karve')) talukaSlug = 'karvir';
+      else if (talukaSlug.includes('shiruranant') || talukaSlug.includes('shruranant')) talukaSlug = 'shrur_anantpal';
+      else if (talukaSlug.includes('northsolapur') || talukaSlug === 'solapurn') talukaSlug = 'solapur_n';
+      else if (talukaSlug.includes('southsolapur') || talukaSlug === 'solapurs') talukaSlug = 'solapur_s';
+
+      const cacheKey = `${distSlug}_${talukaSlug}`;
+      if (!window.CADASTRAL_CACHE) window.CADASTRAL_CACHE = {};
+      let talukaData = window.CADASTRAL_CACHE[cacheKey] || null;
+
+      if (!talukaData) {
+        const pathsToTry = [
+          `data/cadastral/${distSlug}/${talukaSlug}.json`,
+          `../data/cadastral/${distSlug}/${talukaSlug}.json`,
+          `/data/cadastral/${distSlug}/${talukaSlug}.json`
+        ];
+        for (const p of pathsToTry) {
+          try {
+            const resp = await fetch(p);
+            if (resp.ok) {
+              talukaData = await resp.json();
+              window.CADASTRAL_CACHE[cacheKey] = talukaData;
+              break;
+            }
+          } catch(e) {}
+        }
+      }
+
+      if (!talukaData || !talukaData.villages) return null;
+
+      const cNoStr = String(censusNo || '').trim();
+      const cleanVil = (villageName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const gatStr = String(gatNo).trim();
+
+      // Find village by Census Code (priority 1) or Name (priority 2)
+      let targetVillageData = null;
+      let matchedVillageName = '';
+
+      if (cNoStr) {
+        if (talukaData.villages[`CENSUS_${cNoStr}`]) {
+          targetVillageData = talukaData.villages[`CENSUS_${cNoStr}`];
+          matchedVillageName = targetVillageData.villageName || villageName;
+        } else {
+          for (const [vKey, vObj] of Object.entries(talukaData.villages)) {
+            const vc2011 = String(vObj.census2011 || '');
+            const vc = String(vObj.census || '');
+            if (vc2011 === cNoStr || vc === cNoStr || vc.includes(cNoStr)) {
+              targetVillageData = vObj;
+              matchedVillageName = vObj.villageName || vKey;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!targetVillageData && cleanVil) {
+        for (const [vKey, vObj] of Object.entries(talukaData.villages)) {
+          const vKeyClean = vKey.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const vObjNameClean = (vObj.villageName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+          if (vKeyClean === cleanVil || vObjNameClean === cleanVil || (cleanVil.length > 3 && (vKeyClean.includes(cleanVil) || cleanVil.includes(vKeyClean)))) {
+            targetVillageData = vObj;
+            matchedVillageName = vObj.villageName || vKey;
+            break;
+          }
+        }
+      }
+
+      if (!targetVillageData || !targetVillageData.parcels) return null;
+
+      // Find parcel in village
+      for (const p of targetVillageData.parcels) {
+        if (String(p[0]).trim() === gatStr) {
+          const vGis = targetVillageData.gisCode || (typeof window.to18MahaGisCode === 'function' ? window.to18MahaGisCode(targetVillageData.orig_census || targetVillageData.census) : '');
+          return {
+            found: true,
+            gatNo: p[0],
+            lat: p[1],
+            lon: p[2],
+            village: matchedVillageName || villageName,
+            censusNo: targetVillageData.census2011 || targetVillageData.census || cNoStr,
+            gisCode: vGis,
+            totalParcels: targetVillageData.parcels.length
+          };
+        }
+      }
+
+      const fallbackGis = targetVillageData.gisCode || (typeof window.to18MahaGisCode === 'function' ? window.to18MahaGisCode(targetVillageData.orig_census || targetVillageData.census) : '');
+      return {
+        found: false,
+        village: matchedVillageName || villageName,
+        censusNo: targetVillageData.census2011 || targetVillageData.census || cNoStr,
+        gisCode: fallbackGis,
+        totalParcels: targetVillageData.parcels.length
+      };
+    }
 
     async function fetchMahaBhunakshaOwner() {
       const gatNoInput = document.getElementById('gatNo');
@@ -12027,6 +12189,9 @@ window.DraftCalcCloudSync = (function() {
       const districtInput = document.getElementById('district');
       const talukaSelect = document.getElementById('taluka');
       const villageSelect = document.getElementById('village');
+      const censusNoInput = document.getElementById('censusNo');
+      const latInp = document.getElementById('latitude');
+      const lonInp = document.getElementById('longitude');
       const btn = document.getElementById('btnFetchBhunakshaOwner');
       const gatBtn = document.getElementById('btnGatFetchOwner');
       const statusBox = document.getElementById('bhunakshaOwnerStatus');
@@ -12038,35 +12203,112 @@ window.DraftCalcCloudSync = (function() {
         return;
       }
 
-      const district = districtInput?.value?.trim() || 'Solapur';
-      const taluka = talukaSelect?.value?.trim() || 'Barshi';
+      // Determine active district
+      const activeDist = localStorage.getItem('HYDROGEO_ACTIVE_DISTRICT') || 'D2';
+      const isKop = (document.title.includes('Kolhapur') || window.location.pathname.includes('kop') || activeDist === 'D2' || activeDist === 'KOP');
+      const isLtr = (document.title.includes('Latur') || window.location.pathname.includes('ltr') || activeDist === 'D3' || activeDist === 'LTR');
+      const defaultDistrict = isKop ? 'Kolhapur' : (isLtr ? 'Latur' : 'Solapur');
+      const district = districtInput?.value?.trim() || defaultDistrict;
+      const taluka = talukaSelect?.value?.trim() || (isKop ? 'Karvir' : (isLtr ? 'Latur' : 'Barshi'));
+
       let villageName = '';
       if (villageSelect && villageSelect.selectedIndex >= 0) {
         villageName = villageSelect.options[villageSelect.selectedIndex].text.trim();
       }
 
-      const origText = btn ? btn.innerHTML : '';
-      if (btn) btn.innerHTML = '<span>⏳</span> Fetching 7/12...';
-      if (gatBtn) gatBtn.innerHTML = '⏳';
+      // Read Census Code 2011 (primary key)
+      let censusNo = censusNoInput?.value?.trim() || '';
+      if (!censusNo && (villageName || taluka)) {
+        if (typeof findVillageInDb === 'function') {
+          const dbMatch = findVillageInDb(villageName, taluka, '');
+          if (dbMatch && dbMatch.data && dbMatch.data[2]) {
+            censusNo = String(dbMatch.data[2]).trim();
+            if (censusNoInput) censusNoInput.value = censusNo;
+          }
+        }
+      }
 
-      showToast(`⏳ Querying MahaBhunaksha for Gat #${gatNo} in ${villageName || taluka}...`);
+      const cleanVillageName = villageName
+        .replace(/\s*\([^)]*\)/g, '')
+        .replace(/\s+(Bk\.?|Kh\.?|Rural|CT|Dumala|Tarf.*)$/i, '')
+        .trim();
+
+      // Resolve 18-digit GIS code (primary key for MahaBhunaksha)
+      let gisCode = '';
+      if (typeof window.getMahaGisCode === 'function') {
+        gisCode = window.getMahaGisCode(district, taluka, villageName, censusNo);
+      }
+      if (!gisCode && censusNo && censusNo.length === 18) {
+        gisCode = (typeof window.to18MahaGisCode === 'function') ? window.to18MahaGisCode(censusNo) : censusNo;
+      }
+      if (!gisCode && villageName && villageName.length === 18) {
+        gisCode = (typeof window.to18MahaGisCode === 'function') ? window.to18MahaGisCode(villageName) : villageName;
+      }
+
+      const origText = btn ? btn.innerHTML : '';
+      if (btn) btn.innerHTML = '<span>⚡</span> Fetching...';
+      if (gatBtn) gatBtn.innerHTML = '⚡';
+
+      function resetButton() {
+        if (btn) btn.innerHTML = origText || '⚡ Fetch 7/12';
+        if (gatBtn) gatBtn.innerHTML = '⚡ Fetch 7/12';
+      }
+
+      // 1. STEP 1: INSTANT LOCAL 7/12 CACHE CHECK (0ms)
       try {
-        const cacheKey = `${villageName || taluka}_${gatNo}`.toLowerCase().replace(/\s+/g, '_');
         const cache = JSON.parse(localStorage.getItem('HYDROGEO_BHUNAKSHA_CACHE') || '{}');
-        if (cache[cacheKey] && (!navigator.onLine || !window.fetch)) {
-          handleBhunakshaSuccess(cache[cacheKey]);
-          showToast(`⚡ Loaded Gat #${gatNo} 7/12 from Offline Local Cache!`);
-          return;
+        const keysToTry = [
+          gisCode ? `${gisCode}_${gatNo}`.toLowerCase() : '',
+          censusNo ? `${censusNo}_${gatNo}`.toLowerCase().replace(/\s+/g, '_') : '',
+          `${villageName || taluka}_${gatNo}`.toLowerCase().replace(/\s+/g, '_'),
+          `${cleanVillageName || taluka}_${gatNo}`.toLowerCase().replace(/\s+/g, '_')
+        ].filter(Boolean);
+        for (const k of keysToTry) {
+          if (k && cache[k]) {
+            handleBhunakshaSuccess(cache[k]);
+            showToast(`⚡ Instant Loaded Gat #${gatNo} 7/12 from Local Cache!`);
+            resetButton();
+            return;
+          }
         }
       } catch(e) {}
 
+      // 2. STEP 2: INSTANT OFFLINE CADASTRAL MAP LOOKUP (< 30ms)
+      let cadResult = null;
+      try {
+        cadResult = await lookupOfflineCadastralParcel(district, taluka, villageName, censusNo, gatNo);
+      } catch(e) {
+        console.warn('Cadastral lookup error:', e);
+      }
+
+      if (cadResult && cadResult.gisCode && !gisCode) {
+        gisCode = cadResult.gisCode;
+      }
+
+      let coordUpdated = false;
+      if (cadResult && cadResult.found) {
+        if (latInp && lonInp && (!latInp.value || !lonInp.value)) {
+          latInp.value = cadResult.lat.toFixed(6);
+          lonInp.value = cadResult.lon.toFixed(6);
+          if (typeof updateMapMarkerFromInputs === 'function') updateMapMarkerFromInputs();
+          coordUpdated = true;
+        }
+        if (statusBox) {
+          statusBox.style.display = 'block';
+          statusBox.innerHTML = `🗺️ <strong>Cadastral Verified:</strong> Gat #${gatNo} in ${cadResult.village} (Census: #${cadResult.censusNo}${gisCode ? ' • GIS: ' + gisCode : ''}) • Coords: ${cadResult.lat.toFixed(5)}, ${cadResult.lon.toFixed(5)}`;
+        }
+      }
+
       function handleBhunakshaSuccess(data) {
         try {
-          const cacheKey = `${villageName || taluka}_${gatNo}`.toLowerCase().replace(/\s+/g, '_');
           const cache = JSON.parse(localStorage.getItem('HYDROGEO_BHUNAKSHA_CACHE') || '{}');
-          cache[cacheKey] = data;
+          if (gisCode) cache[`${gisCode}_${gatNo}`.toLowerCase()] = data;
+          if (censusNo) cache[`${censusNo}_${gatNo}`.toLowerCase().replace(/\s+/g, '_')] = data;
+          if (villageName) cache[`${villageName}_${gatNo}`.toLowerCase().replace(/\s+/g, '_')] = data;
+          if (cleanVillageName) cache[`${cleanVillageName}_${gatNo}`.toLowerCase().replace(/\s+/g, '_')] = data;
           localStorage.setItem('HYDROGEO_BHUNAKSHA_CACHE', JSON.stringify(cache));
         } catch(e) {}
+
         if (data.success && data.owners && data.owners.length > 0) {
           currentBhunakshaData = data;
           currentBhunakshaOwners = data.owners.map(o => ({
@@ -12081,7 +12323,6 @@ window.DraftCalcCloudSync = (function() {
           currentOwnerMarathiName = primaryMarathi;
           currentOwnerEnglishName = primaryEnglish;
 
-          // By default, automatically convert and fill in English (100% editable)
           if (ownerNameInput) {
             ownerNameInput.value = primaryEnglish;
             updateWellStatusAuto();
@@ -12089,76 +12330,102 @@ window.DraftCalcCloudSync = (function() {
 
           if (statusBox) {
             statusBox.style.display = 'block';
-            statusBox.innerHTML = `📜 <strong>7/12 Land Record:</strong> ${primaryEnglish} <span style="font-size:0.76rem; color:var(--text-muted);">(${primaryMarathi})</span> • Area: ${data.totalArea || data.owners[0].area || '-'} Ha` + (data.owners.length > 1 ? ` (${data.owners.length} co-owners)` : '');
+            statusBox.innerHTML = `📜 <strong>7/12 Record:</strong> ${primaryEnglish} <span style="font-size:0.76rem; color:var(--text-muted);">(${primaryMarathi})</span> • Area: ${data.totalArea || data.owners[0].area || '-'} Ha` + (data.owners.length > 1 ? ` (${data.owners.length} co-owners)` : '') + (gisCode ? ` <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">[GIS: ${gisCode}]</span>` : (censusNo ? ` <span style="font-size:0.75rem; color:var(--primary); font-weight:700;">[Census: #${censusNo}]</span>` : ''));
           }
 
           if (data.owners.length > 1) {
             openBhunakshaOwnersModal(data);
-            showToast(`✅ Fetched 7/12 in English: ${primaryEnglish}! Found ${data.owners.length} co-owners.`, 4500);
+            showToast(`✅ Fetched 7/12 for Gat #${gatNo} (${primaryEnglish})! ${data.owners.length} co-owners.`, 4000);
           } else {
-            showToast(`✅ 7/12 Owner Fetched: ${primaryEnglish} (Editable)`, 4500);
+            showToast(`✅ 7/12 Owner: ${primaryEnglish} (Editable)`, 4000);
           }
         } else {
-          showToast(`⚠️ MahaBhunaksha: ${data.error || 'No 7/12 record found for Gat #' + gatNo}`);
+          handleBhunakshaFallback(data.error);
         }
-        if (btn) btn.innerHTML = origText;
-        if (gatBtn) gatBtn.innerHTML = '⚡ Fetch 7/12';
+        resetButton();
       }
 
-      // Check if native AndroidBridge is available
+      function handleBhunakshaFallback(apiError) {
+        if (cadResult && cadResult.found) {
+          showToast(`📍 Gat #${gatNo} verified in Cadastral Map (Census #${cadResult.censusNo})!${coordUpdated ? ' GPS Coords set.' : ''}`, 4500);
+        } else if (cadResult && !cadResult.found) {
+          if (statusBox) {
+            statusBox.style.display = 'block';
+            statusBox.innerHTML = `ℹ️ <strong>Village Verified (Census: #${cadResult.censusNo}):</strong> Gat #${gatNo} not in cadastral list (${cadResult.totalParcels} parcels). Please verify Gat No.`;
+          }
+          showToast(`⚠️ Village verified (Census #${cadResult.censusNo}), but Gat #${gatNo} not in cadastral list.`, 4000);
+        } else {
+          showToast(`⚠️ MahaBhunaksha: ${apiError || 'No 7/12 found for Gat #' + gatNo + ' (Census #' + (censusNo || 'N/A') + ')'}`);
+        }
+        resetButton();
+      }
+
+      // 3. STEP 3: NATIVE ANDROID BRIDGE (if running inside APK with custom bridge)
       if (window.AndroidBridge && window.AndroidBridge.fetchMahaBhunaksha) {
         window.onNativeBhunakshaReceived = function(jsonStr) {
           try {
             const data = JSON.parse(jsonStr);
             handleBhunakshaSuccess(data);
           } catch(e) {
-            showToast('❌ Error reading 7/12 data: ' + e.message);
-            if (btn) btn.innerHTML = origText;
-            if (gatBtn) gatBtn.innerHTML = '⚡ Fetch 7/12';
+            handleBhunakshaFallback(e.message);
           }
         };
-        window.AndroidBridge.fetchMahaBhunaksha(district, taluka, villageName, gatNo);
+        try {
+          if (window.AndroidBridge.fetchMahaBhunaksha.length >= 5) {
+            window.AndroidBridge.fetchMahaBhunaksha(district, taluka, cleanVillageName || villageName, gatNo, censusNo);
+          } else {
+            window.AndroidBridge.fetchMahaBhunaksha(district, taluka, cleanVillageName || villageName, gatNo);
+          }
+        } catch(e) {
+          window.AndroidBridge.fetchMahaBhunaksha(district, taluka, cleanVillageName || villageName, gatNo);
+        }
         return;
       }
 
-      // Browser Fallback (via local proxy server or custom proxy)
+      // 4. STEP 4: HIGH-SPEED ONLINE FETCH VIA DEDICATED PROXY (0.7s - 3s)
       try {
-        const customProxy = localStorage.getItem('bhunaksha_proxy_url') || window.BHUNAKSHA_PROXY_URL;
-        let apiBase;
+        let apiBase = '';
+        const isLocalHost = (typeof window !== 'undefined' && window.location && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '::1' || window.location.port));
+        const customProxy = localStorage.getItem('bhunaksha_proxy_url');
+
         if (customProxy) {
           apiBase = customProxy.replace(/\/+$/, '');
-          if (!apiBase.includes('script.google.com') && !apiBase.includes('workers.dev') && !apiBase.endsWith('/api/bhunaksha')) {
-            apiBase += '/api/bhunaksha';
-          }
-        } else if (window.location.origin.includes(':8080')) {
-          apiBase = '/api/bhunaksha';
-        } else if (window.location.protocol === 'http:' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-          apiBase = 'http://localhost:8080/api/bhunaksha';
+        } else if (isLocalHost && window.location.origin) {
+          apiBase = `${window.location.origin}/api/bhunaksha`;
         } else {
-          apiBase = null;
+          apiBase = (window.BHUNAKSHA_PROXY_URL || '').replace(/\/+$/, '');
         }
 
-        if (!apiBase) {
-          showBhunakshaWebProxyNotice();
-          if (btn) btn.innerHTML = origText;
-          if (gatBtn) gatBtn.innerHTML = '⚡ Fetch 7/12';
+        if (!apiBase || !navigator.onLine) {
+          handleBhunakshaFallback(navigator.onLine ? 'No proxy configured' : 'Offline Mode');
           return;
         }
 
-        const queryUrl = `${apiBase}?district=${encodeURIComponent(district)}&taluka=${encodeURIComponent(taluka)}&village=${encodeURIComponent(villageName)}&gatNo=${encodeURIComponent(gatNo)}`;
-        const resp = await fetch(queryUrl);
+        // Construct 24-character RVM GIS code
+        let rvmCode = (typeof window.toRvmGisCode === 'function') ? window.toRvmGisCode(gisCode) : gisCode;
+        if (!rvmCode && typeof window.getMahaRvmGisCode === 'function') {
+          rvmCode = window.getMahaRvmGisCode(district, taluka, villageName, censusNo);
+        }
+
+        showToast(`⚡ Querying MahaBhunaksha 7/12 for Gat #${gatNo} (${rvmCode ? 'GIS: ' + rvmCode : 'Census #' + (censusNo || 'N/A')})...`, 3500);
+
+        const sep = apiBase.includes('?') ? '&' : '?';
+        const queryUrl = `${apiBase}${sep}district=${encodeURIComponent(district)}&taluka=${encodeURIComponent(taluka)}&village=${encodeURIComponent(cleanVillageName || villageName)}&villageName=${encodeURIComponent(cleanVillageName || villageName)}&rawVillage=${encodeURIComponent(villageName)}&censusNo=${encodeURIComponent(censusNo)}&census=${encodeURIComponent(censusNo)}&villageCode=${encodeURIComponent(rvmCode || gisCode || censusNo)}&gisCode=${encodeURIComponent(rvmCode || gisCode)}&gis18=${encodeURIComponent(gisCode)}&gatNo=${encodeURIComponent(gatNo)}&plotno=${encodeURIComponent(gatNo)}`;
+
+        // Resilient 12s timeout: Government server responds in ~1-3s
+        const controller = new AbortController();
+        const timeoutTimer = setTimeout(() => controller.abort(), 12000);
+
+        const resp = await fetch(queryUrl, { signal: controller.signal });
+        clearTimeout(timeoutTimer);
+
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
         handleBhunakshaSuccess(data);
       } catch(err) {
-        console.error("MahaBhunaksha fetch error:", err);
-        if (window.location.hostname.includes('github.io') || !window.location.origin.includes(':8080')) {
-          showBhunakshaWebProxyNotice(err.message);
-        } else {
-          showToast(`❌ Error connecting to MahaBhunaksha: ${err.message}`);
-        }
-        if (btn) btn.innerHTML = origText;
-        if (gatBtn) gatBtn.innerHTML = '⚡ Fetch 7/12';
+        const isAbort = (err.name === 'AbortError');
+        console.warn("MahaBhunaksha online fetch:", isAbort ? "Timed out (>12s)" : err.message);
+        handleBhunakshaFallback(isAbort ? 'Server response timed out (>12s)' : err.message);
       }
     }
 
@@ -13655,20 +13922,29 @@ window.DraftCalcCloudSync = (function() {
         'Black Cotton Soil',
         'Soil / Silt',
         'Sandy Loam Soil',
+        'Clay / Clayey Silt',
         'Red Soil',
+        'Laterite / Lateritic Soil',
+        'Murrum / Hard Murrum',
         'Highly Weathered Basalt',
         'Highly Weathered Vesicular Basalt',
         'Moderately Weathered Basalt',
         'Moderately Weathered Vesicular Basalt',
-        'Fractured/ Jointed  Basalt',
+        'Fractured/ Jointed Basalt',
         'Fractured/ Jointed Vesicular Basalt',
         'Vesicular Basalt',
+        'Amygdaloidal Basalt',
+        'Zeolitic Basalt',
         'Fractured Water Zone',
         'Red Bole',
         'Basaltic Dyke',
         'Jointed Compact Basalt',
-        'Amygdaloidal Basalt',
-        'Massive Basalt'
+        'Hard Compact Basalt',
+        'Massive Basalt',
+        'Breccia / Volcanic Breccia',
+        'Calcrete / Kankar',
+        'Sandstone / Shale',
+        'Alluvium'
       ];
       if (typeof LITHOLOGY_LISTS !== 'undefined' && Array.isArray(LITHOLOGY_LISTS)) {
         LITHOLOGY_LISTS.forEach(arr => {
@@ -13686,6 +13962,12 @@ window.DraftCalcCloudSync = (function() {
       if (t.includes('dyke') || t.includes('intrusion')) {
         return { bg: 'linear-gradient(180deg, #7c3aed 0%, #5b21b6 100%)', color: '#7c3aed', label: 'Dyke', isAquifer: false };
       }
+      if (t.includes('laterite')) {
+        return { bg: 'linear-gradient(180deg, #b45309 0%, #78350f 100%)', color: '#b45309', label: 'Laterite', isAquifer: false };
+      }
+      if (t.includes('zeolit')) {
+        return { bg: 'linear-gradient(180deg, #0d9488 0%, #115e59 100%)', color: '#0d9488', label: 'Zeolitic 💧', isAquifer: true };
+      }
       if (t.includes('highly weathered') || t.includes('murrum')) {
         return { bg: 'linear-gradient(180deg, #b45309 0%, #d97706 100%)', color: '#d97706', label: 'Weath', isAquifer: false };
       }
@@ -13695,10 +13977,16 @@ window.DraftCalcCloudSync = (function() {
       if (t.includes('fractur') || t.includes('vesicular') || t.includes('aquifer')) {
         return { bg: 'linear-gradient(180deg, #0284c7 0%, #0369a1 100%)', color: '#0284c7', label: 'Aquifer 💧', isAquifer: true };
       }
+      if (t.includes('breccia')) {
+        return { bg: 'linear-gradient(180deg, #713f12 0%, #451a03 100%)', color: '#713f12', label: 'Breccia', isAquifer: false };
+      }
+      if (t.includes('calcrete') || t.includes('kankar')) {
+        return { bg: 'linear-gradient(180deg, #d97706 0%, #92400e 100%)', color: '#d97706', label: 'Calcrete', isAquifer: false };
+      }
       if (t.includes('joint') || t.includes('compact') || t.includes('amygdaloidal')) {
         return { bg: 'linear-gradient(180deg, #475569 0%, #334155 100%)', color: '#475569', label: 'Jointed', isAquifer: false };
       }
-      if (t.includes('soil') || t.includes('clay') || t.includes('silt') || t.includes('loam')) {
+      if (t.includes('soil') || t.includes('clay') || t.includes('silt') || t.includes('loam') || t.includes('alluvium')) {
         return { bg: 'linear-gradient(180deg, #78350f 0%, #92400e 100%)', color: '#92400e', label: 'Soil', isAquifer: false };
       }
       return { bg: 'linear-gradient(180deg, #334155 0%, #1e293b 100%)', color: '#1e293b', label: 'Massive', isAquifer: false };
@@ -13710,7 +13998,15 @@ window.DraftCalcCloudSync = (function() {
 
       const layers = window.currentStrataLayers || [];
       const options = getAllLithologyOptions();
-      let html = '';
+      
+      // Datalist for autocomplete + freedom to type any custom field stratum
+      let datalistHtml = `<datalist id="lithoOptionsList">`;
+      options.forEach(opt => {
+        datalistHtml += `<option value="${opt}">`;
+      });
+      datalistHtml += `</datalist>`;
+
+      let html = datalistHtml;
 
       layers.forEach((lyr, idx) => {
         const isFirst = (idx === 0);
@@ -13722,11 +14018,14 @@ window.DraftCalcCloudSync = (function() {
         if (isFirst) {
           headerHtml = `
             <div class="stratum-layer-header">
-              <span class="stratum-layer-badge" style="background: #78350f;">Layer 1 (Soil - Pinned 📌)</span>
-              <div class="stratum-depth-input-wrap">
-                <span>0.0m to</span>
-                <input type="number" inputmode="decimal" step="0.1" id="lithoDepth1" name="lithoDepth1" value="${depthVal}" placeholder="1.0" oninput="onStratumDepthChange(0, this.value)" style="width: 75px; text-align: center; font-weight: 800; padding: 4px 6px;" />
-                <span>m.bgl</span>
+              <span class="stratum-layer-badge" style="background: #78350f;">Layer 1 (Top Stratum)</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div class="stratum-depth-input-wrap">
+                  <span>0.0m to</span>
+                  <input type="number" inputmode="decimal" step="0.1" id="lithoDepth1" name="lithoDepth1" value="${depthVal}" placeholder="1.0" oninput="onStratumDepthChange(0, this.value)" style="width: 75px; text-align: center; font-weight: 800; padding: 4px 6px;" />
+                  <span>m.bgl</span>
+                </div>
+                ${layers.length > 1 ? `<button type="button" class="btn-sm" onclick="removeStratumLayer(${idx})" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 3px 8px; font-size: 0.72rem; font-weight: 800; cursor: pointer;" title="Remove this layer">✕ Remove</button>` : ''}
               </div>
             </div>`;
         } else if (isLast) {
@@ -13734,13 +14033,12 @@ window.DraftCalcCloudSync = (function() {
             <div class="stratum-layer-header">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span class="stratum-layer-badge" style="background: #1e293b;">Layer ${layerNum} (Bottom Stratum)</span>
-                <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">${lyr.type || ''}</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <div class="stratum-depth-input-wrap">
                   <span style="font-weight: 800; color: var(--primary);">To Bottom</span>
                 </div>
-                ${layers.length > 2 ? `<button type="button" class="btn-sm" onclick="removeStratumLayer(${idx})" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 3px 8px; font-size: 0.72rem; font-weight: 800; cursor: pointer;" title="Remove bottom stratum layer">✕ Remove</button>` : ''}
+                ${layers.length > 1 ? `<button type="button" class="btn-sm" onclick="removeStratumLayer(${idx})" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 3px 8px; font-size: 0.72rem; font-weight: 800; cursor: pointer;" title="Remove bottom stratum layer">✕ Remove</button>` : ''}
               </div>
             </div>`;
         } else {
@@ -13748,7 +14046,6 @@ window.DraftCalcCloudSync = (function() {
             <div class="stratum-layer-header">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span class="stratum-layer-badge">Layer ${layerNum}</span>
-                <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted);">${lyr.type || ''}</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <div class="stratum-depth-input-wrap">
@@ -13761,17 +14058,20 @@ window.DraftCalcCloudSync = (function() {
             </div>`;
         }
 
-        let selectHtml = `<select id="lithoType${layerNum}" name="lithoType${layerNum}" style="font-weight: 700;" onchange="onStratumTypeChange(${idx}, this.value)">`;
-        options.forEach(opt => {
-          const selected = (opt === lyr.type) ? 'selected' : '';
-          selectHtml += `<option value="${opt}" ${selected}>${opt}</option>`;
-        });
-        selectHtml += `</select>`;
+        // Editable input with datalist dropdown for maximum field flexibility
+        const inputHtml = `
+          <div style="position: relative; width: 100%;">
+            <input list="lithoOptionsList" id="lithoType${layerNum}" name="lithoType${layerNum}" value="${lyr.type || ''}"
+                   oninput="onStratumTypeInput(${idx}, this.value)"
+                   onchange="onStratumTypeChange(${idx}, this.value)"
+                   placeholder="Select or type rock stratum (e.g. Red Bole, Zeolitic Basalt...)"
+                   style="width: 100%; font-weight: 700; padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--card-bg); color: var(--text-main);" />
+          </div>`;
 
         html += `
           <div class="stratum-layer-card" data-layer-idx="${idx}">
             ${headerHtml}
-            ${selectHtml}
+            ${inputHtml}
           </div>`;
       });
 
@@ -13786,17 +14086,14 @@ window.DraftCalcCloudSync = (function() {
       updateStratigraphicColumn();
     }
 
+    function onStratumTypeInput(idx, val) {
+      if (!window.currentStrataLayers || !window.currentStrataLayers[idx]) return;
+      window.currentStrataLayers[idx].type = val;
+      updateStratigraphicColumn();
+    }
+
     function onStratumTypeChange(idx, val) {
       if (!window.currentStrataLayers || !window.currentStrataLayers[idx]) return;
-      if (idx > 0 && (val.toLowerCase().includes('soil') || val.toLowerCase().includes('clay') || val.toLowerCase().includes('silt'))) {
-        const keep = confirm(`⚠️ Notice: Layer ${idx + 1} is usually rock/basalt strata (e.g. Weathered Basalt). You have selected '${val}'. Do you want to keep this custom entry?`);
-        if (!keep) {
-          const fallbackRock = (idx === 1) ? 'Highly Weathered Basalt' : (idx === 2 ? 'Moderately Weathered Basalt' : 'Fractured/ Jointed  Basalt');
-          window.currentStrataLayers[idx].type = fallbackRock;
-          renderStratumLadderUI();
-          return;
-        }
-      }
       window.currentStrataLayers[idx].type = val;
       updateStratigraphicColumn();
     }
@@ -13809,9 +14106,11 @@ window.DraftCalcCloudSync = (function() {
       const totalDepth = parseFloat(document.getElementById('depthWell')?.value) || (prevDepth + 6.0);
       const newDepth = parseFloat(((prevDepth + totalDepth) / 2.0).toFixed(1));
 
-      let defaultType = 'Fractured/ Jointed  Basalt';
+      let defaultType = 'Fractured/ Jointed Basalt';
       if (preset === 'redbole') defaultType = 'Red Bole';
       else if (preset === 'dyke') defaultType = 'Basaltic Dyke';
+      else if (preset === 'aquifer') defaultType = 'Fractured Water Zone';
+      else if (preset === 'laterite') defaultType = 'Laterite / Lateritic Soil';
 
       const newLayer = {
         id: 'layer_' + Date.now(),
@@ -13819,26 +14118,25 @@ window.DraftCalcCloudSync = (function() {
         depth: newDepth
       };
 
-      // Insert immediately before bottom layer
+      // Insert immediately before bottom layer (or at end)
       const insertIdx = Math.max(1, layers.length - 1);
       layers.splice(insertIdx, 0, newLayer);
       renderStratumLadderUI();
       if (typeof showToast === 'function') {
-        showToast(`➕ Added "${defaultType}" to stratigraphic column.`);
+        showToast(`➕ Added "${defaultType}" stratum layer.`);
       }
     }
 
     function removeStratumLayer(idx) {
       if (!window.currentStrataLayers) return;
-      if (idx === 0) {
-        if (typeof showToast === 'function') showToast("⚠️ Soil is locked at top (0.0m) and cannot be removed!");
-        return;
-      }
-      if (window.currentStrataLayers.length <= 2) {
-        if (typeof showToast === 'function') showToast("⚠️ Minimum 2 layers required (Top Soil & Bottom Stratum)!");
+      if (window.currentStrataLayers.length <= 1) {
+        if (typeof showToast === 'function') showToast("⚠️ At least 1 stratum layer must remain!");
         return;
       }
       const removed = window.currentStrataLayers.splice(idx, 1)[0];
+      if (idx === 0 && window.currentStrataLayers.length > 0) {
+        window.currentStrataLayers[0].isSoil = false;
+      }
       renderStratumLadderUI();
       if (typeof showToast === 'function') {
         showToast(`🗑️ Removed stratum layer "${removed?.type || ''}".`);
@@ -13850,7 +14148,7 @@ window.DraftCalcCloudSync = (function() {
         { id: 'layer_1', type: 'Soil', depth: 1.0, isSoil: true },
         { id: 'layer_2', type: 'Highly Weathered Basalt', depth: 5.0 },
         { id: 'layer_3', type: 'Moderately Weathered Basalt', depth: 8.0 },
-        { id: 'layer_4', type: 'Fractured/ Jointed  Basalt', depth: 12.0 },
+        { id: 'layer_4', type: 'Fractured/ Jointed Basalt', depth: 12.0 },
         { id: 'layer_5', type: 'Massive Basalt', isMassive: true }
       ];
       renderStratumLadderUI();
@@ -16551,6 +16849,28 @@ ${arrowsXml}
       closeSettingsModal();
     }
 
+    function onCensusNoInput(val) {
+      const v = String(val || '').trim();
+      const badge = document.getElementById('lblGisCodeBadge');
+      if (v.length === 18 && typeof window.to18MahaGisCode === 'function') {
+        const gis = window.to18MahaGisCode(v);
+        if (gis) {
+          if (badge) badge.textContent = `GIS: ${gis}`;
+          const info = (typeof window.getVillageDetailsByGisCode === 'function') ? window.getVillageDetailsByGisCode(gis) : null;
+          if (info) {
+            showToast(`⚡ Recognized GIS: ${info.village} (${info.taluka}, ${info.district})`);
+          }
+        }
+      } else if (badge && typeof window.getMahaGisCode === 'function') {
+        const dist = document.getElementById('district')?.value || '';
+        const tal = document.getElementById('taluka')?.value || '';
+        const vilSel = document.getElementById('village');
+        const vil = vilSel ? (vilSel.options[vilSel.selectedIndex]?.text || '') : '';
+        const gis = window.getMahaGisCode(dist, tal, vil, v);
+        badge.textContent = gis ? `GIS: ${gis}` : '';
+      }
+    }
+
     function onTalukaChange() {
       const taluka = document.getElementById('taluka').value;
       const villageSelect = document.getElementById('village');
@@ -16574,6 +16894,12 @@ ${arrowsXml}
         const [vName, gp, census, watershed, topo, lat, lon, pop, district, mapSheet, quad] = data;
         document.getElementById('gpName').value = gp || vName;
         document.getElementById('censusNo').value = census || '';
+        const vGis = (typeof window.getMahaGisCode === 'function') ? window.getMahaGisCode(district, taluka, vName, census) : '';
+        const gisBadge = document.getElementById('lblGisCodeBadge');
+        if (gisBadge) {
+          gisBadge.textContent = vGis ? `GIS: ${vGis}` : '';
+          gisBadge.title = vGis ? `18-Digit GIS Code: ${vGis}` : '';
+        }
         let finalWs = watershed || '';
         if (!finalWs) {
           const dbLookup = findVillageInDb(vName, taluka, census);
@@ -17185,7 +17511,7 @@ ${arrowsXml}
       }
 
       // 6. Mandatory Validation: Lithology Strata Layers
-      const strata = (window.currentStrataLayers && window.currentStrataLayers.length >= 2)
+      const strata = (window.currentStrataLayers && window.currentStrataLayers.length >= 1)
         ? window.currentStrataLayers
         : [
             { type: document.getElementById('lithoType1')?.value || entry.lithoType1 || 'Soil', depth: parseFloat(document.getElementById('lithoDepth1')?.value || entry.lithoDepth1) || 1.0 },
@@ -24885,16 +25211,10 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     // SURVEYOR TEAM PREFIX, OFFLINE 7/12 CACHE & MAP CACHING HANDLERS
     // ==============================================================
     function openSurveyorPrefixModal() {
-      let cur = localStorage.getItem('HYDROGEO_SURVEYOR_PREFIX') || 'VN';
-      if (cur === 'G1' || cur === 'MD') cur = 'VN';
-      const chosen = prompt("🏷️ Enter Surveyor Team Prefix (e.g. VN, SM, MA):", cur);
-      if (chosen !== null) {
-        let clean = chosen.trim().toUpperCase() || 'VN';
-        if (clean === 'G1' || clean === 'MD') clean = 'VN';
-        localStorage.setItem('HYDROGEO_SURVEYOR_PREFIX', clean);
-        updatePrefixUiBadges();
-        if (typeof initFormDefaults === 'function') initFormDefaults();
-        if (typeof showToast === 'function') showToast(`✅ Surveyor Prefix set to: ${clean} (Next: ${clean}-001)`);
+      let p = localStorage.getItem('HYDROGEO_SURVEYOR_PREFIX') || 'VN';
+      if (p === 'G1' || p === 'MD') p = 'VN';
+      if (typeof showToast === 'function') {
+        showToast(`🏷️ Surveyor Prefix is automatically set to: ${p} (Auto-derived from Geologist Profile)`);
       }
     }
 
