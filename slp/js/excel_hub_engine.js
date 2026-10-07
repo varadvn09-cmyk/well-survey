@@ -96,7 +96,7 @@
   }
 
   // --- 1B. OFFLINE CADASTRAL GAT ENGINE (SOLAPUR & LATUR) ---
-  const CADASTRAL_CACHE = {};
+  const CADASTRAL_CACHE = window.CADASTRAL_CACHE = (window.CADASTRAL_CACHE || {});
 
   const TALUKA_SLUG_MAP = {
     'akkalkot': 'akkalkot',
@@ -130,7 +130,26 @@
     'shrur anantpal': 'shrur_anantpal',
     'shruranantpal': 'shrur_anantpal',
     'shrur_anantpal': 'shrur_anantpal',
-    'udgir': 'udgir'
+    'udgir': 'udgir',
+    'ajra': 'ajra',
+    'bhudargad': 'bhudargad',
+    'bhadargad': 'bhudargad',
+    'chandgad': 'chandgad',
+    'gadhinglaj': 'gadhinglaj',
+    'gaganbavda': 'gaganbavda',
+    'gaganbawda': 'gaganbavda',
+    'gagan bavda': 'gaganbavda',
+    'hatkangale': 'hatkangale',
+    'hatkanangle': 'hatkangale',
+    'hatkanangale': 'hatkangale',
+    'kagal': 'kagal',
+    'karvir': 'karvir',
+    'kolhapur': 'karvir',
+    'kolhapur city': 'karvir',
+    'panhala': 'panhala',
+    'radhanagari': 'radhanagari',
+    'shahuwadi': 'shahuwadi',
+    'shirol': 'shirol'
   };
 
   function normalizeTalukaSlug(talukaName) {
@@ -149,10 +168,8 @@
 
     let distSlug = (district || '').toString().trim().toLowerCase();
     if (distSlug.includes('kolhapur') || distSlug.includes('kop')) {
-      // Kolhapur has no cadastral parcels layer, preserve user-entered Gat No.
-      return null;
-    }
-    if (distSlug.includes('latur') || distSlug.includes('ltr')) {
+      distSlug = 'kolhapur';
+    } else if (distSlug.includes('latur') || distSlug.includes('ltr')) {
       distSlug = 'latur';
     } else {
       distSlug = 'solapur';
@@ -160,7 +177,12 @@
 
     let talukaSlug = normalizeTalukaSlug(taluka);
     if (!talukaSlug) {
-      if (distSlug === 'solapur') {
+      if (distSlug === 'kolhapur') {
+        if (lat > 16.8) talukaSlug = (lon < 74.0) ? 'shahuwadi' : ((lon < 74.3) ? 'panhala' : 'hatkangale');
+        else if (lat > 16.5) talukaSlug = (lon < 74.0) ? 'gaganbavda' : ((lon < 74.3) ? 'karvir' : 'shirol');
+        else if (lat > 16.2) talukaSlug = (lon < 74.1) ? 'radhanagari' : ((lon < 74.3) ? 'kagal' : 'gadhinglaj');
+        else talukaSlug = (lon < 74.2) ? 'bhudargad' : ((lon < 74.4) ? 'ajra' : 'chandgad');
+      } else if (distSlug === 'solapur') {
         if (lat > 18.0) talukaSlug = (lon < 75.3) ? 'karmala' : ((lon < 75.7) ? 'madha' : 'barshi');
         else if (lat < 17.4) talukaSlug = (lon < 75.4) ? 'sangola' : ((lon < 75.8) ? 'mangalvedha' : 'akkalkot');
         else talukaSlug = (lon < 75.3) ? 'malshiras' : ((lon < 75.6) ? 'pandharpur' : ((lon < 75.8) ? 'mohol' : 'solapur_s'));
@@ -464,7 +486,7 @@
     for (const p of parts) {
       const item = p.trim();
       if (!item) continue;
-      const m = item.match(/^(.*?)\s*[:=\-]\s*([0-9.]+)\s*(?:m|meter|meters)?$/i);
+      const m = item.match(/^(.*?)\s*[\(:=\-]\s*([0-9.]+)\s*(?:m|meter|meters)?\)?$/i);
       if (m) {
         layers.push({ type: m[1].trim(), depth: parseFloat(m[2]) || 0 });
       } else {
@@ -755,7 +777,7 @@
         : `${censusCode}-${grid.code}-${String(wellSeqNo).padStart(2, '0')}${wellTypeAbbr}`;
       const smartId = `${censusCode}-${grid.code}-${String(wellSeqNo).padStart(2, '0')}`;
 
-      enriched.push({
+      const enrichedItem = {
         ...r,
         srNo: prefixedSrNo,
         localSrNo: parseInt(String(localSeq || '').replace(/\D/g, ''), 10) || (idx + 1),
@@ -846,133 +868,150 @@
         lithoType5: l5,
         lithoDepth5: d5,
         lithologyStrata: lithoStrata,
+        strataLayers: JSON.stringify([
+          { type: l1, depth: parseFloat(d1) || 1.0 },
+          { type: l2, depth: parseFloat(d2) || 4.0 },
+          { type: l3, depth: parseFloat(d3) || 6.0 },
+          { type: l4, depth: parseFloat(d4) || 9.0 },
+          { type: l5, depth: parseFloat(d5) || 13.0 }
+        ].filter(s => s.type && s.type.trim())),
+        cropWaterings: JSON.stringify(window.customCropWaterings || {}),
         remarks: remarks,
         smartWellId: smartId,
         technicalWellId: techWellId,
         pdfYieldRange: yieldRange,
         ...calcs
-      });
+      };
+
+      // Fully auto-execute complete GSDA calculation pipeline
+      // Directly populate Ham drafts, well status, and legal form cells so manual Edit & Save is NEVER needed
+      if (typeof buildRecordCellMap === 'function') {
+        try {
+          const cPerf = buildRecordCellMap(enrichedItem);
+          if (cPerf) {
+            const isPwsRec = (category === 'PWS') || (owner.toUpperCase().includes('PWS'));
+            const hasCrop = (cPerf.totalHamCrop > 0) || (cPerf.kharifHamCrop > 0 || cPerf.rabiHamCrop > 0 || cPerf.summerHamCrop > 0);
+            let kVal, rVal, sVal, tVal;
+            if (!isPwsRec && hasCrop) {
+              kVal = cPerf.kharifHamCrop || 0;
+              rVal = cPerf.rabiHamCrop || 0;
+              sVal = cPerf.summerHamCrop || 0;
+              tVal = cPerf.totalHamCrop || (kVal + rVal + sVal);
+            } else {
+              kVal = cPerf.kharifHamPerf || 0;
+              rVal = cPerf.rabiHamPerf || 0;
+              sVal = cPerf.summerHamPerf || 0;
+              tVal = cPerf.perfTotalHam || (kVal + rVal + sVal);
+            }
+            enrichedItem.kharifHam = kVal.toFixed(4);
+            enrichedItem.rabiHam = rVal.toFixed(4);
+            enrichedItem.summerHam = sVal.toFixed(4);
+            enrichedItem.totalHam = tVal.toFixed(4);
+            enrichedItem.pdfAnnualDraftHam = tVal.toFixed(4);
+            enrichedItem.annualDraftHam = tVal.toFixed(4);
+            enrichedItem.totalGWAppliedHam = tVal.toFixed(4);
+            enrichedItem.unitDraftWinter = (rVal > 0 ? rVal : (parseFloat(calcs.draftW) || 0)).toFixed(4);
+            enrichedItem.unitDraftSummer = (sVal > 0 ? sVal : (parseFloat(calcs.draftS) || 0)).toFixed(4);
+            enrichedItem.wellStatus = (tVal > 0) ? 'Perennial well' : 'Seasonal well';
+            if (cPerf.cells) {
+              enrichedItem.cells = cPerf.cells;
+            }
+          }
+        } catch(err) {
+          console.warn("buildRecordCellMap enrichment warning:", err);
+        }
+      } else {
+        const tVal = (parseFloat(calcs.draftW) || 0) + (parseFloat(calcs.draftS) || 0);
+        enrichedItem.kharifHam = (tVal * 0.15).toFixed(4);
+        enrichedItem.rabiHam = (parseFloat(calcs.draftW) || (tVal * 0.65)).toFixed(4);
+        enrichedItem.summerHam = (parseFloat(calcs.draftS) || (tVal * 0.20)).toFixed(4);
+        enrichedItem.totalHam = tVal.toFixed(4);
+        enrichedItem.pdfAnnualDraftHam = tVal.toFixed(4);
+        enrichedItem.annualDraftHam = tVal.toFixed(4);
+        enrichedItem.totalGWAppliedHam = tVal.toFixed(4);
+        enrichedItem.unitDraftWinter = (parseFloat(calcs.draftW) || 0).toFixed(4);
+        enrichedItem.unitDraftSummer = (parseFloat(calcs.draftS) || 0).toFixed(4);
+        enrichedItem.wellStatus = (tVal > 0) ? 'Perennial well' : 'Seasonal well';
+      }
+
+      enriched.push(enrichedItem);
     });
 
     return enriched;
   }
 
   // --- 5. EXCEL 4-TAB WORKBOOK GENERATOR (ExcelJS) ---
+  // Matches Records Tab Master Data (Integrated_Master_Template.xlsx) 1:1
   async function generate4TabMasterWorkbook(records, districtName) {
+    if (typeof exportToExcel === 'function') {
+      return await exportToExcel(false, 'mobile');
+    }
     if (!window.ExcelJS) {
       alert("ExcelJS library is loading, please try again in a moment.");
       return;
     }
+
+    const b64 = window.INBUILT_INTEGRATED_MASTER_B64 || window.INBUILT_WELL_DATA_EXPORT_B64;
     const wb = new window.ExcelJS.Workbook();
-    wb.creator = "GSDA Hydrogeological Survey Engine";
-    wb.created = new Date();
+    if (b64 && typeof base64ToBuffer === 'function') {
+      const buffer = base64ToBuffer(b64);
+      await wb.xlsx.load(buffer);
+    } else {
+      wb.creator = "GSDA Hydrogeological Survey Engine";
+      wb.created = new Date();
+    }
 
-    // 1. All Collected Data (124-Column Master Register)
-    const wsMaster = wb.addWorksheet("All Collected Data");
-    const masterCols = [
-      "Sr. No.", "Smart Hydro-Geo ID", "Survey Category", "Date", "Time", "Geologist Name", "Designation",
-      "Well Seq No", "Well Type", "Well Owner", "District Name", "Taluka Name", "Gp Name", "Village Name",
-      "Census No", "Toposheet No", "Mini Watershed", "Lat (DD)", "Long (DD)", "Lat (DMS)", "Long (DMS)",
-      "Altitude GL", "Gat No.", "10K Sheet No.", "Quadrant", "MP Location", "Parapet Height (m)",
-      "Diameter Top (m)", "Diameter Effective (m)", "Depth of Well (m)", "Lining Material", "SWL Winter (m.bgl)",
-      "SWL Summer (m.bgl)", "Water Level Fluctuation (m)", "Pump Type", "Power Mode", "Pump HP",
-      "Pump Discharge (m3/hr)", "Winter Pumping (hrs/day)", "Summer Pumping (hrs/day)", "Recup Winter (hrs)",
-      "Recup Summer (hrs)", "PWL Winter (m.bgl)", "PWL Summer (m.bgl)", "Drawdown Winter (m)",
-      "Drawdown Summer (m)", "Vol Storage Winter (m3)", "Vol Storage Summer (m3)", "Inflow Winter (m3/hr)",
-      "Inflow Summer (m3/hr)", "Cultivable Land (Ha)", "Kharif Crop 1", "Kharif Area 1 (Ha)", "Rabi Crop 1",
-      "Rabi Area 1 (Ha)", "Perennial Crop", "Perennial Area (Ha)", "Summer Crop", "Summer Area (Ha)",
-      "Kharif Draft (Ham)", "Rabi Draft (Ham)", "Summer Draft (Ham)", "Total Annual Draft (Ham)",
-      "CGWB Aquifer Yield Range", "Lithology Strata", "Well Status Remarks"
-    ];
-    wsMaster.addRow(masterCols);
-    wsMaster.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    wsMaster.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF107C41" } };
+    const wsIrr = wb.getWorksheet('Irrigation') || wb.getWorksheet('Well shedul');
+    const wsPws = wb.getWorksheet('PWS');
+    const wsCalc = wb.getWorksheet('calc') || wb.worksheets[0];
+    const wsAll = wb.getWorksheet('All Collected Data');
+    const wsMrsac = wb.getWorksheet('MRSAC Format');
 
-    records.forEach(r => {
-      wsMaster.addRow([
-        r.srNo, r.smartWellId, r.surveyCategory, r.surveyDate || r.Date || "17/03/2026", "10:00 AM",
-        r.geologistName, "Assistant Geologist", r.localSrNo, r.wellType, r.ownerName,
-        r.district, r.taluka, r.gpName, r.villageName, r.censusNo, r.toposheetNo,
-        r.watershed || "BM-106", r.latitude, r.longitude, r.latDms, r.lonDms,
-        r.altitudeGL || 490, r.gatNo, r.gridCode, r.quadrant, r.mpLocation || "Due North",
-        r.parapetHeight || 0.3, r.diaTop || 11.0, r.diaEffective, r.depthWell || 10.66,
-        r.liningMaterial || "Stone", r.swlWinter || 9.14, r.swlSummer || 10.66,
-        Math.max(0, (r.swlSummer || 10.66) - (r.swlWinter || 9.14)).toFixed(2),
-        r.pumpType || "Submersible", r.powerMode || "Electric", r.pumpHP || r.pumpHp || 5,
-        r.discharge, r.pumpDurationWinter || 4.0, r.pumpDurationSummer || 6.0,
-        r.recupWinter || 4.0, r.recupSummer || 6.0, r.pwlWinter, r.pwlSummer,
-        r.ddWinter, r.ddSummer, r.volStorageWinter, r.volStorageSummer,
-        r.inflowRateWinter, r.inflowRateSummer, r.cultivableLand || 3.23,
-        "Tur", 0.8, "Wheat", 0.8, "", 0, "", 0,
-        r.kharifHam, r.rabiHam, r.summerHam, r.totalDraftHam,
-        r.pdfYieldRange, r.lithologyStrata || `${r.lithoType1 || "Soil"} (0.5m), ${r.lithoType2 || "Weathered Basalt"} (10.66m)`, r.wellRemarks || "Seasonal"
-      ]);
+    if (wsCalc && wsCalc.rowCount > 1) wsCalc.spliceRows(2, wsCalc.rowCount - 1);
+    if (wsAll && wsAll.rowCount > 1) wsAll.spliceRows(2, wsAll.rowCount - 1);
+    if (wsMrsac && wsMrsac.rowCount > 1) wsMrsac.spliceRows(2, wsMrsac.rowCount - 1);
+
+    records.forEach((r, idx) => {
+      const seqNo = idx + 1;
+      let kYield = '0.0000', rYield = '0.0000', sYield = '0.0000', tYield = '0.0000';
+      let cMap = null;
+      if (typeof buildRecordCellMap === 'function') {
+        try {
+          cMap = buildRecordCellMap(r);
+          const isPwsRec = cMap.isPWS || (r.surveyCategory === 'PWS') || (r.ownerName && r.ownerName.toUpperCase().includes('PWS'));
+          const hasCrop = (cMap.totalHamCrop > 0) || (cMap.kharifHamCrop > 0 || cMap.rabiHamCrop > 0 || cMap.summerHamCrop > 0);
+          kYield = (!isPwsRec && hasCrop) ? cMap.kharifHamCrop : (cMap.kharifHamPerf > 0 ? cMap.kharifHamPerf : cMap.kharifHamCrop);
+          rYield = (!isPwsRec && hasCrop) ? cMap.rabiHamCrop : (cMap.rabiHamPerf > 0 ? cMap.rabiHamPerf : cMap.rabiHamCrop);
+          sYield = (!isPwsRec && hasCrop) ? cMap.summerHamCrop : (cMap.summerHamPerf > 0 ? cMap.summerHamPerf : cMap.summerHamCrop);
+          tYield = (!isPwsRec && hasCrop) ? cMap.totalHamCrop : (cMap.perfTotalHam > 0 ? cMap.perfTotalHam : (kYield + rYield + sYield));
+        } catch(e) {}
+      }
+
+      if (wsCalc && typeof buildCalcRow96 === 'function') {
+        wsCalc.addRow(buildCalcRow96(r, seqNo));
+      }
+      if (wsAll && typeof buildAllCollectedRow === 'function') {
+        wsAll.addRow(buildAllCollectedRow(r, cMap?.kharifHamPerf, cMap?.rabiHamPerf, cMap?.summerHamPerf, cMap?.perfTotalHam, cMap?.kharifDaysPerf, cMap?.rabiDaysPerf, cMap?.summerDaysPerf, cMap?.totalDaysPerf, seqNo));
+      }
+      if (wsMrsac && typeof buildMrsacRow25 === 'function') {
+        wsMrsac.addRow(buildMrsacRow25(r, kYield, rYield, sYield, tYield));
+      }
     });
 
-    // 2. MRSAC Format Sheet (34 Columns)
-    const wsMrsac = wb.addWorksheet("MRSAC Format");
-    const mrsacCols = [
-      "Sr. No.", "Taluka", "Village", "Owner Name", "Date of Survey", "Type of Well", "Gat No.",
-      "10K Sheet Quadrant", "Lat (DD)", "Long (DD)", "Depth bgl (M.)", "Dia (M.)", "Curbing (M.)",
-      "Winter SWL (M.)", "Summer SWL (M.)", "Pump Type", "Power Mode", "Pump HP", "Pumping Hrs Winter",
-      "Pumping Hrs Summer", "Recuperation Winter (Hrs)", "Recuperation Summer (Hrs)", "PWL Winter (M.)",
-      "PWL Summer (M.)", "Drawdown Winter (M.)", "Drawdown Summer (M.)", "Cultivable Area (Ha)",
-      "Total Annual Draft (Ham)", "Aquifer Yield Range", "Lithology 1", "Lithology 2", "Well Remarks"
-    ];
-    wsMrsac.addRow(mrsacCols);
-    wsMrsac.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    wsMrsac.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF0284C7" } };
+    const rawBuffer = await wb.xlsx.writeBuffer();
+    const fileName = `Well_Data_Export_${districtName.toUpperCase()}.xlsx`;
 
-    records.forEach(r => {
-      wsMrsac.addRow([
-        r.srNo, r.taluka, r.villageName, r.ownerName, r.surveyDate || "17/03/2026", r.wellType, r.gatNo,
-        `${r.gridCode}-${r.quadrant}`, r.latitude, r.longitude, r.depthWell || 10.66, r.diaEffective,
-        r.parapetHeight || 0.3, r.swlWinter || 9.14, r.swlSummer || 10.66, r.pumpType || "Submersible",
-        "Electric", r.pumpHP || r.pumpHp || 5, r.pumpDurationWinter || 4.0, r.pumpDurationSummer || 6.0,
-        r.recupWinter || 4.0, r.recupSummer || 6.0, r.pwlWinter, r.pwlSummer, r.ddWinter, r.ddSummer,
-        r.cultivableLand || 3.23, r.totalDraftHam, r.pdfYieldRange, r.lithoType1 || "Soil", r.lithoType2 || "Weathered Basalt", r.wellRemarks || "Seasonal"
-      ]);
-    });
+    if (window.AndroidBridge && window.AndroidBridge.exportFile) {
+      const b64Out = (typeof bufferToBase64 === 'function') ? bufferToBase64(rawBuffer) : btoa(String.fromCharCode(...new Uint8Array(rawBuffer)));
+      window.AndroidBridge.exportFile(b64Out, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'mobile');
+      return;
+    }
 
-    // 3. Irrigation Dug Well Schedule (Form 2)
-    const wsIrr = wb.addWorksheet("Irrigation Forms (Form 2)");
-    wsIrr.addRow(["Technical Form No. GSDA/Tech.Rep./Form No.2 — Irrigation Dug Well Schedule"]);
-    wsIrr.addRow(["Sr. No.", "Well ID", "Owner Name", "Village", "Taluka", "Gat No.", "Lat/Long", "Depth (m)", "Dia (m)", "SWL Winter", "PWL Winter", "Drawdown", "GW Draft (Ham)"]);
-    wsIrr.getRow(2).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    wsIrr.getRow(2).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF047857" } };
-
-    const irrRecords = records.filter(r => r.surveyCategory !== 'PWS');
-    irrRecords.forEach(r => {
-      wsIrr.addRow([
-        r.srNo, r.smartWellId, r.ownerName, r.villageName, r.taluka, r.gatNo,
-        `${r.latitude}, ${r.longitude}`, r.depthWell || 10.66, r.diaEffective,
-        r.swlWinter, r.pwlWinter, r.ddWinter, r.totalDraftHam
-      ]);
-    });
-
-    // 4. PWS Dug Well Schedule (Form 1)
-    const wsPws = wb.addWorksheet("PWS Forms (Form 1)");
-    wsPws.addRow(["Technical Form No. GSDA/Tech.Rep./Form No.1 — Public Water Supply (PWS) Dug Well Schedule"]);
-    wsPws.addRow(["Sr. No.", "PWS Well ID", "Gram Panchayat", "Village", "Taluka", "Gat No.", "Lat/Long", "Depth (m)", "Dia (m)", "SWL Winter", "Pumping Hrs", "Water Supply Status"]);
-    wsPws.getRow(2).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    wsPws.getRow(2).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1D4ED8" } };
-
-    const pwsRecords = records.filter(r => r.surveyCategory === 'PWS');
-    pwsRecords.forEach(r => {
-      wsPws.addRow([
-        r.srNo, r.smartWellId, r.ownerName, r.villageName, r.taluka, r.gatNo,
-        `${r.latitude}, ${r.longitude}`, r.depthWell || 12.0, r.diaEffective,
-        r.swlWinter, r.pumpDurationWinter, "Drinking Water Source Active"
-      ]);
-    });
-
-    // Save and download
-    const buf = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const blob = new Blob([rawBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `GSDA_Master_Inventory_${districtName.toUpperCase()}_(${records.length}_Wells).xlsx`;
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1319,21 +1358,12 @@
   }
 
   async function downloadHub4TabWorkbook() {
-    if (hubLoadedRecords.length === 0) {
-      const stored = (typeof getStoredRecords === 'function') ? getStoredRecords() : (window.surveyRecords || []);
-      if (stored && stored.length > 0) {
-        let district = 'Solapur';
-        if (window.DISTRICT_CONFIG && window.DISTRICT_CONFIG.name) district = window.DISTRICT_CONFIG.name;
-        else {
-          const p = window.location.pathname.toLowerCase();
-          if (p.includes('/ltr')) district = 'Latur';
-          else if (p.includes('/kop')) district = 'Kolhapur';
-        }
-        hubLoadedRecords = enrichSurveyRecords(stored, district);
-      }
+    if (typeof exportToExcel === 'function') {
+      return await exportToExcel(false, 'mobile');
     }
-    if (hubLoadedRecords.length === 0) {
-      alert("No records to export! Please upload an Excel survey file first or add well surveys.");
+    let records = (hubLoadedRecords && hubLoadedRecords.length > 0) ? hubLoadedRecords : ((typeof getStoredRecords === 'function') ? getStoredRecords() : []);
+    if (!records || records.length === 0) {
+      alert("⚠️ No records to export! Please upload an Excel survey file first or add well surveys.");
       return;
     }
     let district = 'Solapur';
@@ -1343,27 +1373,16 @@
       if (p.includes('/ltr')) district = 'Latur';
       else if (p.includes('/kop')) district = 'Kolhapur';
     }
-    await generate4TabMasterWorkbook(hubLoadedRecords, district);
+    await generate4TabMasterWorkbook(records, district);
   }
 
-  function downloadHubMrsacSheet() {
-    if (hubLoadedRecords.length === 0) {
-      const stored = (typeof getStoredRecords === 'function') ? getStoredRecords() : (window.surveyRecords || []);
-      if (stored && stored.length > 0) {
-        let district = 'Solapur';
-        if (window.DISTRICT_CONFIG && window.DISTRICT_CONFIG.name) district = window.DISTRICT_CONFIG.name;
-        else {
-          const p = window.location.pathname.toLowerCase();
-          if (p.includes('/ltr')) district = 'Latur';
-          else if (p.includes('/kop')) district = 'Kolhapur';
-        }
-        hubLoadedRecords = enrichSurveyRecords(stored, district);
-      }
-    }
-    if (hubLoadedRecords.length === 0) {
-      alert("No records to export! Please upload an Excel survey file first or add well surveys.");
+  async function downloadHubMrsacSheet() {
+    let records = (hubLoadedRecords && hubLoadedRecords.length > 0) ? hubLoadedRecords : ((typeof getStoredRecords === 'function') ? getStoredRecords() : []);
+    if (!records || records.length === 0) {
+      alert("⚠️ No records to export! Please upload an Excel survey file first or add well surveys.");
       return;
     }
+
     let district = 'Solapur';
     if (window.DISTRICT_CONFIG && window.DISTRICT_CONFIG.name) district = window.DISTRICT_CONFIG.name;
     else {
@@ -1371,33 +1390,99 @@
       if (p.includes('/ltr')) district = 'Latur';
       else if (p.includes('/kop')) district = 'Kolhapur';
     }
-    const mrsacCols = [
-      "Sr. No.", "Taluka", "Village", "Owner Name", "Date of Survey", "Type of Well", "Gat No.",
-      "10K Sheet Quadrant", "Lat (DD)", "Long (DD)", "Depth bgl (M.)", "Dia (M.)", "Curbing (M.)",
-      "Winter SWL (M.)", "Summer SWL (M.)", "Pump Type", "Power Mode", "Pump HP", "Pumping Hrs Winter",
-      "Pumping Hrs Summer", "Recuperation Winter (Hrs)", "Recuperation Summer (Hrs)", "PWL Winter (M.)",
-      "PWL Summer (M.)", "Drawdown Winter (M.)", "Drawdown Summer (M.)", "Cultivable Area (Ha)",
-      "Total Annual Draft (Ham)", "Aquifer Yield Range", "Lithology 1", "Lithology 2", "Well Remarks"
-    ];
-    const data = [mrsacCols];
-    hubLoadedRecords.forEach(r => {
-      data.push([
-        r.srNo, r.taluka, r.villageName, r.ownerName, r.surveyDate || "17/03/2026", r.wellType, r.gatNo,
-        `${r.gridCode}-${r.quadrant}`, r.latitude, r.longitude, r.depthWell || 10.66, r.diaEffective,
-        r.parapetHeight || 0.3, r.swlWinter || 9.14, r.swlSummer || 10.66, r.pumpType || "Submersible",
-        "Electric", r.pumpHP || r.pumpHp || 5, r.pumpDurationWinter || 4.0, r.pumpDurationSummer || 6.0,
-        r.recupWinter || 4.0, r.recupSummer || 6.0, r.pwlWinter, r.pwlSummer, r.ddWinter, r.ddSummer,
-        r.cultivableLand || 3.23, r.totalDraftHam, r.pdfYieldRange, r.lithoType1 || "Soil", r.lithoType2 || "Weathered Basalt", r.wellRemarks || "Seasonal"
-      ]);
+
+    if (!window.ExcelJS) {
+      alert("ExcelJS library is loading, please try again in a moment.");
+      return;
+    }
+
+    const wb = new window.ExcelJS.Workbook();
+    const wsMrsac = wb.addWorksheet("MRSAC Format");
+
+    const activeCols = (typeof getActiveMrsacColumns === 'function')
+      ? getActiveMrsacColumns()
+      : (typeof MRSAC_AVAILABLE_COLUMNS !== 'undefined' ? MRSAC_AVAILABLE_COLUMNS.filter(c => c.default !== false) : []);
+
+    const row1 = wsMrsac.getRow(1);
+    activeCols.forEach((col, i) => {
+      const cell = row1.getCell(1 + i);
+      cell.value = col.label;
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FF1E293B' }
+      };
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "MRSAC Format");
-    XLSX.writeFile(wb, `MRSAC_Official_Submission_${district.toUpperCase()}_(${hubLoadedRecords.length}_Wells).xlsx`);
+    row1.height = 28;
+
+    records.forEach(r => {
+      let kYield = '0.0000', rYield = '0.0000', sYield = '0.0000', tYield = '0.0000';
+      if (typeof buildRecordCellMap === 'function') {
+        try {
+          const c = buildRecordCellMap(r);
+          const isPwsRec = c.isPWS || (r.surveyCategory === 'PWS') || (r.ownerName && r.ownerName.toUpperCase().includes('PWS'));
+          const hasCrop = (c.totalHamCrop > 0) || (c.kharifHamCrop > 0 || c.rabiHamCrop > 0 || c.summerHamCrop > 0);
+          const kY = (!isPwsRec && hasCrop) ? c.kharifHamCrop : (c.kharifHamPerf > 0 ? c.kharifHamPerf : c.kharifHamCrop);
+          const rY = (!isPwsRec && hasCrop) ? c.rabiHamCrop : (c.rabiHamPerf > 0 ? c.rabiHamPerf : c.rabiHamCrop);
+          const sY = (!isPwsRec && hasCrop) ? c.summerHamCrop : (c.summerHamPerf > 0 ? c.summerHamPerf : c.summerHamCrop);
+          const tY = (!isPwsRec && hasCrop) ? c.totalHamCrop : (c.perfTotalHam > 0 ? c.perfTotalHam : (kY + rY + sY));
+          kYield = kY; rYield = rY; sYield = sY; tYield = tY;
+        } catch(e) {}
+      }
+
+      let rowData;
+      if (typeof buildMrsacRow25 === 'function') {
+        rowData = buildMrsacRow25(r, kYield, rYield, sYield, tYield);
+      } else {
+        let lat = '', lon = '';
+        if (r.gpsCoords && r.gpsCoords.includes(',')) {
+          lat = r.gpsCoords.split(',')[0].trim();
+          lon = r.gpsCoords.split(',')[1].trim();
+        } else {
+          lat = r.latitude || ''; lon = r.longitude || '';
+        }
+        rowData = activeCols.map(c => c.get ? c.get(r, lat, lon, kYield, rYield, sYield, tYield) : (r[c.id] || ''));
+      }
+      wsMrsac.addRow(rowData);
+    });
+
+    wsMrsac.columns.forEach(col => {
+      let maxLen = 12;
+      col.eachCell({ includeEmpty: false }, cell => {
+        const len = cell.value ? String(cell.value).length : 0;
+        if (len > maxLen) maxLen = Math.min(len + 2, 40);
+      });
+      col.width = maxLen;
+    });
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const fileName = `MRSAC_Official_Submission_${district.toUpperCase()}_(${records.length}_Wells).xlsx`;
+
+    if (window.AndroidBridge && window.AndroidBridge.exportFile) {
+      const b64 = (typeof bufferToBase64 === 'function') ? bufferToBase64(buffer) : btoa(String.fromCharCode(...new Uint8Array(buffer)));
+      window.AndroidBridge.exportFile(b64, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'mobile');
+      return;
+    }
+
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   function printHubBooklet() {
-    window.print();
+    if (typeof printAllForms === 'function') {
+      printAllForms();
+    } else {
+      window.print();
+    }
   }
 
   async function syncAndSaveHubRecordsToDatabase() {
@@ -1452,6 +1537,7 @@
     if (typeof renderRecords === 'function') renderRecords();
     if (typeof updateBadge === 'function') updateBadge();
     if (typeof updateHomeDashboard === 'function') updateHomeDashboard();
+    if (typeof pushLocalToRemote === 'function') pushLocalToRemote();
 
     const alertBox = document.getElementById('hubStatusAlert');
     if (alertBox) {
