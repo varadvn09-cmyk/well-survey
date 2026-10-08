@@ -65,7 +65,8 @@ window.DraftCalcCloudSync = (function() {
     } else if (!clean) {
       localStorage.removeItem(STORAGE_KEYS.SYNC_KEY);
     }
-    updateAllSyncStatusUI();
+    updateAllSyncStatusUI,
+    submitAllToDistrict();
     restartRealtimeSync();
   }
 
@@ -97,7 +98,8 @@ window.DraftCalcCloudSync = (function() {
     } else {
       stopRealtimeSync();
     }
-    updateAllSyncStatusUI();
+    updateAllSyncStatusUI,
+    submitAllToDistrict();
   }
 
   function getLastSyncTime() {
@@ -134,20 +136,7 @@ window.DraftCalcCloudSync = (function() {
   function getDeletedMap() {
     try {
       const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.DELETED_KEYS) || '{}');
-      let cleaned = {};
-      let changed = false;
-      for (const k in raw) {
-        // Purge integer-only keys (e.g. "0", "1", "2") because they corrupt Excel survey imports
-        if (/^\d{1,5}$/.test(k)) {
-          changed = true;
-          continue;
-        }
-        cleaned[k] = raw[k];
-      }
-      if (changed) {
-        localStorage.setItem(STORAGE_KEYS.DELETED_KEYS, JSON.stringify(cleaned));
-      }
-      return cleaned;
+      return (raw && typeof raw === 'object') ? raw : {};
     } catch(e) {
       return {};
     }
@@ -157,14 +146,15 @@ window.DraftCalcCloudSync = (function() {
     const deleted = getDeletedMap();
     const now = Date.now();
     const cKey = cleanFirebaseKey(uniqueKey);
-    if (cKey && !/^\d{1,5}$/.test(cKey)) {
-      deleted[cKey] = now;
+    if (cKey) deleted[cKey] = now;
+    if (srNo !== undefined && srNo !== null && String(srNo).trim()) {
+      deleted[String(srNo).trim()] = now;
     }
     
-    // Prune entries older than 45 days
-    const cutoff = now - (45 * 24 * 60 * 60 * 1000);
+    // Prune entries older than 60 days
+    const cutoff = now - (60 * 24 * 60 * 60 * 1000);
     for (const k in deleted) {
-      if (deleted[k] < cutoff || /^\d{1,5}$/.test(k)) delete deleted[k];
+      if (deleted[k] < cutoff) delete deleted[k];
     }
     localStorage.setItem(STORAGE_KEYS.DELETED_KEYS, JSON.stringify(deleted));
   }
@@ -207,8 +197,10 @@ window.DraftCalcCloudSync = (function() {
     const deleted = getDeletedMap();
     let delTime = null;
     const cKey = cleanFirebaseKey(uniqueKey);
-    if (cKey && !/^\d{1,5}$/.test(cKey) && deleted[cKey]) {
+    if (cKey && deleted[cKey]) {
       delTime = deleted[cKey];
+    } else if (srNo && deleted[String(srNo).trim()]) {
+      delTime = deleted[String(srNo).trim()];
     }
     if (!delTime) return false;
     const recTime = timestamp ? new Date(timestamp).getTime() : 0;
@@ -317,7 +309,8 @@ window.DraftCalcCloudSync = (function() {
     }
     try {
       isSyncing = true;
-      updateAllSyncStatusUI();
+      updateAllSyncStatusUI,
+    submitAllToDistrict();
       const dbUrl = getDbUrl();
       const recCopy = { ...record };
 
@@ -363,7 +356,8 @@ window.DraftCalcCloudSync = (function() {
       return false;
     } finally {
       isSyncing = false;
-      updateAllSyncStatusUI();
+      updateAllSyncStatusUI,
+    submitAllToDistrict();
     }
   }
 
@@ -408,15 +402,14 @@ window.DraftCalcCloudSync = (function() {
         if (typeof updateBadge === 'function') updateBadge();
       }
     if (localRecords.length === 0) {
-      // Never wipe cloud room when local device is empty!
-      // A fresh device (Phone / PC2) should pull remote records, not destroy them!
-      console.log('DraftCalc Cloud Sync - Local records empty, pulling remote records instead of clearing.');
-      return await pullAndMerge(showToastMsg);
+      console.log('DraftCalc Cloud Sync - Local records count is 0. Respecting intentional local deletion.');
+      return true;
     }
 
     try {
       isSyncing = true;
-      updateAllSyncStatusUI();
+      updateAllSyncStatusUI,
+    submitAllToDistrict();
       if (showToastMsg && typeof showToast === 'function') {
         showToast(`☁️ Syncing ${localRecords.length} records to Cloud Room (${key})...`);
       }
@@ -444,8 +437,7 @@ window.DraftCalcCloudSync = (function() {
         recordsMap[recKey] = payloadToUpload;
       }
 
-      // Clear any remote tombstones so they do not shadow these pushed records
-      fetch(`${dbUrl}/draft_rooms/${key}/deleted_records.json`, { method: 'DELETE' }).catch(() => {});
+      // Preserve remote tombstones permanently so other devices recognize deletions
 
       const res = await fetch(`${dbUrl}/draft_rooms/${key}/records.json`, {
         method: 'PUT',
@@ -485,7 +477,8 @@ window.DraftCalcCloudSync = (function() {
       return false;
     } finally {
       isSyncing = false;
-      updateAllSyncStatusUI();
+      updateAllSyncStatusUI,
+    submitAllToDistrict();
     }
   }
 
@@ -502,13 +495,15 @@ window.DraftCalcCloudSync = (function() {
         showToast("⚠️ No internet connection! Working in local offline mode.");
       }
       connectionState = 'offline';
-      updateAllSyncStatusUI();
+      updateAllSyncStatusUI,
+    submitAllToDistrict();
       return false;
     }
 
     try {
       isSyncing = true;
-      updateAllSyncStatusUI();
+      updateAllSyncStatusUI,
+    submitAllToDistrict();
       const dbUrl = getDbUrl();
       const url = `${dbUrl}/draft_rooms/${key}.json`;
       const res = await fetch(url);
@@ -544,13 +539,13 @@ window.DraftCalcCloudSync = (function() {
         : Object.keys(remoteDeleted);
 
       remoteKeys.forEach(delKey => {
-        if (/^\d{1,5}$/.test(delKey)) return;
+        // Retain all valid tombstone keys
         const delInfo = Array.isArray(remoteDeleted)
           ? remoteDeleted.find(d => d && (d.uniqueKey === delKey))
           : remoteDeleted[delKey];
         const delTime = (typeof delInfo === 'object' && delInfo && delInfo.timestamp) ? delInfo.timestamp : (Number(delInfo) || Date.now());
         const uKey = (delInfo && delInfo.uniqueKey) ? cleanFirebaseKey(delInfo.uniqueKey) : cleanFirebaseKey(delKey);
-        if (uKey && !/^\d{1,5}$/.test(uKey) && (!localDeleted[uKey] || localDeleted[uKey] < delTime)) {
+        if (uKey &&  (!localDeleted[uKey] || localDeleted[uKey] < delTime)) {
           localDeleted[uKey] = delTime;
           hasNewDeletions = true;
         }
@@ -562,7 +557,7 @@ window.DraftCalcCloudSync = (function() {
       // 2. Also push any offline local deletions to cloud so cloud room stays clean
       for (const delKey in localDeleted) {
         const cKey = cleanFirebaseKey(delKey);
-        if (cKey && !/^\d{1,5}$/.test(cKey) && (!remoteDeleted || !remoteDeleted[cKey])) {
+        if (cKey &&  (!remoteDeleted || !remoteDeleted[cKey])) {
           fetch(`${dbUrl}/draft_rooms/${key}/records/${cKey}.json`, { method: 'DELETE' }).catch(() => {});
           fetch(`${dbUrl}/draft_rooms/${key}/deleted_records/${cKey}.json`, {
             method: 'PUT',
@@ -723,7 +718,8 @@ window.DraftCalcCloudSync = (function() {
       return false;
     } finally {
       isSyncing = false;
-      updateAllSyncStatusUI();
+      updateAllSyncStatusUI,
+    submitAllToDistrict();
     }
   }
 
@@ -732,7 +728,8 @@ window.DraftCalcCloudSync = (function() {
     stopRealtimeSync();
     const key = getSyncKey();
     if (!key || key.length !== 10 || !isAutoSyncEnabled()) {
-      updateAllSyncStatusUI();
+      updateAllSyncStatusUI,
+    submitAllToDistrict();
       return;
     }
 
@@ -760,12 +757,14 @@ window.DraftCalcCloudSync = (function() {
 
         eventSource.onopen = function() {
           connectionState = 'connected';
-          updateAllSyncStatusUI();
+          updateAllSyncStatusUI,
+    submitAllToDistrict();
         };
 
         eventSource.onerror = function() {
           connectionState = 'offline';
-          updateAllSyncStatusUI();
+          updateAllSyncStatusUI,
+    submitAllToDistrict();
         };
       } catch(err) {
         console.warn('EventSource not available, falling back to periodic poll');
@@ -877,7 +876,8 @@ window.DraftCalcCloudSync = (function() {
   // --- Auto-Initialize on page load ---
   window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-      updateAllSyncStatusUI();
+      updateAllSyncStatusUI,
+    submitAllToDistrict();
       if (getSyncKey() && isAutoSyncEnabled()) {
         startRealtimeSync();
       }
@@ -885,13 +885,68 @@ window.DraftCalcCloudSync = (function() {
   });
 
   window.addEventListener('online', () => {
-    updateAllSyncStatusUI();
+    updateAllSyncStatusUI,
+    submitAllToDistrict();
     if (getSyncKey()) pullAndMerge(false);
   });
 
   window.addEventListener('offline', () => {
-    updateAllSyncStatusUI();
+    updateAllSyncStatusUI,
+    submitAllToDistrict();
   });
+
+
+  async function submitAllToDistrict(targetDistrictPhone) {
+    const surveyorPhone = getSyncKey();
+    const destRoom = (targetDistrictPhone || '').replace(/\D/g, '') || '9822114400';
+    if (!surveyorPhone || surveyorPhone.length !== 10) {
+      if (typeof showToast === 'function') showToast("⚠️ Please configure your 10-digit mobile number first!");
+      return false;
+    }
+    if (!navigator.onLine) {
+      if (typeof showToast === 'function') showToast("⚠️ Internet connection required to submit to District Room!");
+      return false;
+    }
+    const localRecords = (typeof getStoredRecords === 'function') ? getStoredRecords() : [];
+    if (!localRecords || localRecords.length === 0) {
+      if (typeof showToast === 'function') showToast("⚠️ No local surveys to submit!");
+      return false;
+    }
+
+    try {
+      if (typeof showToast === 'function') {
+        showToast(`📤 Submitting ${localRecords.length} records to District Room (${destRoom})...`);
+      }
+      const dbUrl = getDbUrl();
+      const payload = {};
+      localRecords.forEach((r, idx) => {
+        const copy = { ...r };
+        copy.submittedBy = surveyorPhone;
+        copy.submittedAt = new Date().toISOString();
+        const prefixKey = `${surveyorPhone}_SrNo_${copy.srNo || idx + 1}`;
+        payload[prefixKey] = copy;
+      });
+
+      const res = await fetch(`${dbUrl}/draft_rooms/${destRoom}/records.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        if (typeof showToast === 'function') {
+          showToast(`🎉 Successfully submitted ${localRecords.length} surveys to District Master Room (${destRoom})!`);
+        }
+        return true;
+      } else {
+        throw new Error(`HTTP ${res.status}`);
+      }
+    } catch(err) {
+      console.error('Submit to district failed:', err);
+      if (typeof showToast === 'function') showToast("❌ Submission failed. Check connection.");
+      return false;
+    }
+  }
 
   return {
     getRecordSurveyKey,
@@ -911,6 +966,7 @@ window.DraftCalcCloudSync = (function() {
     stopRealtimeSync,
     restartRealtimeSync,
     onRecordsSaved,
-    updateAllSyncStatusUI
+    updateAllSyncStatusUI,
+    submitAllToDistrict
   };
 })();
