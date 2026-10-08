@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoDraft Pro - District Admin Master Key & Drive Manager</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --success: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .admin-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      max-width: 580px;
+      width: 100%;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+    .header {
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      font-size: 0.72rem;
+      background: rgba(2, 132, 199, 0.2);
+      color: #38bdf8;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 800;
+      border: 1px solid rgba(2, 132, 199, 0.4);
+    }
+    .section {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 18px;
+    }
+    .section-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #e2e8f0;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    label {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 14px;
+      background: #0f172a;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: #fff;
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: #fff;
+    }
+    .key-display {
+      background: #0f172a;
+      border: 1.5px dashed #0284c7;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      font-family: monospace;
+      font-size: 1.3rem;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #38bdf8;
+      margin-bottom: 12px;
+      user-select: all;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: #fff;
+      border: 1.5px solid #0284c7;
+      padding: 10px 20px;
+      border-radius: 24px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="admin-card">
+    <div class="header">
+      <h1>👑 District Admin Center</h1>
+      <span class="badge">Office PC Only</span>
+    </div>
+
+    <!-- 1. District Selection -->
+    <div class="section">
+      <div class="section-title">📍 1. Select District Room</div>
+      <label>Target District</label>
+      <select id="selDistrict" onchange="onDistrictChange()">
+        <option value="9822114400" data-name="Solapur">Solapur (Room: 9822114400)</option>
+        <option value="9822114402" data-name="Latur">Latur (Room: 9822114402)</option>
+        <option value="9822114401" data-name="Kolhapur">Kolhapur (Room: 9822114401)</option>
+        <option value="custom">Custom 10-Digit Mobile Room</option>
+      </select>
+      <input type="tel" id="txtCustomRoom" placeholder="Enter 10-Digit Mobile Room" style="display: none;" maxlength="10" />
+    </div>
+
+    <!-- 2. Master PIN & Key Generator -->
+    <div class="section">
+      <div class="section-title">🔐 2. Alphanumeric Master PIN & Key Generator</div>
+      <label>Generated Secure Master Key</label>
+      <div id="displayKey" class="key-display">GEO-8492-XQ</div>
+      
+      <div class="btn-group" style="margin-bottom: 12px;">
+        <button type="button" class="btn-primary" onclick="generateKey()" style="flex:1;">
+          🎲 Generate Key
+        </button>
+        <button type="button" class="btn-primary" onclick="copyKey()" style="background:#334155; color:#fff;">
+          📋 Copy
+        </button>
+      </div>
+
+      <label>Or Type Custom Password (Words + Numbers)</label>
+      <input type="text" id="txtCustomPassword" placeholder="e.g. Solapur@GSDA2026" oninput="onCustomPasswordInput()" />
+
+      <button type="button" class="btn-success" onclick="publishMasterPin()" style="width: 100%;">
+        ☁️ Publish Master PIN to District Room
+      </button>
+    </div>
+
+    <!-- 3. Automated Google Drive Folder Publisher -->
+    <div class="section">
+      <div class="section-title">📁 3. District Master Google Drive Folder</div>
+      <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px; line-height:1.4;">
+        Paste your Google Drive shared folder link once. All field surveyors' phones will <strong>automatically receive and link this folder</strong> without manual links!
+      </p>
+      <label>Google Drive Shared Folder Link / ID</label>
+      <input type="url" id="txtDriveFolderUrl" placeholder="https://drive.google.com/drive/folders/1ABC..." />
+      
+      <button type="button" class="btn-success" onclick="publishDriveFolder()" style="width: 100%;">
+        📤 Publish Drive Folder to All Surveyors
+      </button>
+    </div>
+
+    <div style="font-size: 0.72rem; color: #64748b; text-align: center; margin-top: 10px;">
+      GeoDraft Pro v4.4.0 • Zero-Knowledge Security Vault
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const FIREBASE_DB = "https://wellgeo-survey-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+
+    function getTargetRoom() {
+      const sel = document.getElementById('selDistrict').value;
+      if (sel === 'custom') {
+        return (document.getElementById('txtCustomRoom').value || '').trim();
+      }
+      return sel;
+    }
+
+    function onDistrictChange() {
+      const sel = document.getElementById('selDistrict').value;
+      document.getElementById('txtCustomRoom').style.display = (sel === 'custom') ? 'block' : 'none';
+      loadExistingDistrictMeta();
+    }
+
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str.trim()));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function generateKey() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let k = "GEO-";
+      for (let i = 0; i < 6; i++) k += chars.charAt(Math.floor(Math.random() * chars.length));
+      document.getElementById('displayKey').innerText = k;
+      document.getElementById('txtCustomPassword').value = k;
+    }
+
+    function copyKey() {
+      const k = document.getElementById('displayKey').innerText;
+      navigator.clipboard.writeText(k);
+      showToast("📋 Copied to clipboard: " + k);
+    }
+
+    function onCustomPasswordInput() {
+      const val = document.getElementById('txtCustomPassword').value;
+      if (val) document.getElementById('displayKey').innerText = val;
+    }
+
+    async function publishMasterPin() {
+      const room = getTargetRoom();
+      if (!room || room.length !== 10) {
+        showToast("⚠️ Please enter a valid 10-digit District Room number!");
+        return;
+      }
+      const pwd = document.getElementById('txtCustomPassword').value || document.getElementById('displayKey').innerText;
+      if (!pwd || pwd.length < 4) {
+        showToast("⚠️ Master PIN must be at least 4 characters!");
+        return;
+      }
+
+      const hash = await sha256(pwd);
+      try {
+        showToast("⏳ Publishing PIN to District Room...");
+        const res = await fetch(`${FIREBASE_DB}/draft_rooms/${room}/meta/master_pin_hash.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hash: hash, updatedAt: Date.now() })
+        });
+        if (res.ok) {
+          showToast(`✅ Master PIN published to District Room (${room})!`);
+        } else {
+          showToast("❌ Failed to update cloud. Check internet.");
+        }
+      } catch(e) {
+        showToast("❌ Network error. Check connection.");
+      }
+    }
+
+    function extractFolderId(url) {
+      if (!url) return '';
+      const match = url.match(/folders\/([a-zA-Z0-9_-]+)/);
+      return match ? match[1] : url.trim();
+    }
+
+    async function publishDriveFolder() {
+      const room = getTargetRoom();
+      if (!room || room.length !== 10) {
+        showToast("⚠️ Please enter a valid 10-digit District Room number!");
+        return;
+      }
+      const rawUrl = document.getElementById('txtDriveFolderUrl').value.trim();
+      const folderId = extractFolderId(rawUrl);
+      if (!folderId) {
+        showToast("⚠️ Please paste a valid Google Drive Folder URL or ID!");
+        return;
+      }
+
+      try {
+        showToast("⏳ Publishing Drive folder to all surveyors...");
+        const res = await fetch(`${FIREBASE_DB}/draft_rooms/${room}/meta/gdrive_folder.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folderId: folderId, folderUrl: rawUrl, updatedAt: Date.now() })
+        });
+        if (res.ok) {
+          showToast(`✅ District Drive Folder published! All surveyors will auto-link it.`);
+        } else {
+          showToast("❌ Failed to update cloud. Check internet.");
+        }
+      } catch(e) {
+        showToast("❌ Network error. Check connection.");
+      }
+    }
+
+    async function loadExistingDistrictMeta() {
+      const room = getTargetRoom();
+      if (!room || room.length !== 10) return;
+      try {
+        const res = await fetch(`${FIREBASE_DB}/draft_rooms/${room}/meta/gdrive_folder.json`);
+        const data = await res.json();
+        if (data && data.folderUrl) {
+          document.getElementById('txtDriveFolderUrl').value = data.folderUrl;
+        }
+      } catch(e) {}
+    }
+
+    // Initialize with a fresh key
+    generateKey();
+    loadExistingDistrictMeta();
+  </script>
+</body>
+</html>

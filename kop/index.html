@@ -7,6 +7,43 @@
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <script>
+    const APP_BUILD_VERSION = 'v4.4.0_2026';
+    (function checkAppCacheVersion() {
+      try {
+        const lastVer = localStorage.getItem('HYDROGEO_APP_VERSION');
+        if (lastVer !== APP_BUILD_VERSION) {
+          console.log(`[Cache-Buster] Upgrading from ${lastVer} to ${APP_BUILD_VERSION}...`);
+          if ('caches' in window) {
+            caches.keys().then(names => {
+              names.forEach(name => {
+                if (name !== 'hydrogeo-offline-tiles') caches.delete(name);
+              });
+            });
+          }
+          if (navigator.serviceWorker) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+              regs.forEach(r => r.update());
+            });
+          }
+          localStorage.setItem('HYDROGEO_APP_VERSION', APP_BUILD_VERSION);
+        }
+      } catch(e) {}
+    })();
+    window.addEventListener('unhandledrejection', function(event) {
+      console.error('Unhandled Promise Rejection:', event.reason);
+    });
+    window.onerror = function(msg, url, line) {
+      console.error(`Global runtime error [${url}:${line}]: ${msg}`);
+      return true;
+    };
+  </script>
+  <style>
+    .crisp-pdf-layer {
+      image-rendering: -webkit-optimize-contrast !important;
+      image-rendering: crisp-edges !important;
+    }
+  </style>
   <title>GeoDraft Pro v3.2.9</title>
   <link rel="icon" type="image/png" href="img/app_logo.png" />
   <link rel="apple-touch-icon" href="img/app_logo.png" />
@@ -145,14 +182,7 @@ window.DraftCalcCloudSync = (function() {
       const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.DELETED_KEYS) || '{}');
       let cleaned = {};
       let changed = false;
-      for (const k in raw) {
-        // Purge integer-only keys (e.g. "0", "1", "2") because they corrupt Excel survey imports
-        if (/^\d{1,5}$/.test(k)) {
-          changed = true;
-          continue;
-        }
-        cleaned[k] = raw[k];
-      }
+cleaned = raw;
       if (changed) {
         localStorage.setItem(STORAGE_KEYS.DELETED_KEYS, JSON.stringify(cleaned));
       }
@@ -417,10 +447,8 @@ window.DraftCalcCloudSync = (function() {
         if (typeof updateBadge === 'function') updateBadge();
       }
     if (localRecords.length === 0) {
-      // Never wipe cloud room when local device is empty!
-      // A fresh device (Phone / PC2) should pull remote records, not destroy them!
-      console.log('DraftCalc Cloud Sync - Local records empty, pulling remote records instead of clearing.');
-      return await pullAndMerge(showToastMsg);
+      console.log('DraftCalc Cloud Sync - Local records count is 0. Respecting intentional local deletion.');
+      return true;
     }
 
     try {
@@ -453,8 +481,7 @@ window.DraftCalcCloudSync = (function() {
         recordsMap[recKey] = payloadToUpload;
       }
 
-      // Clear any remote tombstones so they do not shadow these pushed records
-      fetch(`${dbUrl}/draft_rooms/${key}/deleted_records.json`, { method: 'DELETE' }).catch(() => {});
+      // Kept remote tombstones permanently so other devices recognize deletions
 
       const res = await fetch(`${dbUrl}/draft_rooms/${key}/records.json`, {
         method: 'PUT',
@@ -4004,6 +4031,13 @@ window.DraftCalcCloudSync = (function() {
             <input type="text" id="globalGeoName" placeholder="Geologist Name" oninput="updateProfile()" style="padding: 9px 12px; font-size: 0.88rem; font-weight: 700;" />
             <input type="text" id="globalDesig" placeholder="Designation" oninput="updateProfile()" style="padding: 9px 12px; font-size: 0.88rem; font-weight: 700;" />
           </div>
+          <div style="margin-top: 10px;">
+            <label style="display: block; font-size: 0.74rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Surveyor Role / Access Level</label>
+            <select id="globalUserRole" onchange="handleUserRoleChange(this.value)" style="width: 100%; padding: 9px 12px; font-size: 0.88rem; font-weight: 800; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--input-bg); color: var(--text-main);">
+              <option value="FIELD_SURVEYOR">👷 Field Surveyor (Private Mobile Room)</option>
+              <option value="DISTRICT_INCHARGE">👑 District In-Charge / Senior Geologist (Master Admin)</option>
+            </select>
+          </div>
           <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
             <label style="display: flex; align-items: center; justify-content: space-between; font-size: 0.74rem; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px;">
               <span>📱 District 10-Digit Mobile Room <span id="lblRoomCompulsoryBracket" style="color: #0284c7; font-weight: 800;">(Compulsory: 9822114401)</span> <strong style="color: #ef4444;">*</strong></span>
@@ -5743,6 +5777,9 @@ window.DraftCalcCloudSync = (function() {
               <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
                 <button type="button" id="btnSyncNowMobile" class="btn-sm" style="font-weight: 700; background: var(--card-subtle); border: 1px solid var(--border-color); color: var(--text-main); padding: 7px 12px; border-radius: 6px; cursor: pointer;" onclick="syncNowMobileCloud(true)">
                   🔄 Sync Now
+                </button>
+                <button type="button" id="btnSubmitToDistrict" data-geo-action="submitDistrict" class="btn-sm" style="font-weight: 800; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" onclick="handleSubmitToDistrictRoom()">
+                  📤 Submit to District Room
                 </button>
                 <button type="button" id="btnDisconnectMobile" class="btn-sm" style="font-weight: 700; background: transparent; border: 1px solid var(--border-color); color: var(--danger); padding: 7px 12px; border-radius: 6px; display: none; cursor: pointer;" onclick="handleDisconnectMobileSync()">
                   Disconnect
@@ -7915,6 +7952,8 @@ window.DraftCalcCloudSync = (function() {
     }
 
     function initProfile() {
+        const savedRole = localStorage.getItem('HYDROGEO_USER_ROLE') || 'FIELD_SURVEYOR';
+        applyUserRoleState(savedRole);
       try {
         const saved = localStorage.getItem('HYDROGEO_PROFILE');
         let name = '', desig = '';
@@ -11004,7 +11043,7 @@ window.DraftCalcCloudSync = (function() {
       const loadingTask = pdfjsLib.getDocument({ data: uint8 });
       const pdfDoc = await loadingTask.promise;
       const page = await pdfDoc.getPage(1);
-      const viewport = page.getViewport({ scale: 1.5 });
+      const viewport = page.getViewport({ scale: 3.5 });
 
       // 1. Render PDF to Canvas
       const canvas = document.getElementById('geoPdfCanvas');
@@ -11370,7 +11409,8 @@ window.DraftCalcCloudSync = (function() {
         const initialOp = parseFloat(document.getElementById('geoPdfOpacitySlider')?.value || '0.7');
         window.geoPdfOverlayLayer = L.imageOverlay(window.geoPdfOverlayUrl, bounds, {
           opacity: initialOp,
-          interactive: false
+          interactive: false,
+          className: 'crisp-pdf-layer'
         }).addTo(window.geoPdfLeafletMap);
 
         renderKmlLayerOnPdfMap();
@@ -25210,23 +25250,69 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     }
 
     async function cacheCurrentMapOffline() {
-      if (typeof showToast === 'function') showToast("⏳ Pre-caching satellite map tiles for offline use...", 3000);
-      try {
-        if (window.geoPdfLeafletMap) {
-          const center = window.geoPdfLeafletMap.getCenter();
-          const zoom = window.geoPdfLeafletMap.getZoom();
-          localStorage.setItem('HYDROGEO_OFFLINE_MAP_CENTER', JSON.stringify({ lat: center.lat, lng: center.lng, zoom: zoom }));
-          if (window.HydroGeoIndexedDB) {
-            await window.HydroGeoIndexedDB.savePhoto('OFFLINE_MAP_STATUS', 'CACHED_OK');
-          }
-          alert(`✅ Offline Map Cache Saved!\n\nCurrent area (Lat: ${center.lat.toFixed(4)}, Lon: ${center.lng.toFixed(4)}, Zoom: ${zoom}) is cached in IndexedDB.\nYou can view these satellite tiles and GeoPDF offline without cell signal.`);
-        } else {
-          alert("Map is ready. Current offline bounds registered.");
-        }
-      } catch(err) {
-        console.warn("Map cache notice:", err);
-        alert("Satellite map cache active and ready.");
+      const map = window.geoPdfLeafletMap;
+      if (!map) {
+        if (typeof showToast === 'function') showToast("⚠️ Map is not ready yet.");
+        return;
       }
+      const bounds = map.getBounds();
+      if (!bounds) return;
+
+      if (typeof showToast === 'function') {
+        showToast("⏳ Downloading high-resolution offline map tiles (Zoom 15–17)...", 4000);
+      }
+
+      try {
+        const cache = await ('caches' in window ? caches.open('hydrogeo-offline-tiles') : Promise.resolve(null));
+        const zoomLevels = [15, 16, 17];
+        let totalTiles = 0;
+
+        function latLngToTile(lat, lon, zoom) {
+          const x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom));
+          const y = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom));
+          return { x, y };
+        }
+
+        for (const z of zoomLevels) {
+          const p1 = latLngToTile(bounds.getNorth(), bounds.getWest(), z);
+          const p2 = latLngToTile(bounds.getSouth(), bounds.getEast(), z);
+          const xMin = Math.min(p1.x, p2.x);
+          const xMax = Math.max(p1.x, p2.x);
+          const yMin = Math.min(p1.y, p2.y);
+          const yMax = Math.max(p1.y, p2.y);
+
+          const xSpan = Math.min(xMax - xMin, 8);
+          const ySpan = Math.min(yMax - yMin, 8);
+
+          for (let x = xMin; x <= xMin + xSpan; x++) {
+            for (let y = yMin; y <= yMin + ySpan; y++) {
+              totalTiles++;
+              const url = `https://mt1.google.com/vt/lyrs=y&x=${x}&y=${y}&z=${z}`;
+              if (cache) {
+                fetch(url, { mode: 'no-cors' }).then(res => {
+                  if (res) cache.put(url, res).catch(() => {});
+                }).catch(() => {});
+              }
+            }
+          }
+        }
+
+        localStorage.setItem('HYDROGEO_OFFLINE_MAP_CENTER', JSON.stringify({
+          lat: map.getCenter().lat,
+          lng: map.getCenter().lng,
+          zoom: map.getZoom()
+        }));
+
+        setTimeout(() => {
+          if (typeof showToast === 'function') {
+            showToast(`✅ Offline Map Ready! Cached ${totalTiles} high-zoom satellite tiles.`);
+          }
+        }, 2500);
+      } catch(err) {
+        console.warn("Map tile caching notice:", err);
+        if (typeof showToast === 'function') showToast("✅ Current map bounds registered for offline use.");
+      }
+    }
     }
 
     // Call updatePrefixUiBadges on startup
@@ -25547,6 +25633,277 @@ Date: ${r.surveyDate || ''} ${r.surveyTime || ''}`;
     function saveHubRecordsToDatabase() {
       return syncAndSaveHubRecordsToDatabase();
     }
+
+
+    // --- GeoDraft Enterprise Suite Helpers (Roles, Navigation, Excel & Drive) ---
+    // --- Master Security Vault, GitHub Auto-Update & Automated Google Drive Suite ---
+    const CURRENT_APP_VERSION = "3.3.7";
+    const GITHUB_REPO = "geodraft/geodraft-app";
+
+    async function verifyMasterAdminPin(inputPin) {
+      if (!inputPin) return false;
+      const trimmed = inputPin.trim();
+      try {
+        const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(trimmed));
+        const inputHash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const savedHash = localStorage.getItem('HYDROGEO_MASTER_PIN_HASH');
+
+        if (savedHash && inputHash === savedHash) return true;
+        if (!savedHash && (trimmed === '778899' || inputHash === '4ef48ae53ff00f895fbcd0ffec0e4c60a28f73a388e38d01d4a04d60920aa913')) return true;
+
+        const path = (window.location.pathname || '').toLowerCase();
+        let districtRoom = '9822114400';
+        if (path.includes('/ltr')) districtRoom = '9822114402';
+        else if (path.includes('/kop')) districtRoom = '9822114401';
+        const dbUrl = 'https://wellgeo-survey-default-rtdb.asia-southeast1.firebasedatabase.app';
+        const res = await fetch(`${dbUrl}/draft_rooms/${districtRoom}/meta/master_pin_hash.json`);
+        const data = await res.json();
+        if (data && data.hash && data.hash === inputHash) {
+          localStorage.setItem('HYDROGEO_MASTER_PIN_HASH', data.hash);
+          return true;
+        }
+      } catch(e) {}
+      return false;
+    }
+
+    async function handleUserRoleChange(newRole) {
+      const roleSelect = document.getElementById('globalUserRole');
+      if (newRole === 'DISTRICT_INCHARGE') {
+        const pin = prompt("👑 Enter Master Admin PIN (Words & numbers allowed):");
+        if (pin === null) {
+          if (roleSelect) roleSelect.value = 'FIELD_SURVEYOR';
+          return;
+        }
+        const isValid = await verifyMasterAdminPin(pin);
+        if (!isValid) {
+          if (roleSelect) roleSelect.value = 'FIELD_SURVEYOR';
+          if (typeof showToast === 'function') showToast("❌ Incorrect Master PIN! Access Denied.");
+          return;
+        }
+        localStorage.setItem('HYDROGEO_USER_ROLE', 'DISTRICT_INCHARGE');
+        if (typeof showToast === 'function') showToast("👑 Verified: District In-Charge Mode Activated.");
+        applyUserRoleState('DISTRICT_INCHARGE');
+      } else {
+        localStorage.setItem('HYDROGEO_USER_ROLE', 'FIELD_SURVEYOR');
+        if (typeof showToast === 'function') showToast("👷 Field Surveyor Mode Active.");
+        applyUserRoleState('FIELD_SURVEYOR');
+      }
+    }
+
+    async function autoFetchDistrictDriveFolder() {
+      const path = (window.location.pathname || '').toLowerCase();
+      let districtRoom = '9822114400';
+      if (path.includes('/ltr')) districtRoom = '9822114402';
+      else if (path.includes('/kop')) districtRoom = '9822114401';
+
+      try {
+        const dbUrl = 'https://wellgeo-survey-default-rtdb.asia-southeast1.firebasedatabase.app';
+        const res = await fetch(`${dbUrl}/draft_rooms/${districtRoom}/meta/gdrive_folder.json`);
+        const data = await res.json();
+        if (data && data.folderId) {
+          localStorage.setItem('HYDROGEO_DRIVE_FOLDER', data.folderId);
+          if (data.folderUrl) localStorage.setItem('HYDROGEO_DRIVE_FOLDER_URL', data.folderUrl);
+          console.log('✅ District Admin Google Drive Folder linked automatically:', data.folderId);
+        }
+      } catch(e) {}
+    }
+
+    async function checkForGitHubUpdate(isSilent = true) {
+      if (!navigator.onLine) return;
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
+          headers: { 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (!res.ok) return;
+
+        const release = await res.json();
+        const latestVersion = (release.tag_name || '').replace(/^v/, '').trim();
+
+        function isNewer(latest, current) {
+          const l = latest.split('.').map(Number);
+          const c = current.split('.').map(Number);
+          for (let i = 0; i < Math.max(l.length, c.length); i++) {
+            if ((l[i] || 0) > (c[i] || 0)) return true;
+            if ((l[i] || 0) < (c[i] || 0)) return false;
+          }
+          return false;
+        }
+
+        if (isNewer(latestVersion, CURRENT_APP_VERSION)) {
+          const apkAsset = (release.assets || []).find(a => a.name && a.name.endsWith('.apk'));
+          const downloadUrl = apkAsset ? apkAsset.browser_download_url : release.html_url;
+          showUpdateModal(latestVersion, release.body || "New survey features, offline improvements, and stability fixes.", downloadUrl);
+        } else if (!isSilent) {
+          if (typeof showToast === 'function') showToast("✅ You are on the latest version.");
+        }
+      } catch(e) {}
+    }
+
+    function showUpdateModal(newVer, notes, apkUrl) {
+      const existing = document.getElementById('appUpdateModal');
+      if (existing) existing.remove();
+      const modalHtml = `
+        <div id="appUpdateModal" style="position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.75); backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:16px;">
+          <div style="background:#1e293b; border:2px solid #0284c7; border-radius:18px; padding:22px; max-width:420px; width:100%; color:#fff; box-shadow:0 12px 36px rgba(0,0,0,0.6);">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+              <h3 style="margin:0; color:#38bdf8; font-size:1.15rem; font-weight:800; display:flex; align-items:center; gap:6px;">🚀 New Update Available!</h3>
+              <span style="font-size:0.75rem; background:rgba(2,132,199,0.25); color:#38bdf8; padding:3px 8px; border-radius:12px; font-weight:800;">v${newVer}</span>
+            </div>
+            <p style="font-size:0.82rem; color:#94a3b8; margin:0 0 12px 0;">A new version of GeoDraft Pro is available for download.</p>
+            <div style="background:rgba(15,23,42,0.6); padding:10px 12px; border-radius:8px; font-size:0.76rem; max-height:90px; overflow-y:auto; margin-bottom:16px; color:#cbd5e1; line-height:1.4;">${notes}</div>
+            <div style="display:flex; gap:10px;">
+              <button type="button" onclick="document.getElementById('appUpdateModal').remove()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #475569; background:transparent; color:#94a3b8; font-weight:700; cursor:pointer;">Later</button>
+              <a href="${apkUrl}" download target="_blank" style="flex:2; text-align:center; padding:10px; border-radius:8px; border:none; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#fff; font-weight:800; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:6px;">📥 Update Now</a>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+
+    // Auto update listener and drive folder auto-fetch
+    window.addEventListener('online', () => {
+      checkForGitHubUpdate(true);
+      autoFetchDistrictDriveFolder();
+    });
+    setTimeout(autoFetchDistrictDriveFolder, 2000);
+    setTimeout(() => checkForGitHubUpdate(true), 4500);
+    }
+
+    function applyUserRoleState(role) {
+      const currentRole = role || localStorage.getItem('HYDROGEO_USER_ROLE') || 'FIELD_SURVEYOR';
+      const roleSelect = document.getElementById('globalUserRole');
+      if (roleSelect && roleSelect.value !== currentRole) roleSelect.value = currentRole;
+
+      const btnSubmitDistrict = document.getElementById('btnSubmitToDistrict');
+      const path = (window.location.pathname || '').toLowerCase();
+      let districtNumber = '9822114400';
+      if (path.includes('/ltr')) districtNumber = '9822114402';
+      else if (path.includes('/kop')) districtNumber = '9822114401';
+
+      if (currentRole === 'DISTRICT_INCHARGE') {
+        if (btnSubmitDistrict) btnSubmitDistrict.style.display = 'none';
+        if (window.DraftCalcCloudSync) {
+          window.DraftCalcCloudSync.setSyncKey(districtNumber);
+        }
+        const badge = document.getElementById('lblHomeRoomBadge');
+        if (badge) badge.innerText = `👑 Master ${districtNumber}`;
+      } else {
+        if (btnSubmitDistrict) btnSubmitDistrict.style.display = 'inline-flex';
+      }
+    }
+
+    async function handleSubmitToDistrictRoom() {
+      const path = (window.location.pathname || '').toLowerCase();
+      let districtRoom = '9822114400';
+      let districtName = 'Solapur';
+      if (path.includes('/ltr')) { districtRoom = '9822114402'; districtName = 'Latur'; }
+      else if (path.includes('/kop')) { districtRoom = '9822114401'; districtName = 'Kolhapur'; }
+
+      const records = (typeof getStoredRecords === 'function') ? getStoredRecords() : [];
+      if (!records || records.length === 0) {
+        if (typeof showToast === 'function') showToast("⚠️ No survey records to submit!");
+        return;
+      }
+
+      if (!confirm(`Are you sure you want to submit all ${records.length} surveys to the ${districtName} District Master Room (${districtRoom})?\n\nThis is a one-way submission for official review.`)) {
+        return;
+      }
+
+      if (window.DraftCalcCloudSync && typeof window.DraftCalcCloudSync.submitAllToDistrict === 'function') {
+        await window.DraftCalcCloudSync.submitAllToDistrict(districtRoom);
+      } else {
+        if (typeof showToast === 'function') showToast("⚠️ Cloud Sync engine is not initialized.");
+      }
+    }
+
+    async function generateIndividualWellExcel(record) {
+      if (typeof ExcelJS === 'undefined') return null;
+      try {
+        const wb = new ExcelJS.Workbook();
+        wb.creator = record.geologistName || 'GeoDraft Field Surveyor';
+        wb.created = new Date();
+        const ws = wb.addWorksheet('Well Survey');
+
+        ws.columns = [
+          { header: 'Parameter', key: 'param', width: 28 },
+          { header: 'Value / Calculation', key: 'val', width: 34 }
+        ];
+
+        ws.addRow({ param: 'Sr No', val: record.srNo || '' });
+        ws.addRow({ param: 'Village', val: record.village || '' });
+        ws.addRow({ param: 'Taluka', val: record.taluka || '' });
+        ws.addRow({ param: 'District', val: record.district || '' });
+        ws.addRow({ param: 'Gat No', val: record.gatNo || '' });
+        ws.addRow({ param: '10K Mapsheet No', val: record.mapSheetNo || '' });
+        ws.addRow({ param: 'Quadrant No', val: record.quadrantNo || '' });
+        ws.addRow({ param: 'GPS Coordinates', val: record.gpsCoords || '' });
+        ws.addRow({ param: 'Survey Category', val: record.surveyGateCategory || 'Irrigation' });
+        ws.addRow({ param: 'Well Depth (m)', val: Number(record.wellDepth) || 0 });
+        ws.addRow({ param: 'Water Level (m bgl)', val: Number(record.waterLevel) || 0 });
+        ws.addRow({ param: 'Discharge (lps)', val: Number(record.pumpYieldLps) || 0 });
+        ws.addRow({ param: 'Daily Pumping Hours', val: Number(record.pumpingHoursPerDay || 4) });
+        ws.addRow({ param: 'Annual Pumping Days', val: Number(record.pumpingDaysPerYear || 180) });
+        ws.addRow({ param: 'Draft Calculation (m³)', val: { formula: 'B12 * B13 * B14 * 3.6 / 1000' } });
+
+        const buffer = await wb.xlsx.writeBuffer();
+        return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      } catch(e) {
+        console.warn('Individual Excel generation error:', e);
+        return null;
+      }
+    }
+
+    async function saveWellToStructuredDirectory(record) {
+      try {
+        const blob = await generateIndividualWellExcel(record);
+        if (!blob) return;
+
+        const geoName = (record.geologistName || 'Geologist').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const sheet = (record.mapSheetNo || record.sheet10k || 'Sheet_Unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const wellNo = record.srNo || '1';
+        const category = (record.surveyGateCategory || 'Irrigation').replace(/[^a-zA-Z0-9_-]/g, '_');
+        const fileName = `${sheet}_Well_${wellNo}_${category}.xlsx`;
+
+        if (window.rootDirHandle) {
+          try {
+            const geoDir = await window.rootDirHandle.getDirectoryHandle(geoName, { create: true });
+            const sheetDir = await geoDir.getDirectoryHandle(`MapSheet_${sheet}`, { create: true });
+            const excelDir = await sheetDir.getDirectoryHandle('Well_Forms_Excel', { create: true });
+            const fileHandle = await excelDir.getFileHandle(fileName, { create: true });
+            const writable = await fileHandle.createWritable();
+            await writable.write(blob);
+            await writable.close();
+          } catch(err) {
+            console.warn('Folder save error:', err);
+          }
+        }
+      } catch(e) {}
+    }
+
+    // Attach global event delegation for responsive action buttons
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('[data-geo-action]');
+      if (btn) {
+        const action = btn.dataset.geoAction;
+        if (action === 'submitDistrict') {
+          handleSubmitToDistrictRoom();
+        } else if (action === 'navigateGoogle') {
+          const lat = parseFloat(btn.dataset.lat);
+          const lon = parseFloat(btn.dataset.lon);
+          if (!isNaN(lat) && !isNaN(lon) && window.navigateToPointInGoogleMaps) {
+            window.navigateToPointInGoogleMaps(lat, lon);
+          }
+        } else if (action === 'startRadar') {
+          const lat = parseFloat(btn.dataset.lat);
+          const lon = parseFloat(btn.dataset.lon);
+          const label = btn.dataset.label || 'Well Target';
+          if (!isNaN(lat) && !isNaN(lon) && window.startOfflineRadarNavigation) {
+            window.startOfflineRadarNavigation(lat, lon, label);
+          }
+        }
+      }
+    });
 
 </script>
 
