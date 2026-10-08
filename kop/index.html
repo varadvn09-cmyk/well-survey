@@ -11088,19 +11088,28 @@ cleaned = raw;
         };
       }
 
-      // Extract /GPTS [lat0 lon0 lat1 lon1 lat2 lon2 lat3 lon3]
-      const gptsMatch = rawText.match(/\/GPTS\s*\[\s*([0-9\.\-\s]+)\]/);
-      if (gptsMatch) {
-        const nums = gptsMatch[1].trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
+      // Extract /GPTS [lat0 lon0 lat1 lon1 lat2 lon2 lat3 lon3] (Prioritize toposheet neatline, skip country-wide overview)
+      const allGptsMatches = Array.from(rawText.matchAll(/\/GPTS\s*\[\s*([0-9\.\-\s]+)\]/g));
+      for (const m of allGptsMatches) {
+        const nums = m[1].trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
         if (nums.length >= 8) {
           const lats = [nums[0], nums[2], nums[4], nums[6]];
           const lons = [nums[1], nums[3], nums[5], nums[7]];
-          gpts = {
-            latMin: Math.min(...lats),
-            latMax: Math.max(...lats),
-            lonMin: Math.min(...lons),
-            lonMax: Math.max(...lons)
-          };
+          const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+          const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+          const dLat = maxLat - minLat, dLon = maxLon - minLon;
+          if (dLat > 0.01 && dLat < 0.6 && dLon > 0.01 && dLon < 0.6 && minLat > 6.0 && maxLat < 38.0) {
+            gpts = { latMin: minLat, latMax: maxLat, lonMin: minLon, lonMax: maxLon };
+            break;
+          }
+        }
+      }
+      if (!gpts && allGptsMatches.length > 0) {
+        const nums = allGptsMatches[0][1].trim().split(/\s+/).map(Number).filter(n => !isNaN(n));
+        if (nums.length >= 8) {
+          const lats = [nums[0], nums[2], nums[4], nums[6]];
+          const lons = [nums[1], nums[3], nums[5], nums[7]];
+          gpts = { latMin: Math.min(...lats), latMax: Math.max(...lats), lonMin: Math.min(...lons), lonMax: Math.max(...lons) };
         }
       }
 
@@ -11346,6 +11355,7 @@ cleaned = raw;
         toposheet: toposheet,
         bbox: bbox,
         gpts: gpts,
+        bounds: gpts ? [[gpts.latMin, gpts.lonMin], [gpts.latMax, gpts.lonMax]] : null,
         pageWidth: pageWidth,
         pageHeight: pageHeight,
         canvasWidth: canvas.width,
@@ -11415,6 +11425,9 @@ cleaned = raw;
 
         renderKmlLayerOnPdfMap();
         window.geoPdfLeafletMap.fitBounds(bounds, { padding: [12, 12] });
+        if (typeof toggleStudyAreaDiagram === 'function' && typeof isDiagramVisible !== 'undefined' && isDiagramVisible) {
+          try { toggleStudyAreaDiagram(true); } catch(e) {}
+        }
         setTimeout(() => {
           if (window.geoPdfLeafletMap) window.geoPdfLeafletMap.invalidateSize();
         }, 300);

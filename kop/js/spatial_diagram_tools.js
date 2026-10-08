@@ -33,20 +33,54 @@
   }
 
   /**
-   * Dynamically calculate Study Area bounds from active GeoPDF or map view
+   * Dynamically calculate Study Area bounds from active GeoPDF neatline or map view
    */
   function getStudyAreaBounds() {
-    if (window.ACTIVE_GEOPDF && window.ACTIVE_GEOPDF.bounds) {
-      const b = window.ACTIVE_GEOPDF.bounds;
-      const latMin = Math.min(b[0][0], b[1][0]);
-      const latMax = Math.max(b[0][0], b[1][0]);
-      const lonMin = Math.min(b[0][1], b[1][1]);
-      const lonMax = Math.max(b[0][1], b[1][1]);
-      return {
-        latMin, latMax, lonMin, lonMax,
-        source: window.ACTIVE_GEOPDF.mapsheet ? `10K Sheet: ${window.ACTIVE_GEOPDF.mapsheet}` : 'Uploaded GeoPDF Map'
-      };
+    // 1. Prioritize active GeoPDF exact neatline
+    if (window.ACTIVE_GEOPDF) {
+      const pdf = window.ACTIVE_GEOPDF;
+      if (pdf.gpts && typeof pdf.gpts.latMin === 'number' && typeof pdf.gpts.latMax === 'number') {
+        return {
+          latMin: Math.min(pdf.gpts.latMin, pdf.gpts.latMax),
+          latMax: Math.max(pdf.gpts.latMin, pdf.gpts.latMax),
+          lonMin: Math.min(pdf.gpts.lonMin, pdf.gpts.lonMax),
+          lonMax: Math.max(pdf.gpts.lonMin, pdf.gpts.lonMax),
+          source: pdf.mapsheet ? 10K Sheet:  : (pdf.fileName || 'GeoPDF Neatline')
+        };
+      }
+      if (pdf.bounds && Array.isArray(pdf.bounds) && pdf.bounds.length >= 2) {
+        const b0 = pdf.bounds[0], b1 = pdf.bounds[1];
+        const lat0 = Array.isArray(b0) ? b0[0] : (b0.lat || 0);
+        const lon0 = Array.isArray(b0) ? b0[1] : (b0.lng || 0);
+        const lat1 = Array.isArray(b1) ? b1[0] : (b1.lat || 0);
+        const lon1 = Array.isArray(b1) ? b1[1] : (b1.lng || 0);
+        return {
+          latMin: Math.min(lat0, lat1),
+          latMax: Math.max(lat0, lat1),
+          lonMin: Math.min(lon0, lon1),
+          lonMax: Math.max(lon0, lon1),
+          source: pdf.mapsheet ? 10K Sheet:  : (pdf.fileName || 'GeoPDF Neatline')
+        };
+      }
     }
+
+    // 2. Prioritize GeoPDF Leaflet Overlay Layer if active on map
+    if (window.geoPdfOverlayLayer && typeof window.geoPdfOverlayLayer.getBounds === 'function') {
+      try {
+        const ob = window.geoPdfOverlayLayer.getBounds();
+        if (ob && typeof ob.getSouth === 'function') {
+          return {
+            latMin: ob.getSouth(),
+            latMax: ob.getNorth(),
+            lonMin: ob.getWest(),
+            lonMax: ob.getEast(),
+            source: 'GeoPDF Neatline Overlay'
+          };
+        }
+      } catch(e) {}
+    }
+
+    // 3. Fallback to active Leaflet Map viewport
     const map = getActiveMap();
     if (map) {
       const mb = map.getBounds();
@@ -58,6 +92,7 @@
         source: 'Active Map Viewport'
       };
     }
+
     return { latMin: 17.5500, latMax: 17.6000, lonMin: 76.1000, lonMax: 76.1500, source: 'Default Extent' };
   }
 
@@ -232,7 +267,54 @@
         </span>
       </div>
     `);
-    diagramLayerGroup.addLayer(polyLayer);
+        diagramLayerGroup.addLayer(polyLayer);
+
+    // 2. Structural Lineaments: Two Directional Vectors + Inner Watershed Recharge Loop
+    const midLat = (b.latMin + b.latMax) / 2;
+    const midLon = (b.lonMin + b.lonMax) / 2;
+
+    // Line 1: Regional Slope & Major Lineament (SW to NE)
+    const slopeLine = L.polyline([[b.latMin, b.lonMin], [b.latMax, b.lonMax]], {
+      color: '#dc2626',
+      weight: 2.5,
+      dashArray: '6, 5',
+      opacity: 0.9
+    }).bindPopup(<b>📉 Regional Slope & Drainage Direction</b><br>Major Structural Lineament (SW ↗ NE));
+    diagramLayerGroup.addLayer(slopeLine);
+
+    // Line 2: Conjugate Fracture & Cross Direction (NW to SE)
+    const crossLine = L.polyline([[b.latMax, b.lonMin], [b.latMin, b.lonMax]], {
+      color: '#7c3aed',
+      weight: 2.5,
+      dashArray: '6, 5',
+      opacity: 0.9
+    }).bindPopup(<b>↗ Conjugate Fracture & Secondary Direction</b><br>Cross Fracture Lineament (NW ↘ SE));
+    diagramLayerGroup.addLayer(crossLine);
+
+    // Square Loop: Inner Watershed Catchment & Recharge Boundary (Midpoint Rhombus Loop)
+    const catchmentLoop = L.polygon([
+      [midLat, b.lonMin],
+      [b.latMax, midLon],
+      [midLat, b.lonMax],
+      [b.latMin, midLon]
+    ], {
+      color: '#059669',
+      weight: 2,
+      dashArray: '5, 5',
+      fillColor: '#10b981',
+      fillOpacity: 0.06
+    }).bindPopup(<b>💧 Watershed Catchment & Recharge Boundary</b><br>Inner Perimeter Flow Loop);
+    diagramLayerGroup.addLayer(catchmentLoop);
+
+    // Center Node: Primary Structural Fracture Intersection Target
+    const centerNode = L.circleMarker([midLat, midLon], {
+      radius: 6,
+      color: '#dc2626',
+      fillColor: '#f59e0b',
+      fillOpacity: 0.95,
+      weight: 2
+    }).bindPopup(<b>🎯 Primary Structural Intersection Target</b><br>Optimal Groundwater Recharge / Drilling Axis<br>°, °);
+    diagramLayerGroup.addLayer(centerNode);
 
     // 2. Draw 5x5 Quadrant Grid Lines (A1 to E5)
     const latStep = (b.latMax - b.latMin) / 5;
