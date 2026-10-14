@@ -28,21 +28,24 @@ window.DraftCalcCloudSync = (function() {
   let connectionState = 'idle'; // 'idle' | 'connected' | 'offline' | 'syncing'
   let syncDebounceTimer = null;
 
-  // --- Getters / Setters ---
-  function getSyncKey() {
+      // --- Getters / Setters ---
+  function getDistrictDefaultRoom() {
     const path = (window.location.pathname || '').toLowerCase();
-    let raw = '';
-    if (path.includes('/slp')) {
-      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP') || '9822114400';
-    } else if (path.includes('/ltr')) {
-      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_LTR') || '9822114402';
-    } else if (path.includes('/kop')) {
-      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_KOP') || '9822114401';
-    } else {
-      raw = localStorage.getItem('HYDROGEO_CLOUD_SYNC_PHONE_SLP') || localStorage.getItem(STORAGE_KEYS.SYNC_KEY) || '9822114400';
+    if (path.includes('/ltr')) return '9822114402';
+    if (path.includes('/kop')) return '9822114401';
+    return '9822114400';
+  }
+
+  function getSyncKey() {
+    const userRole = localStorage.getItem('HYDROGEO_USER_ROLE') || 'FIELD_SURVEYOR';
+    if (userRole === 'DISTRICT_INCHARGE') {
+      const adminOverride = localStorage.getItem('HYDROGEO_DISTRICT_OVERRIDE_ROOM') || '';
+      return (adminOverride || getDistrictDefaultRoom()).replace(/\D/g, '').trim();
     }
-    const clean = (raw || '').replace(/\D/g, '').trim();
-    return clean || '9822114400';
+    // FIELD_SURVEYOR Mode: strictly returns their own private 10-digit number
+    const surveyorPhone = (localStorage.getItem('HYDROGEO_SURVEYOR_PRIVATE_PHONE') || '').replace(/\D/g, '').trim();
+    if (surveyorPhone.length === 10) return surveyorPhone;
+    return '';
   }
 
   function isRecordBelongsToDistrict(r, roomKey) {
@@ -60,14 +63,30 @@ window.DraftCalcCloudSync = (function() {
 
   function setSyncKey(phoneStr) {
     const clean = (phoneStr || '').replace(/\D/g, '').trim();
+    const userRole = localStorage.getItem('HYDROGEO_USER_ROLE') || 'FIELD_SURVEYOR';
     if (clean && clean.length === 10) {
+      if (userRole === 'DISTRICT_INCHARGE') {
+        localStorage.setItem('HYDROGEO_DISTRICT_OVERRIDE_ROOM', clean);
+      } else {
+        localStorage.setItem('HYDROGEO_SURVEYOR_PRIVATE_PHONE', clean);
+      }
       localStorage.setItem(STORAGE_KEYS.SYNC_KEY, clean);
+      localStorage.setItem('HYDROGEO_CLOUD_SYNC_PHONE', clean);
     } else if (!clean) {
+      if (userRole === 'DISTRICT_INCHARGE') {
+        localStorage.removeItem('HYDROGEO_DISTRICT_OVERRIDE_ROOM');
+      } else {
+        localStorage.removeItem('HYDROGEO_SURVEYOR_PRIVATE_PHONE');
+      }
       localStorage.removeItem(STORAGE_KEYS.SYNC_KEY);
+      localStorage.removeItem('HYDROGEO_CLOUD_SYNC_PHONE');
     }
-    updateAllSyncStatusUI,
-    submitAllToDistrict();
+    updateAllSyncStatusUI();
     restartRealtimeSync();
+  } else if (!clean) {
+      localStorage.removeItem(STORAGE_KEYS.SYNC_KEY);
+      localStorage.removeItem('HYDROGEO_SURVEYOR_PRIVATE_PHONE');
+    }
   }
 
   function getDbUrl() {
@@ -98,8 +117,7 @@ window.DraftCalcCloudSync = (function() {
     } else {
       stopRealtimeSync();
     }
-    updateAllSyncStatusUI,
-    submitAllToDistrict();
+    updateAllSyncStatusUI();
   }
 
   function getLastSyncTime() {
@@ -309,8 +327,7 @@ window.DraftCalcCloudSync = (function() {
     }
     try {
       isSyncing = true;
-      updateAllSyncStatusUI,
-    submitAllToDistrict();
+      updateAllSyncStatusUI();
       const dbUrl = getDbUrl();
       const recCopy = { ...record };
 
@@ -356,8 +373,7 @@ window.DraftCalcCloudSync = (function() {
       return false;
     } finally {
       isSyncing = false;
-      updateAllSyncStatusUI,
-    submitAllToDistrict();
+      updateAllSyncStatusUI();
     }
   }
 
@@ -408,8 +424,7 @@ window.DraftCalcCloudSync = (function() {
 
     try {
       isSyncing = true;
-      updateAllSyncStatusUI,
-    submitAllToDistrict();
+      updateAllSyncStatusUI();
       if (showToastMsg && typeof showToast === 'function') {
         showToast(`☁️ Syncing ${localRecords.length} records to Cloud Room (${key})...`);
       }
@@ -477,8 +492,7 @@ window.DraftCalcCloudSync = (function() {
       return false;
     } finally {
       isSyncing = false;
-      updateAllSyncStatusUI,
-    submitAllToDistrict();
+      updateAllSyncStatusUI();
     }
   }
 
@@ -495,15 +509,13 @@ window.DraftCalcCloudSync = (function() {
         showToast("⚠️ No internet connection! Working in local offline mode.");
       }
       connectionState = 'offline';
-      updateAllSyncStatusUI,
-    submitAllToDistrict();
+      updateAllSyncStatusUI();
       return false;
     }
 
     try {
       isSyncing = true;
-      updateAllSyncStatusUI,
-    submitAllToDistrict();
+      updateAllSyncStatusUI();
       const dbUrl = getDbUrl();
       const url = `${dbUrl}/draft_rooms/${key}.json`;
       const res = await fetch(url);
@@ -718,8 +730,7 @@ window.DraftCalcCloudSync = (function() {
       return false;
     } finally {
       isSyncing = false;
-      updateAllSyncStatusUI,
-    submitAllToDistrict();
+      updateAllSyncStatusUI();
     }
   }
 
@@ -728,8 +739,7 @@ window.DraftCalcCloudSync = (function() {
     stopRealtimeSync();
     const key = getSyncKey();
     if (!key || key.length !== 10 || !isAutoSyncEnabled()) {
-      updateAllSyncStatusUI,
-    submitAllToDistrict();
+      updateAllSyncStatusUI();
       return;
     }
 
@@ -757,14 +767,12 @@ window.DraftCalcCloudSync = (function() {
 
         eventSource.onopen = function() {
           connectionState = 'connected';
-          updateAllSyncStatusUI,
-    submitAllToDistrict();
+          updateAllSyncStatusUI();
         };
 
         eventSource.onerror = function() {
           connectionState = 'offline';
-          updateAllSyncStatusUI,
-    submitAllToDistrict();
+          updateAllSyncStatusUI();
         };
       } catch(err) {
         console.warn('EventSource not available, falling back to periodic poll');
@@ -876,8 +884,7 @@ window.DraftCalcCloudSync = (function() {
   // --- Auto-Initialize on page load ---
   window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
-      updateAllSyncStatusUI,
-    submitAllToDistrict();
+      updateAllSyncStatusUI();
       if (getSyncKey() && isAutoSyncEnabled()) {
         startRealtimeSync();
       }
@@ -885,14 +892,12 @@ window.DraftCalcCloudSync = (function() {
   });
 
   window.addEventListener('online', () => {
-    updateAllSyncStatusUI,
-    submitAllToDistrict();
+    updateAllSyncStatusUI();
     if (getSyncKey()) pullAndMerge(false);
   });
 
   window.addEventListener('offline', () => {
-    updateAllSyncStatusUI,
-    submitAllToDistrict();
+    updateAllSyncStatusUI();
   });
 
 
