@@ -555,7 +555,7 @@
 
       // Category detection: Irrigation vs PWS
       const owner = (r.Owner_Name || r['Well Owner'] || r['Owner Name'] || r.owner_name || r.ownerName || r.owner || '').toString().trim();
-      const catInput = (r.Survey_Category || r.survey_category || r.surveyCategory || r['Survey Category'] || '').toString().toUpperCase();
+      const catInput = (r.Survey_Category || r.survey_category || r.surveyCategory || r['Survey Category'] || r['Form Type (Irrigation/PWS)'] || r.Form_Type || r['Form Type'] || r['Form_Type'] || r['Survey_Type'] || r.formType || '').toString().toUpperCase();
       const isPws = catInput.includes('PWS') || owner.toUpperCase().includes('PWS') || owner.toUpperCase().includes('GRAM PANCHAYAT');
       const category = isPws ? 'PWS' : 'Irrigation';
 
@@ -572,7 +572,20 @@
       let gatNo = (r.Gat_No || r['Gat No.'] || r['Gat No'] || r.gat_no || r.gatNo || r.gat || '').toString().trim();
       let censusCode = (r.Census_No || r.census_no || r.censusNo || r['Census No.'] || r['Census No'] || '').toString().trim();
       let watershedNo = (r.Watershed_No || r.watershed_no || r.watershedNo || r.watershed || '').toString().trim();
-      let mapsheetNoInput = (r.Mapsheetno || r['Mapsheet no'] || r['Mapsheet No'] || r.mapsheetNo || grid.code).toString().trim();
+      let rawSheetInput = (r.Mapsheetno || r['Mapsheet no'] || r['Mapsheet No'] || r.mapsheetNo || r.sheet10k || r['10 K Sheet No.'] || r['10K Sheet No.'] || '').toString().trim();
+      let rawTopoInput = (r.Toposheet_No || r.toposheetNo || r.toposheet_no || r['Toposheet No.'] || r['Toposheet No'] || r['Toposheet no'] || r.topoNo || '').toString().trim();
+
+      let toposheetNo = rawTopoInput;
+      if (!toposheetNo && /^\d{2}\s*[A-Za-z]/.test(rawSheetInput)) {
+        toposheetNo = rawSheetInput;
+      }
+      if (!toposheetNo && /^\d{2}\s*[A-Za-z]/.test(grid.toposheet)) {
+        toposheetNo = grid.toposheet;
+      }
+      if (!toposheetNo) toposheetNo = '56 C/02';
+
+      let mapSheet10k = (!/^\d{2}\s*[A-Za-z]\/\d+/.test(rawSheetInput) && rawSheetInput) ? rawSheetInput : grid.code;
+      let mapsheetNoInput = mapSheet10k;
 
       // Auto-resolve nearest village from coordinates if village is missing
       if ((!village || !taluka) && lat > 0 && lon > 0) {
@@ -607,11 +620,22 @@
       const swlSummer = (r['Summer (SWL)'] || r.SWL_Summer_m || r.swl_summer_m || r.swlSummer || '13').toString();
       const pumpType = (r['Type of Pump'] || r.Pump_Type || r.pump_type || r.pumpType || 'Submersible').toString();
       const powerMode = (r['Mode of Power'] || r.powerMode || 'Electric').toString();
-      const curbingM = (r['Curbing (m)'] || r.curbingDepth || '0').toString();
+      const curbingM = (r['Curbing (m)'] || r.curbingDepth || r.depthLining || r['Depth of Lining'] || r.curbing || '0').toString();
       const curbingType = (r['Type of curbing'] || r.curbingType || 'Masonry').toString();
-      const yearConst = (r['Year of Construction'] || r.constructionYear || '').toString();
-      const dwl = (r.DwL || r.dwl || '').toString();
-      const population = (r.Population || r.population || '').toString();
+      const yearConst = (r['Year of Construction'] || r.constructionYear || r.yearConstruction || r.year_construction || '').toString();
+      const dwl = (r.DwL || r.dwl || r.waterLevel || r['Depth to Water Level'] || r['DWL'] || r['DWL (m)'] || '').toString();
+      let population = (r.Population || r.population || '').toString().trim();
+      if (!population || population === '0') {
+        if (typeof findVillageInDb === 'function') {
+          const vLookup = findVillageInDb(village, taluka, censusCode);
+          if (vLookup && vLookup.data && vLookup.data[7]) population = String(vLookup.data[7]);
+        }
+        if (!population && typeof SHEET2_FULL_DATABASE !== 'undefined') {
+          const tList = SHEET2_FULL_DATABASE[taluka] || [];
+          const foundV = tList.find(v => v[0]?.toLowerCase() === village.toLowerCase() || (censusCode && v[2] === censusCode));
+          if (foundV && foundV[7]) population = String(foundV[7]);
+        }
+      }
       const altitude = (r.Altitude || r.altitude || '0').toString();
 
       // Pumping Hours: support both 42-col and 20-col headers
@@ -646,7 +670,7 @@
       }
 
       const recupW = (parseFloat(recupW_raw) || 18).toString();
-      const recupS = (parseFloat(recupS_raw) || (parseFloat(recupW) || 24)).toString();
+      const recupS = (recupS_raw !== '' && !isNaN(parseFloat(recupS_raw))) ? String(recupS_raw) : ((parseFloat(recupW) || 24)).toString();
 
       // Irrigation project & canal distance
       const projIrri = (r['Project Irri(PT/MInor)'] || r.projectIrri || '').toString();
@@ -761,7 +785,13 @@
         pumpDurationWinter: pumpDurW,
         pumpDurationSummer: pumpDurS,
         recupWinter: recupW,
-        recupSummer: recupS,
+        recupSummer: (recupS_raw !== '' ? String(recupS_raw) : recupS),
+        'Summer T req recuperation': (recupS_raw !== '' ? String(recupS_raw) : recupS),
+        'winter T req recuperation': recupW,
+        surveyCategory: category,
+        'Survey Category': category,
+        'Form Type (Irrigation/PWS)': category,
+        'Form Type': category,
         cultivableLand: cultLand,
         pumpHp: pumpHpVal,
         pumpHP: pumpHpVal
@@ -803,11 +833,13 @@
         wellSeqNo: wellSeqNo,
         wellNo: wellSeqNo,
         gatNo: gatNo,
-        mapsheetNo: mapsheetNoInput || grid.code,
-        sheet10k: mapsheetNoInput || grid.code,
+        mapsheetNo: mapSheet10k || grid.code,
+        sheet10k: mapSheet10k || grid.code,
         gridCode: grid.code,
-        toposheetNo: grid.toposheet,
-        mapSheetNo: mapsheetNoInput || grid.code,
+        toposheetNo: toposheetNo || grid.toposheet,
+        'Toposheet No.': toposheetNo || grid.toposheet,
+        'Mapsheetno': mapSheet10k || grid.code,
+        mapSheetNo: mapSheet10k || grid.code,
         quadrant: grid.quadrant,
         quadrantNo: grid.quadrant,
         wellType: wellType,
@@ -817,9 +849,17 @@
         depthWell: depthWell,
         parapetHeight: parapet,
         curbingDepth: curbingM,
+        depthLining: curbingM,
+        'Curbing (m)': curbingM,
         curbingType: curbingType,
         constructionYear: yearConst,
+        yearConstruction: yearConst,
+        'Year of Construction': yearConst,
         dwl: dwl,
+        DwL: dwl,
+        waterLevel: dwl,
+        'DwL': dwl,
+        'DWL (m)': dwl,
         powerMode: powerMode,
         population: population,
         altitudeGL: altitude,
@@ -835,7 +875,13 @@
         pumpDurationWinter: pumpDurW,
         pumpDurationSummer: pumpDurS,
         recupWinter: recupW,
-        recupSummer: recupS,
+        recupSummer: (recupS_raw !== '' ? String(recupS_raw) : recupS),
+        'Summer T req recuperation': (recupS_raw !== '' ? String(recupS_raw) : recupS),
+        'winter T req recuperation': recupW,
+        surveyCategory: category,
+        'Survey Category': category,
+        'Form Type (Irrigation/PWS)': category,
+        'Form Type': category,
         cultivableLand: cultLand,
         kharifCrop1: kCrop1,
         kharifFloodHa1: parseFloat(kArea1) || 0,
@@ -966,6 +1012,8 @@
     const wsCalc = wb.getWorksheet('calc') || wb.worksheets[0];
     const wsAll = wb.getWorksheet('All Collected Data');
     const wsMrsac = wb.getWorksheet('MRSAC Format');
+    const wsField = wb.getWorksheet('Field_Survey_Data');
+    if (wsField && wsField.rowCount > 3) wsField.spliceRows(4, wsField.rowCount - 3);
 
     if (wsCalc && wsCalc.rowCount > 1) wsCalc.spliceRows(2, wsCalc.rowCount - 1);
     if (wsAll && wsAll.rowCount > 1) wsAll.spliceRows(2, wsAll.rowCount - 1);
@@ -995,6 +1043,9 @@
       }
       if (wsMrsac && typeof buildMrsacRow25 === 'function') {
         wsMrsac.addRow(buildMrsacRow25(r, kYield, rYield, sYield, tYield));
+      }
+      if (wsField && typeof buildFieldSurveyDataRow === 'function') {
+        wsField.addRow(buildFieldSurveyDataRow(r, seqNo));
       }
     });
 

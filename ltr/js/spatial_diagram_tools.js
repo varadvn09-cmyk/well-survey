@@ -26,6 +26,12 @@
     if (window.geoPdfLeafletMap && typeof window.geoPdfLeafletMap.hasLayer === 'function') {
       return window.geoPdfLeafletMap;
     }
+    if (typeof window.ensureGeoPdfSatelliteMap === 'function') {
+      try { window.ensureGeoPdfSatelliteMap(); } catch(e) {}
+      if (window.geoPdfLeafletMap && typeof window.geoPdfLeafletMap.hasLayer === 'function') {
+        return window.geoPdfLeafletMap;
+      }
+    }
     if (window.mapPickerMap && typeof window.mapPickerMap.hasLayer === 'function') {
       return window.mapPickerMap;
     }
@@ -45,7 +51,7 @@
           latMax: Math.max(pdf.gpts.latMin, pdf.gpts.latMax),
           lonMin: Math.min(pdf.gpts.lonMin, pdf.gpts.lonMax),
           lonMax: Math.max(pdf.gpts.lonMin, pdf.gpts.lonMax),
-          source: pdf.mapsheet ? 10K Sheet:  : (pdf.fileName || 'GeoPDF Neatline')
+          source: pdf.mapsheet ? ('10K Sheet: ' + pdf.mapsheet) : (pdf.fileName || 'GeoPDF Neatline')
         };
       }
       if (pdf.bounds && Array.isArray(pdf.bounds) && pdf.bounds.length >= 2) {
@@ -59,7 +65,7 @@
           latMax: Math.max(lat0, lat1),
           lonMin: Math.min(lon0, lon1),
           lonMax: Math.max(lon0, lon1),
-          source: pdf.mapsheet ? 10K Sheet:  : (pdf.fileName || 'GeoPDF Neatline')
+          source: pdf.mapsheet ? ('10K Sheet: ' + pdf.mapsheet) : (pdf.fileName || 'GeoPDF Neatline')
         };
       }
     }
@@ -219,7 +225,11 @@
     const chk = document.getElementById('chkToggleStudyAreaDiagram');
     if (chk) chk.checked = isDiagramVisible;
 
-    const map = getActiveMap();
+    let map = getActiveMap();
+    if (!map && typeof window.ensureGeoPdfSatelliteMap === 'function') {
+      try { window.ensureGeoPdfSatelliteMap(); } catch(e) {}
+      map = getActiveMap();
+    }
     if (!map) {
       if (isDiagramVisible && typeof showToast === 'function') {
         showToast("📐 Study Area enabled. Switch to GIS Map tab to view.");
@@ -279,7 +289,7 @@
       weight: 2.5,
       dashArray: '6, 5',
       opacity: 0.9
-    }).bindPopup(<b>📉 Regional Slope & Drainage Direction</b><br>Major Structural Lineament (SW ↗ NE));
+    }).bindPopup('<b>📉 Regional Slope & Drainage Direction</b><br>Major Structural Lineament (SW ↗ NE)');
     diagramLayerGroup.addLayer(slopeLine);
 
     // Line 2: Conjugate Fracture & Cross Direction (NW to SE)
@@ -288,7 +298,7 @@
       weight: 2.5,
       dashArray: '6, 5',
       opacity: 0.9
-    }).bindPopup(<b>↗ Conjugate Fracture & Secondary Direction</b><br>Cross Fracture Lineament (NW ↘ SE));
+    }).bindPopup('<b>↗ Conjugate Fracture & Secondary Direction</b><br>Cross Fracture Lineament (NW ↘ SE)');
     diagramLayerGroup.addLayer(crossLine);
 
     // Square Loop: Inner Watershed Catchment & Recharge Boundary (Midpoint Rhombus Loop)
@@ -303,7 +313,7 @@
       dashArray: '5, 5',
       fillColor: '#10b981',
       fillOpacity: 0.06
-    }).bindPopup(<b>💧 Watershed Catchment & Recharge Boundary</b><br>Inner Perimeter Flow Loop);
+    }).bindPopup('<b>💧 Watershed Catchment & Recharge Boundary</b><br>Inner Perimeter Flow Loop');
     diagramLayerGroup.addLayer(catchmentLoop);
 
     // Center Node: Primary Structural Fracture Intersection Target
@@ -313,7 +323,7 @@
       fillColor: '#f59e0b',
       fillOpacity: 0.95,
       weight: 2
-    }).bindPopup(<b>🎯 Primary Structural Intersection Target</b><br>Optimal Groundwater Recharge / Drilling Axis<br>°, °);
+    }).bindPopup(`<b>🎯 Primary Structural Intersection Target</b><br>Optimal Groundwater Recharge / Drilling Axis<br>${midLat.toFixed(4)}°, ${midLon.toFixed(4)}°`);
     diagramLayerGroup.addLayer(centerNode);
 
     // 2. Draw 5x5 Quadrant Grid Lines (A1 to E5)
