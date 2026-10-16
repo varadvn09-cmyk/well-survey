@@ -269,14 +269,22 @@
       }
       .mode-2page .print-table th,
       .mode-2page .print-table td {
-        height: 7.6mm !important;
-        padding: 2.5px 2.5px !important;
+        min-height: 7.2mm !important;
+        height: auto !important;
+        padding: 2px 2px !important;
         vertical-align: middle !important;
-        font-size: 8.5pt !important;
+        font-size: 8.2pt !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+        white-space: normal !important;
       }
       .mode-2page .print-table thead th {
         height: 8.5mm !important;
         font-size: 8.8pt !important;
+      }
+      .mode-2page .cell-multi-loc {
+        font-size: 8.0pt !important;
+        line-height: 1.15 !important;
       }
       .mode-2page .page2-container table th,
       .mode-2page .page2-container table td {
@@ -289,14 +297,22 @@
 
     .mode-2page .print-table th,
     .mode-2page .print-table td {
-      height: 7.6mm;
-      padding: 2.5px 2.5px;
-      font-size: 8.5pt;
+      min-height: 7.2mm;
+      height: auto;
+      padding: 2px 2px;
+      font-size: 8.2pt;
       line-height: 1.25;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      white-space: normal;
     }
     .mode-2page .print-table thead th {
       height: 8.5mm;
       font-size: 8.8pt;
+    }
+    .mode-2page .cell-multi-loc {
+      font-size: 8.0pt !important;
+      line-height: 1.15 !important;
     }
     .mode-2page .page2-container {
       margin-top: 30px;
@@ -500,10 +516,20 @@
 
     @media (min-width: 768px) {
       .desktop-nav { display: block; }
-      .container { max-width: 1200px; padding: 14px 20px; }
+      .container { max-width: 1400px; padding: 14px 20px; }
       .bottom-nav { display: none; }
-      body { padding-bottom: 20px; }
+      body { padding-bottom: 25px; }
     }
+
+    body.pc-ui-active .container { max-width: 1400px !important; padding: 14px 20px !important; }
+    body.pc-ui-active .bottom-nav { display: none !important; }
+    body.pc-ui-active .desktop-nav { display: block !important; }
+    body.pc-ui-active { padding-bottom: 25px !important; }
+
+    body.mobile-ui-active .container { max-width: 900px !important; }
+    body.mobile-ui-active .bottom-nav { display: flex !important; }
+    body.mobile-ui-active .desktop-nav { display: none !important; }
+    body.mobile-ui-active { padding-bottom: 70px !important; }
 
     /* Dark Mode Theme */
     body.dark-theme { background-color: #0f172a; color: #f1f5f9; }
@@ -596,14 +622,17 @@
       <h1><i class="fa-solid fa-book-open"></i> दैनंदिनी (GSDA)</h1>
       <div id="mAppSubTitle" class="sub">सोलापूर उपविभाग • १००% Offline Web App (Mobile & PC)</div>
     </div>
-    <div style="display: flex; gap: 6px; align-items: center;">
+    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+      <button class="btn btn-sm" onclick="toggleDeviceUi()" id="btnToggleDeviceUi" style="background: rgba(255,255,255,0.28); color: white; border: 1.5px solid rgba(255,255,255,0.5); font-size: 0.72rem; padding: 4px 9px; font-weight: bold; cursor: pointer; border-radius: 6px;" title="PC व्ह्यू किंवा मोबाईल व्ह्यू टॉगल करा">
+        <i id="iconToggleDeviceUi" class="fa-solid fa-desktop"></i> <span id="lblToggleDeviceUi">PC व्ह्यू</span>
+      </button>
       <button class="btn btn-sm" onclick="toggleMobileDarkMode()" id="btnMobileTheme" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); font-size: 0.72rem; padding: 4px 8px;" title="डार्क / लाईट मोड">
         <i id="mThemeIcon" class="fa-solid fa-moon"></i> <span id="mThemeText">डार्क मोड</span>
       </button>
       <button class="btn btn-green btn-sm" onclick="saveAllMobileData()" title="डेटा जतन करा"><i class="fa-solid fa-floppy-disk"></i> जतन करा</button>
       <button class="btn btn-amber btn-sm" onclick="openShareModal()" title="WhatsApp वर पाठवा"><i class="fa-solid fa-share-nodes"></i> शेअर</button>
       <button class="btn btn-sm" onclick="switchNav('profile', document.getElementById('dNavProfile'))" style="background: rgba(255,255,255,0.25); color: white; border: 1px solid rgba(255,255,255,0.4); font-size: 0.72rem; padding: 4px 8px; font-weight: bold; cursor: pointer;" title="अधिकारी प्रोफाइल (Profile Manager)"><i class="fa-solid fa-user-gear"></i> <span>प्रोफाइल</span></button>
-      <span class="badge" title="आवृत्ती v2.6 (Calculation Fixed)">v2.6 OK</span>
+      <span class="badge" title="आवृत्ती v2.7 (PC & Mobile Unified UI)">v2.7 OK</span>
     </div>
   </header>
 
@@ -978,8 +1007,12 @@
 
             <!-- Date on Left, Signature on Right -->
             <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 10pt; font-weight: bold; margin-top: 6px; padding-top: 2px;">
-              <div>
-                <span>दिनांक: </span><span id="prP2DateDisplay" style="font-family: monospace;">05/08/2026</span>
+              <div style="display:flex; align-items:center; gap:3px;">
+                <span>दिनांक:</span>
+                <input type="text" id="mPrP2SubmissionDate" value="05/02/2026" style="width:85px; border:1px solid #3b82f6; background:#eff6ff; font-size:inherit; font-weight:bold; text-align:center; border-radius:3px; padding:2px;" oninput="onMobileSubDateChange(this.value)" title="सादर दिनांक">
+                <button type="button" onclick="promptMobileSubmissionDate()" class="no-print" style="background:#2563eb; color:white; border:none; border-radius:3px; padding:2px 5px; font-size:0.65rem; font-weight:bold; cursor:pointer;" title="सादर दिनांक संपादित करा">
+                  <i class="fa-solid fa-pen-to-square"></i> दिनांक बदला
+                </button>
               </div>
               <div style="text-align: center; min-width: 140px;">
                 <p>आपला विश्वासु,</p>
@@ -2189,6 +2222,21 @@
       renderPrintView();
     }
 
+    function showToast(msg) {
+      let toast = document.getElementById('mToastEl');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'mToastEl';
+        toast.style.cssText = 'position:fixed;bottom:75px;left:50%;transform:translateX(-50%);background:#1e293b;color:#f8fafc;padding:10px 18px;border-radius:8px;font-size:0.82rem;font-weight:bold;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,0.25);transition:opacity 0.3s;pointer-events:none;';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      clearTimeout(window._mToastTimer);
+      window._mToastTimer = setTimeout(() => { if (toast) toast.style.opacity = '0'; }, 2200);
+    }
+    window.showToast = showToast;
+
     // Set Entry View Mode (Cards vs PC Table)
     function setEntryViewMode(mode) {
       appData.entryViewMode = mode;
@@ -2197,19 +2245,41 @@
       const btnTable = document.getElementById('btnModeTable');
       const cardsList = document.getElementById('entriesList');
       const tableContainer = document.getElementById('entriesTableDesktopContainer');
+      const iconToggle = document.getElementById('iconToggleDeviceUi');
+      const lblToggle = document.getElementById('lblToggleDeviceUi');
+      const btnToggle = document.getElementById('btnToggleDeviceUi');
       
       if (mode === 'table') {
+        document.body.classList.add('pc-ui-active');
+        document.body.classList.remove('mobile-ui-active');
         if (btnCards) btnCards.classList.remove('active');
         if (btnTable) btnTable.classList.add('active');
         if (cardsList) cardsList.style.display = 'none';
         if (tableContainer) tableContainer.style.display = 'block';
+        if (iconToggle) iconToggle.className = 'fa-solid fa-mobile-screen';
+        if (lblToggle) lblToggle.textContent = 'मोबाईल व्ह्यू';
+        if (btnToggle) btnToggle.title = 'मोबाईल टच व्ह्यूवर स्विच करा';
       } else {
+        document.body.classList.add('mobile-ui-active');
+        document.body.classList.remove('pc-ui-active');
         if (btnCards) btnCards.classList.add('active');
         if (btnTable) btnTable.classList.remove('active');
         if (cardsList) cardsList.style.display = 'block';
         if (tableContainer) tableContainer.style.display = 'none';
+        if (iconToggle) iconToggle.className = 'fa-solid fa-desktop';
+        if (lblToggle) lblToggle.textContent = 'PC व्ह्यू';
+        if (btnToggle) btnToggle.title = 'संगणक (PC) टेबल व्ह्यूवर स्विच करा';
       }
     }
+
+    function toggleDeviceUi() {
+      const current = appData.entryViewMode || (window.innerWidth >= 768 ? 'table' : 'cards');
+      const next = (current === 'table') ? 'cards' : 'table';
+      setEntryViewMode(next);
+      if (typeof renderEntries === 'function') renderEntries();
+      showToast(next === 'table' ? '💻 संगणक / PC व्ह्यू सक्रिय केला!' : '📱 मोबाईल टच व्ह्यू सक्रिय केला!');
+    }
+    window.toggleDeviceUi = toggleDeviceUi;
 
     // Render Entries list (Both Mobile Cards & PC Desktop Table)
     function renderEntries() {
@@ -2607,7 +2677,7 @@
       let mapWellSum = 0;
 
       mData.entries.forEach(e => {
-        const isMap = isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail));
+        const isMap = isMapsheetScheme(e.scheme) || (!e.scheme && e.work_detail && isMapsheetScheme(e.work_detail));
         if (isMap) {
           let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
           if (mc > 0) mapVillageSum += mc;
@@ -2896,16 +2966,25 @@
         mData.submission_date = val;
         persist();
       }
+      const d1 = document.getElementById('mPrSubmissionDate');
+      const d2 = document.getElementById('mPrP2SubmissionDate');
+      if (d1 && d1.value !== val) d1.value = val;
+      if (d2 && d2.value !== val) d2.value = val;
     }
 
     function promptMobileSubmissionDate() {
       const defaultVal = getDefaultSubmissionDate(appData.currentMonthKey);
-      const currentVal = document.getElementById('mPrSubmissionDate').value || defaultVal;
+      const currentVal = (document.getElementById('mPrSubmissionDate') && document.getElementById('mPrSubmissionDate').value) ||
+                         (document.getElementById('mPrP2SubmissionDate') && document.getElementById('mPrP2SubmissionDate').value) || defaultVal;
       const newVal = prompt(`सादर दिनांक प्रविष्ट करा (उदा. ${defaultVal}):`, currentVal);
       if (newVal && newVal.trim()) {
-        document.getElementById('mPrSubmissionDate').value = newVal.trim();
-        onMobileSubDateChange(newVal.trim());
-        alert(`सादर दिनांक "${newVal.trim()}" जतन केला!`);
+        const val = newVal.trim();
+        const d1 = document.getElementById('mPrSubmissionDate');
+        const d2 = document.getElementById('mPrP2SubmissionDate');
+        if (d1) d1.value = val;
+        if (d2) d2.value = val;
+        onMobileSubDateChange(val);
+        alert(`सादर दिनांक "${val}" जतन केला!`);
       }
     }
 
@@ -3022,9 +3101,10 @@
         let travelModeDisp = formatTravelModeDisplay(e.travel_mode, e.vehicle_no);
         let fromDisp = fromVal || '-';
         let fromTimeDisp = formatTimeDisplay(e.from_time);
-        let toDisp = e.to_loc || '-';
-        if (e.to_loc && (e.to_loc.includes(',') || e.to_loc.length > 18)) {
-          toDisp = `<div class="cell-multi-loc">${toDisp}</div>`;
+        let cleanToVal = e.to_loc ? String(e.to_loc).replace(/,([^\s])/g, ', $1').trim() : '-';
+        let toDisp = cleanToVal;
+        if (cleanToVal && (cleanToVal.includes(',') || cleanToVal.length > 18)) {
+          toDisp = `<div class="cell-multi-loc">${cleanToVal}</div>`;
         }
         let toTimeDisp = formatTimeDisplay(e.to_time);
         let distDisp = e.distance_km || '-';
@@ -3034,9 +3114,10 @@
           tr.className = 'rt-tr';
           fromDisp = `<div class="rt-cell"><div class="rt-leg1">${fromDisp}</div><div class="rt-leg2">${e.from_loc2 || '-'}</div></div>`;
           fromTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fromTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.from_time2)}</div></div>`;
-          let toDisp2 = e.to_loc2 || '-';
-          if (e.to_loc2 && (e.to_loc2.includes(',') || e.to_loc2.length > 18)) {
-            toDisp2 = `<div class="cell-multi-loc">${toDisp2}</div>`;
+          let cleanToVal2 = e.to_loc2 ? String(e.to_loc2).replace(/,([^\s])/g, ', $1').trim() : '-';
+          let toDisp2 = cleanToVal2;
+          if (cleanToVal2 && (cleanToVal2.includes(',') || cleanToVal2.length > 18)) {
+            toDisp2 = `<div class="cell-multi-loc">${cleanToVal2}</div>`;
           }
           toDisp = `<div class="rt-cell"><div class="rt-leg1">${toDisp}</div><div class="rt-leg2">${toDisp2}</div></div>`;
           toTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${toTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.to_time2)}</div></div>`;
@@ -3088,7 +3169,7 @@
         let b = parseCleanInt(e.borewells);
         if (b > 0) boreTot += b;
 
-        if (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail))) {
+        if (isMapsheetScheme(e.scheme) || (!e.scheme && e.work_detail && isMapsheetScheme(e.work_detail))) {
           let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
           if (mc > 0) mapCount += mc;
         }
@@ -3193,9 +3274,13 @@
       const mTitle = mData.title || 'मे २०२६';
       if (p2SubLine) p2SubLine.textContent = `उपरोक्त ${mTitle} ची मासिक दैनंदिनी मंजूरीसाठी सविनय सादर.`;
 
-      const p2DateDisp = document.getElementById('prP2DateDisplay');
       const mDateInp = document.getElementById('mPrSubmissionDate');
-      if (p2DateDisp && mDateInp) p2DateDisp.textContent = mDateInp.value || '05/02/2026';
+      const mDateInpP2 = document.getElementById('mPrP2SubmissionDate');
+      const p2DateDisp = document.getElementById('prP2DateDisplay');
+      const subDateVal = (mData.submission_date && !isLegacySubmissionDate(mData.submission_date)) ? mData.submission_date : getDefaultSubmissionDate(appData.currentMonthKey);
+      if (mDateInp) mDateInp.value = subDateVal;
+      if (mDateInpP2) mDateInpP2.value = subDateVal;
+      if (p2DateDisp) p2DateDisp.textContent = subDateVal;
 
       const p2SigName = document.getElementById('prP2SigName');
       const p2SigDesig = document.getElementById('prP2SigDesig');
@@ -3700,7 +3785,7 @@
 
         let totMapsheet2 = 0;
         entries.forEach(e => {
-          if (e && (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail)))) {
+          if (e && (isMapsheetScheme(e.scheme) || (!e.scheme && e.work_detail && isMapsheetScheme(e.work_detail)))) {
             let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
             if (mc > 0) totMapsheet2 += mc;
           }
@@ -3959,7 +4044,7 @@
 
       let totMapsheet = 0;
       entries.forEach(e => {
-        if (e && (isMapsheetScheme(e.scheme) || (e.work_detail && isMapsheetScheme(e.work_detail)))) {
+        if (e && (isMapsheetScheme(e.scheme) || (!e.scheme && e.work_detail && isMapsheetScheme(e.work_detail)))) {
           let mc = parseCleanInt(e.cases) || parseCleanInt(e.villages);
           if (mc > 0) totMapsheet += mc;
         }
@@ -4423,10 +4508,33 @@
       reader.onload = function(e) {
         try {
           const imported = JSON.parse(e.target.result);
-          if (imported && (imported.months || imported.profile)) {
-            appData = imported;
+          if (imported && (imported.months || imported.profile || imported.monthData)) {
+            if (!imported.months && imported.monthData) {
+              const y = imported.monthData.year || 2026;
+              const m = imported.monthData.month || 1;
+              const mKey = `${y}-${String(m).padStart(2, '0')}`;
+              imported.months = {};
+              imported.months[mKey] = imported.monthData;
+            }
+            if (imported.profile) {
+              appData.profile = Object.assign({}, appData.profile || {}, imported.profile);
+            }
+            if (imported.months) {
+              appData.months = Object.assign({}, appData.months || {}, imported.months);
+            }
+            if (imported.currentMonthKey) {
+              appData.currentMonthKey = imported.currentMonthKey;
+            } else if (imported.months && Object.keys(imported.months).length > 0) {
+              appData.currentMonthKey = Object.keys(imported.months)[0];
+            }
             persist();
             loadStorage();
+            if (typeof populateMonthSelector === 'function') populateMonthSelector();
+            if (typeof renderMonth === 'function') renderMonth();
+            if (typeof renderEntries === 'function') renderEntries();
+            if (typeof updateStats === 'function') updateStats();
+            if (typeof renderPrintView === 'function') renderPrintView();
+            if (typeof initProfileFields === 'function') initProfileFields();
             alert('डेटा बॅकअप यशस्वीरित्या रिस्टोअर (Restore) झाला आहे!');
           } else {
             alert('अवैध बॅकअप फाईल. कृपया योग्य GSDA बॅकअप फाईल निवडा.');
