@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GSDA Diary Pro - Private Key Generator</title>
+  <style>
+    :root {
+      --primary: #1d4ed8;
+      --primary-dark: #1e40af;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-green: #10b981;
+      --accent-gold: #f59e0b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0b1120;
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 2px solid var(--primary);
+      border-radius: 20px;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, rgba(29,78,216,0.3) 0%, rgba(30,41,59,0.7) 100%);
+      padding: 24px 20px;
+      border-bottom: 1.5px solid var(--card-border);
+      text-align: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      background: rgba(29,78,216,0.15);
+      border: 1px solid var(--primary);
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: #60a5fa;
+    }
+    .body {
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    label {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: block;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      text-align: center;
+      font-family: monospace;
+      letter-spacing: 2px;
+      border-radius: 10px;
+      border: 1.5px solid var(--card-border);
+      background: #0f172a;
+      color: #fff;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(29,78,216,0.25);
+    }
+    .result-box {
+      background: #0f172a;
+      border: 2px dashed var(--accent-green);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+    .key-display {
+      font-size: 2.2rem;
+      font-weight: 900;
+      font-family: monospace;
+      color: var(--accent-green);
+      letter-spacing: 4px;
+      margin: 8px 0;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.1s, opacity 0.15s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(29,78,216,0.3);
+    }
+    .btn-whatsapp {
+      background: #25D366;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(37,211,102,0.3);
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #10b981;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      display: none;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="header">
+      <div style="font-size: 2.2rem; margin-bottom: 6px;">🔐</div>
+      <h1 style="font-size: 1.3rem; font-weight: 900;">GSDA Diary Pro Key Generator</h1>
+      <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 4px;">भूजल सर्वेक्षण दैनंदिनी सक्रियीकरण साधन</div>
+      <div class="badge">Master Admin • Author: Vrad Vinayak</div>
+    </div>
+
+    <div class="body">
+      <div>
+        <label>उपकरणाचा Request Code टाका (Enter Device Request Code):</label>
+        <input type="text" id="requestCodeInput" placeholder="उदा. 482915 किंवा REQ-482915" maxlength="16" oninput="generateKey()" autofocus />
+      </div>
+
+      <div class="result-box" id="resultCard" style="display: none;">
+        <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">
+          Matching Activation Key (६-अंकी कोड)
+        </div>
+        <div class="key-display" id="generatedKeyDisplay">------</div>
+        <div style="font-size: 0.74rem; color: var(--text-muted); margin-bottom: 12px;">
+          Valid only for device: <strong id="lblForDevice" style="color: var(--text-main);">REQ-......</strong>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <button type="button" class="btn btn-primary" onclick="copyKey()">
+            📋 Copy 6-Digit Key
+          </button>
+          <button type="button" class="btn btn-whatsapp" onclick="shareOnWhatsApp()">
+            💬 Send Key to User on WhatsApp
+          </button>
+        </div>
+      </div>
+
+      <div style="text-align: center; font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; padding-top: 6px; border-top: 1px solid var(--card-border);">
+        🔒 <em>100% Offline cryptographic generator. Keys are mathematically bound to the recipient device and cannot be copied to other devices.</em>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const ACTIVATION_SECRET_SALT = "VRAD_GSDA_DIARY_PROTECT_2026_KEY";
+
+    function computeActivationKey(requestCode) {
+      const cleanReq = String(requestCode).replace(/[^0-9]/g, '');
+      if (!cleanReq || cleanReq.length < 4) return null;
+
+      let hash = 0x811c9dc5;
+      const combined = cleanReq + ":" + ACTIVATION_SECRET_SALT + ":" + cleanReq.split('').reverse().join('');
+      for (let i = 0; i < combined.length; i++) {
+        hash ^= combined.charCodeAt(i);
+        hash = Math.imul(hash, 0x01000193);
+      }
+      const positiveHash = Math.abs(hash);
+      const keyNum = (positiveHash % 900000) + 100000;
+      return String(keyNum);
+    }
+
+    let currentReq = '';
+    let currentKey = '';
+
+    function generateKey() {
+      const val = document.getElementById('requestCodeInput').value.trim();
+      const clean = val.replace(/[^0-9]/g, '');
+      const resCard = document.getElementById('resultCard');
+
+      if (clean.length >= 4) {
+        currentReq = clean;
+        currentKey = computeActivationKey(clean);
+        document.getElementById('generatedKeyDisplay').innerText = currentKey;
+        document.getElementById('lblForDevice').innerText = 'REQ-' + clean;
+        resCard.style.display = 'block';
+      } else {
+        resCard.style.display = 'none';
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2200);
+    }
+
+    function copyKey() {
+      if (!currentKey) return;
+      navigator.clipboard.writeText(currentKey).then(() => {
+        showToast('📋 Copied Key: ' + currentKey);
+      }).catch(() => {
+        showToast('Key: ' + currentKey);
+      });
+    }
+
+    function shareOnWhatsApp() {
+      if (!currentKey) return;
+      const text = encodeURIComponent(`नमस्कार! येथे तुमची GSDA दैनंदिनी (GSDA Diary Pro) Activation Key आहे:\n\n🔑 Key: ${currentKey}\n(Valid for Device: REQ-${currentReq})\n\nअ‍ॅप सुरू करण्यासाठी ही ६-अंकी की अ‍ॅपमध्ये टाका.`);
+      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    }
+  </script>
+</body>
+</html>
