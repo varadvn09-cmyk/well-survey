@@ -218,6 +218,11 @@ table.print-table-a1j td {
     page-break-inside: avoid !important;
   }
 
+  .print-document.print-page-break {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
   .print-document h2 {
     font-size: 10.5pt !important;
     margin: 0 !important;
@@ -323,6 +328,11 @@ table.print-table-a1j td {
     justify-content: space-between !important;
     page-break-after: avoid !important;
     page-break-inside: avoid !important;
+  }
+
+  .print-document.print-page-break {
+    page-break-after: always !important;
+    break-after: page !important;
   }
 
   .mode-1page table.print-table-a1j th,

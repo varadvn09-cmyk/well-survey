@@ -84,6 +84,9 @@ function hideModal(modalId) {
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', async () => {
+  if (navigator.storage && navigator.storage.persist) {
+    try { await navigator.storage.persist(); } catch(e) {}
+  }
   checkDeviceActivation();
   initThemeAndZoom();
   initTabs();
@@ -323,6 +326,16 @@ async function loadMonthData(sheetName) {
       if (draftStr) {
         try {
           monthDataLoaded = JSON.parse(draftStr);
+        } catch(e) {}
+      }
+      // If not found in localStorage, check IndexedDB persistent mirror
+      if (!monthDataLoaded) {
+        try {
+          const idbData = await getFromIndexedDB(sheetName);
+          if (idbData && idbData.entries && idbData.entries.length > 0) {
+            monthDataLoaded = idbData;
+            try { localStorage.setItem(`gsda_draft_${sheetName}`, JSON.stringify(idbData)); } catch(e){}
+          }
         } catch(e) {}
       }
     }
@@ -2809,42 +2822,12 @@ async function saveToCustomFolder() {
       console.warn('API download-excel unavailable, generating via SheetJS:', netErr);
     }
 
-    // 3. Fallback: Client-side SheetJS generation with complete columns
-    if (!blob && window.XLSX && appState.monthData && appState.monthData.entries) {
+    // 3. Fallback: Client-side High-Fidelity Government Formatted SheetJS (.xlsx)
+    if (!blob && window.XLSX && appState.monthData) {
       const wb = XLSX.utils.book_new();
-      const exportRows = appState.monthData.entries.map((e, idx) => ({
-        'अ.क्र.': idx + 1,
-        'दिनांक': e.date || '',
-        'वार': e.day || e.weekday_marathi || '',
-        'कुठून (प्रस्थान)': e.from_loc || '',
-        'वेळ (निघाल्याची)': e.from_time || '',
-        'कुठे (मुक्काम/ठिकाण)': e.to_loc || '',
-        'वेळ (पोहोचल्याची)': e.to_time || '',
-        'वाहनाचा प्रकार': e.travel_mode || '',
-        'अंतर (कि.मी.)': e.distance_km || '',
-        'प्रवास भाडे (रु.)': e.travel_fare || '',
-        'कामाचा तपशील': e.work_detail || '',
-        'एकूण दिवस': e.total || '',
-        'सुट्टी': e.holiday || '',
-        'रजा': e.leave || '',
-        'दौरा': e.tour || '',
-        'मुख्यालय/बैठक': e.meeting || '',
-        'प्रशिक्षण': e.training || '',
-        'विहिरी': e.wells || '',
-        'विंधण विहिरी': e.borewells || '',
-        'योजना': e.scheme || '',
-        'गावे': e.villages || '',
-        'प्रकरणे': e.cases || '',
-        'परतीचा प्रवास प्रकार': e.travel_mode2 || '',
-        'परतीचे कुठून': e.from_loc2 || '',
-        'परतीची निघाल्याची वेळ': e.from_time2 || '',
-        'परतीचे कुठे': e.to_loc2 || '',
-        'परतीची पोहोचल्याची वेळ': e.to_time2 || '',
-        'परतीचे अंतर (कि.मी.)': e.distance_km2 || '',
-        'परतीचे भाडे (रु.)': e.travel_fare2 || ''
-      }));
-      const ws = XLSX.utils.json_to_sheet(exportRows);
-      XLSX.utils.book_append_sheet(wb, ws, appState.currentSheetName || 'दैनंदिनी');
+      const ws = generateGovernmentStyledSheet(appState.monthData, appState.profile);
+      const tabTitle = (appState.monthData.title || appState.currentSheetName || 'दैनंदिनी').replace(/[\/\?\:\*\[\]]/g, '').slice(0, 31);
+      XLSX.utils.book_append_sheet(wb, ws, tabTitle);
       const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
       blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     }
@@ -2962,7 +2945,49 @@ function resetAppZoom() {
   showToast('फॉन्ट मूळ आकारावर रीसेट केला');
 }
 
-// 2. Offline Auto-Save to LocalStorage
+// Lightweight IndexedDB helper for resilient offline storage
+function openDiaryDB() {
+  return new Promise((resolve) => {
+    if (!window.indexedDB) return resolve(null);
+    try {
+      const req = window.indexedDB.open('GSDA_Diary_DB', 1);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('drafts')) {
+          db.createObjectStore('drafts');
+        }
+      };
+      req.onsuccess = (e) => resolve(e.target.result);
+      req.onerror = () => resolve(null);
+    } catch(e) { resolve(null); }
+  });
+}
+
+async function saveToIndexedDB(key, val) {
+  try {
+    const db = await openDiaryDB();
+    if (!db) return;
+    const tx = db.transaction('drafts', 'readwrite');
+    tx.objectStore('drafts').put(val, key);
+  } catch(e) {}
+}
+
+async function getFromIndexedDB(key) {
+  try {
+    const db = await openDiaryDB();
+    if (!db) return null;
+    return new Promise((resolve) => {
+      const tx = db.transaction('drafts', 'readonly');
+      const req = tx.objectStore('drafts').get(key);
+      req.onsuccess = (e) => resolve(e.target.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch(e) {
+    return null;
+  }
+}
+
+// 2. Offline Auto-Save to LocalStorage & IndexedDB
 function saveLocalDraft() {
   if (!appState.monthData || !appState.currentSheetName) return;
   try {
@@ -2979,6 +3004,10 @@ function saveLocalDraft() {
   } catch (e) {
     console.error('AutoSave error:', e);
   }
+  // Secondary persistent mirror in IndexedDB
+  try {
+    saveToIndexedDB(appState.currentSheetName, JSON.parse(JSON.stringify(appState.monthData)));
+  } catch(e) {}
 }
 
 // Auto-save month data to backend Excel file
@@ -3880,3 +3909,837 @@ window.checkDeviceActivation = checkDeviceActivation;
 window.handleDeviceActivation = handleDeviceActivation;
 window.copyDeviceRequestCode = copyDeviceRequestCode;
 window.sendActivationOnWhatsApp = sendActivationOnWhatsApp;
+
+
+// ========================================================
+// OFFICIAL GOVERNMENT STYLED EXCEL GENERATOR (SheetJS XLSX)
+// Matches 1-Page A4 GSDA Government Layout (A1 to R53)
+// ========================================================
+function generateGovernmentStyledSheet(mdata, prof) {
+  prof = prof || appState.profile || {};
+  const entries = (mdata && mdata.entries) ? mdata.entries : [];
+  const ws = {};
+
+  const borderThin = {
+    top: { style: 'thin', color: { rgb: '000000' } },
+    bottom: { style: 'thin', color: { rgb: '000000' } },
+    left: { style: 'thin', color: { rgb: '000000' } },
+    right: { style: 'thin', color: { rgb: '000000' } }
+  };
+
+  const styleTitle = {
+    font: { name: 'Arial', sz: 12, bold: true, underline: true },
+    alignment: { horizontal: 'center', vertical: 'center' }
+  };
+
+  const styleOfficer = {
+    font: { name: 'Arial', sz: 9.5, bold: true },
+    alignment: { horizontal: 'left', vertical: 'center' },
+    border: { bottom: { style: 'thin', color: { rgb: '000000' } } }
+  };
+
+  const styleHeader = {
+    font: { name: 'Arial', sz: 8.5, bold: true },
+    alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+    fill: { fgColor: { rgb: 'F1F5F9' } },
+    border: borderThin
+  };
+
+  const styleCellCenter = {
+    font: { name: 'Arial', sz: 8 },
+    alignment: { horizontal: 'center', vertical: 'center' },
+    border: borderThin
+  };
+
+  const styleCellLeft = {
+    font: { name: 'Arial', sz: 8 },
+    alignment: { horizontal: 'left', vertical: 'center', wrapText: true },
+    border: borderThin
+  };
+
+  const styleBoldCenter = {
+    font: { name: 'Arial', sz: 8.5, bold: true },
+    alignment: { horizontal: 'center', vertical: 'center' },
+    fill: { fgColor: { rgb: 'F8FAFC' } },
+    border: borderThin
+  };
+
+  const styleBoldLeft = {
+    font: { name: 'Arial', sz: 8.5, bold: true },
+    alignment: { horizontal: 'left', vertical: 'center' },
+    fill: { fgColor: { rgb: 'F8FAFC' } },
+    border: borderThin
+  };
+
+  const setCell = (r, c, val, style, type, formula) => {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    const cell = { v: (val === undefined || val === null) ? '' : val };
+    if (formula) cell.f = formula;
+    if (type) cell.t = type;
+    else if (typeof val === 'number') cell.t = 'n';
+    else cell.t = 's';
+    if (style) cell.s = style;
+    ws[addr] = cell;
+    return cell;
+  };
+
+  const merges = [];
+
+  // Row 1: Title (Merged A1:R1)
+  const titleText = mdata.title || 'माहे ची दैनंदिनी';
+  setCell(0, 0, titleText, styleTitle);
+  merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 17 } });
+
+  // Row 2: Officer Meta (Merged A2:R2)
+  const metaText = `नाव- ${prof.name || 'विनायक नवनाथ निंबाळकर'}   पदनाम- ${prof.designation || 'सहाय्यक भूवैज्ञानिक'}   लेखाशीर्ष- ${prof.budget_head || '२७०२'}   वेतन:${prof.salary || '६४०००/-'}`;
+  setCell(1, 0, metaText, styleOfficer);
+  merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 17 } });
+
+  // Rows 3 & 4: Table Headers
+  // Col A: दिनांक (merged A3:A4)
+  setCell(2, 0, 'दिनांक', styleHeader);
+  setCell(3, 0, '', styleHeader);
+  merges.push({ s: { r: 2, c: 0 }, e: { r: 3, c: 0 } });
+
+  // Cols B-C: निघण्याचे (merged B3:C3)
+  setCell(2, 1, 'निघण्याचे', styleHeader);
+  setCell(2, 2, '', styleHeader);
+  merges.push({ s: { r: 2, c: 1 }, e: { r: 2, c: 2 } });
+  setCell(3, 1, 'ठिकाण', styleHeader);
+  setCell(3, 2, 'वेळ', styleHeader);
+
+  // Cols D-E: पोहचण्याचे (merged D3:E3)
+  setCell(2, 3, 'पोहचण्याचे', styleHeader);
+  setCell(2, 4, '', styleHeader);
+  merges.push({ s: { r: 2, c: 3 }, e: { r: 2, c: 4 } });
+  setCell(3, 3, 'ठिकाण', styleHeader);
+  setCell(3, 4, 'वेळ', styleHeader);
+
+  // Col F: प्रवासाचे साधन (merged F3:F4)
+  setCell(2, 5, 'प्रवासाचे साधन', styleHeader);
+  setCell(3, 5, '', styleHeader);
+  merges.push({ s: { r: 2, c: 5 }, e: { r: 3, c: 5 } });
+
+  // Col G: प्रवासाचे अंतर कि. मी. (merged G3:G4)
+  setCell(2, 6, 'प्रवासाचे अंतर कि. मी.', styleHeader);
+  setCell(3, 6, '', styleHeader);
+  merges.push({ s: { r: 2, c: 6 }, e: { r: 3, c: 6 } });
+
+  // Col H: प्रवास भाडे रुपये (merged H3:H4)
+  setCell(2, 7, 'प्रवास भाडे रुपये', styleHeader);
+  setCell(3, 7, '', styleHeader);
+  merges.push({ s: { r: 2, c: 7 }, e: { r: 3, c: 7 } });
+
+  // Col I: कामाचे तपशील / प्रवासाचे कारण (merged I3:I4)
+  setCell(2, 8, 'कामाचे तपशील / प्रवासाचे कारण', styleHeader);
+  setCell(3, 8, '', styleHeader);
+  merges.push({ s: { r: 2, c: 8 }, e: { r: 3, c: 8 } });
+
+  // Col J: blank separator
+  setCell(2, 9, '', styleHeader);
+  setCell(3, 9, '', styleHeader);
+
+  // Extended cols K to R (merged K3:K4, etc.)
+  const extHeaders = [
+    { c: 10, title: 'एकूण' },
+    { c: 11, title: 'सुट्टी' },
+    { c: 12, title: 'रजा' },
+    { c: 13, title: 'दौरा' },
+    { c: 14, title: 'बैठक' },
+    { c: 15, title: 'प्रशिक्षण' },
+    { c: 16, title: 'विहिर' },
+    { c: 17, title: 'विंधण विहिर' }
+  ];
+  extHeaders.forEach(eh => {
+    setCell(2, eh.c, eh.title, styleHeader);
+    setCell(3, eh.c, '', styleHeader);
+    merges.push({ s: { r: 2, c: eh.c }, e: { r: 3, c: eh.c } });
+  });
+
+  // Rows 5 to 35: 31 Daily Entries
+  const hq = prof.headquarters || 'सोलापूर';
+  for (let i = 0; i < 31; i++) {
+    const r = 4 + i;
+    const e = entries[i] || {};
+
+    let dateDisp = '';
+    if (e.date) {
+      const parts = e.date.split(' ')[0].split('-');
+      dateDisp = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : e.date;
+    }
+
+    let fromVal = e.from_loc || (e.work_detail ? hq : '-');
+    let toVal = e.to_loc || '-';
+    let fromTimeVal = e.from_time || '-';
+    let toTimeVal = e.to_time || '-';
+    let modeVal = e.travel_mode || '-';
+    let distVal = e.distance_km || '-';
+    let fareVal = e.travel_fare || '-';
+    let workVal = e.work_detail || '';
+
+    // If return journey exists, include indication
+    if (e.from_loc2 || e.to_loc2) {
+      const retDist = (e.distance_km2 && e.distance_km2 !== '-') ? `+${e.distance_km2}` : '';
+      if (retDist) distVal = `${distVal} (${retDist})`;
+      const retFare = (e.travel_fare2 && e.travel_fare2 !== '-') ? `+${e.travel_fare2}` : '';
+      if (retFare) fareVal = `${fareVal} (${retFare})`;
+    }
+
+    setCell(r, 0, dateDisp, styleCellCenter);
+    setCell(r, 1, fromVal, styleCellCenter);
+    setCell(r, 2, fromTimeVal, styleCellCenter);
+    setCell(r, 3, toVal, styleCellCenter);
+    setCell(r, 4, toTimeVal, styleCellCenter);
+    setCell(r, 5, modeVal, styleCellCenter);
+    setCell(r, 6, distVal, styleCellCenter);
+    setCell(r, 7, fareVal, styleCellCenter);
+    setCell(r, 8, workVal, styleCellLeft);
+    setCell(r, 9, '', styleCellCenter);
+
+    // Extended flags
+    setCell(r, 10, (e.total === '1' || e.total === 1) ? 1 : '', styleCellCenter, (e.total === '1' || e.total === 1) ? 'n' : 's');
+    setCell(r, 11, (e.holiday === '1' || e.holiday === 1) ? 1 : '', styleCellCenter, (e.holiday === '1' || e.holiday === 1) ? 'n' : 's');
+    setCell(r, 12, (e.leave === '1' || e.leave === 1) ? 1 : '', styleCellCenter, (e.leave === '1' || e.leave === 1) ? 'n' : 's');
+    setCell(r, 13, (e.tour === '1' || e.tour === 1) ? 1 : '', styleCellCenter, (e.tour === '1' || e.tour === 1) ? 'n' : 's');
+    setCell(r, 14, (e.meeting === '1' || e.meeting === 1) ? 1 : '', styleCellCenter, (e.meeting === '1' || e.meeting === 1) ? 'n' : 's');
+    setCell(r, 15, (e.training === '1' || e.training === 1) ? 1 : '', styleCellCenter, (e.training === '1' || e.training === 1) ? 'n' : 's');
+    setCell(r, 16, e.wells || '', styleCellCenter);
+    setCell(r, 17, e.borewells || '', styleCellCenter);
+  }
+
+  // Row 36 (r = 35): Splitter & Subtotals
+  // A36:D36 merged "क्षे्त्रिय प्रगती"
+  setCell(35, 0, 'क्षे्त्रिय प्रगती', styleBoldCenter);
+  setCell(35, 1, '', styleBoldCenter);
+  setCell(35, 2, '', styleBoldCenter);
+  setCell(35, 3, '', styleBoldCenter);
+  merges.push({ s: { r: 35, c: 0 }, e: { r: 35, c: 3 } });
+
+  setCell(35, 4, 'गावे', styleBoldCenter);
+  setCell(35, 5, 'प्रकरणे', styleBoldCenter);
+
+  // G36:I36 merged "मासिक गोषवारा"
+  setCell(35, 6, 'मासिक गोषवारा', styleBoldCenter);
+  setCell(35, 7, '', styleBoldCenter);
+  setCell(35, 8, '', styleBoldCenter);
+  merges.push({ s: { r: 35, c: 6 }, e: { r: 35, c: 8 } });
+
+  setCell(35, 9, '', styleBoldCenter);
+
+  // Extended Sums (Cols K to R)
+  const sumCols = ['K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
+  sumCols.forEach((colLetter, cidx) => {
+    const colNumber = 10 + cidx;
+    setCell(35, colNumber, '', styleBoldCenter, 'n', `SUM(${colLetter}5:${colLetter}35)`);
+  });
+
+  // Rows 37 to 42 (r = 36 to 41): Field Progress (Left) & Monthly Summary (Right)
+  const fpList = (mdata.field_progress && mdata.field_progress.length > 0)
+    ? mdata.field_progress
+    : [
+        { scheme: 'स्थानिक भूजल सर्वेक्षण (स्था.भू.)', villages: '-', cases: '-' },
+        { scheme: 'अटल भूजल योजना', villages: '-', cases: '-' },
+        { scheme: 'जलजीवन मिशन (JJM)', villages: '-', cases: '-' },
+        { scheme: 'इतर शासकीय योजना', villages: '-', cases: '-' },
+        { scheme: 'विहिर / विंधण विहिर तपासणी', villages: '-', cases: '-' },
+        { scheme: 'एकूण', villages: '-', cases: '-' }
+      ];
+
+  const sum = mdata.summary || {};
+  const summaryRows = [
+    { label: 'महिन्याचे एकूण दिवस', val: sum.total_days !== undefined ? sum.total_days : 31 },
+    { label: 'कार्यालयीन कामकाजाचे दिवस', val: sum.office_days !== undefined ? sum.office_days : 0 },
+    { label: 'सर्वेक्षणास्तव फिरतीचे दिवस', val: sum.tour_days !== undefined ? sum.tour_days : 0 },
+    { label: 'शासकीय व साप्ताहिक सुट्टी', val: sum.holiday_days !== undefined ? sum.holiday_days : 0 },
+    { label: 'प्रशिक्षण / कार्यशाळा दिवस', val: sum.training_days !== undefined ? sum.training_days : 0 },
+    { label: 'रजेचे दिवस', val: sum.leave_days !== undefined ? sum.leave_days : 0 }
+  ];
+
+  for (let idx = 0; idx < 6; idx++) {
+    const r = 36 + idx;
+    const fp = fpList[idx] || { scheme: '-', villages: '-', cases: '-' };
+    const sm = summaryRows[idx] || { label: '-', val: '-' };
+
+    // Left: Scheme (Cols A to D merged)
+    setCell(r, 0, fp.scheme || '-', styleCellLeft);
+    setCell(r, 1, '', styleCellLeft);
+    setCell(r, 2, '', styleCellLeft);
+    setCell(r, 3, '', styleCellLeft);
+    merges.push({ s: { r, c: 0 }, e: { r, c: 3 } });
+
+    // Villages (Col E), Cases (Col F)
+    setCell(r, 4, fp.villages || '-', styleCellCenter);
+    setCell(r, 5, fp.cases || '-', styleCellCenter);
+
+    // Right: Summary Label (Cols G to H merged)
+    setCell(r, 6, sm.label, styleBoldLeft);
+    setCell(r, 7, '', styleBoldLeft);
+    merges.push({ s: { r, c: 6 }, e: { r, c: 7 } });
+
+    // Summary Value (Col I)
+    setCell(r, 8, sm.val, styleBoldCenter, typeof sm.val === 'number' ? 'n' : 's');
+
+    // Blank out J to R for clean look
+    for (let c = 9; c <= 17; c++) {
+      setCell(r, c, '', styleCellCenter);
+    }
+  }
+
+  // Rows 43 to 45 (r = 42 to 44): Officer Signature 1 (Under Summary, Cols G to I merged)
+  const dept = prof.department || 'भूजल सर्वेक्षण आणि विकास यंत्रणा, ' + hq;
+  setCell(42, 6, `(${prof.name || 'विनायक नवनाथ निंबाळकर'})`, styleBoldCenter);
+  setCell(42, 7, '', styleBoldCenter);
+  setCell(42, 8, '', styleBoldCenter);
+  merges.push({ s: { r: 42, c: 6 }, e: { r: 42, c: 8 } });
+
+  setCell(43, 6, prof.designation || 'सहाय्यक भूवैज्ञानिक', styleCellCenter);
+  setCell(43, 7, '', styleCellCenter);
+  setCell(43, 8, '', styleCellCenter);
+  merges.push({ s: { r: 43, c: 6 }, e: { r: 43, c: 8 } });
+
+  setCell(44, 6, dept, styleCellCenter);
+  setCell(44, 7, '', styleCellCenter);
+  setCell(44, 8, '', styleCellCenter);
+  merges.push({ s: { r: 44, c: 6 }, e: { r: 44, c: 8 } });
+
+  // Row 47 (r = 46): Controlling officer submission remark (Merged A47:I47)
+  const subRemark = `प्रति, मा. वरिष्ठ भूवैज्ञानिक, ${dept} यांना माहितीस्तव व मंजूरीस्तव सविनय सादर.`;
+  setCell(46, 0, subRemark, {
+    font: { name: 'Arial', sz: 8.5, bold: true },
+    alignment: { horizontal: 'left', vertical: 'center' },
+    border: { top: { style: 'thin', color: { rgb: '000000' } } }
+  });
+  merges.push({ s: { r: 46, c: 0 }, e: { r: 46, c: 8 } });
+
+  // Row 48 to 52 (r = 47 to 51): Submission date & Final Signature Block
+  const subDate = mdata.submission_date || '05/08/2026';
+  setCell(48, 0, `दिनांक: ${subDate}`, { font: { name: 'Arial', sz: 8.5, bold: true }, alignment: { horizontal: 'left', vertical: 'center' } });
+  merges.push({ s: { r: 48, c: 0 }, e: { r: 48, c: 2 } });
+
+  setCell(48, 6, 'आपला विश्वासु,', styleCellCenter);
+  setCell(48, 7, '', styleCellCenter);
+  setCell(48, 8, '', styleCellCenter);
+  merges.push({ s: { r: 48, c: 6 }, e: { r: 48, c: 8 } });
+
+  setCell(50, 6, `(${prof.name || 'विनायक नवनाथ निंबाळकर'})`, styleBoldCenter);
+  setCell(50, 7, '', styleBoldCenter);
+  setCell(50, 8, '', styleBoldCenter);
+  merges.push({ s: { r: 50, c: 6 }, e: { r: 50, c: 8 } });
+
+  setCell(51, 6, `${prof.designation || 'सहाय्यक भूवैज्ञानिक'}, ${hq}`, styleCellCenter);
+  setCell(51, 7, '', styleCellCenter);
+  setCell(51, 8, '', styleCellCenter);
+  merges.push({ s: { r: 51, c: 6 }, e: { r: 51, c: 8 } });
+
+  setCell(52, 6, dept, styleCellCenter);
+  setCell(52, 7, '', styleCellCenter);
+  setCell(52, 8, '', styleCellCenter);
+  merges.push({ s: { r: 52, c: 6 }, e: { r: 52, c: 8 } });
+
+  // Column Widths
+  ws['!cols'] = [
+    { wch: 11 }, // A: Date
+    { wch: 13 }, // B: Departure place
+    { wch: 7 },  // C: Departure time
+    { wch: 19 }, // D: Arrival place
+    { wch: 7 },  // E: Arrival time
+    { wch: 12 }, // F: Travel mode
+    { wch: 9 },  // G: Distance KM
+    { wch: 8 },  // H: Fare
+    { wch: 38 }, // I: Work details
+    { wch: 4 },  // J
+    { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 5 }, { wch: 6 }, { wch: 7 }
+  ];
+
+  ws['!merges'] = merges;
+  ws['!ref'] = 'A1:R53';
+  ws['!pageSetup'] = { orientation: 'portrait', paperSize: 9, fitToWidth: 1, fitToHeight: 1 };
+
+  return ws;
+}
+
+// Reusable Month Data Fetcher
+async function getMonthDataDirect(sheetName) {
+  if (appState.currentSheetName === sheetName && appState.monthData) {
+    return JSON.parse(JSON.stringify(appState.monthData));
+  }
+  const draftStr = localStorage.getItem(`gsda_draft_${sheetName}`);
+  if (draftStr) {
+    try {
+      const parsed = JSON.parse(draftStr);
+      if (parsed && parsed.entries && parsed.entries.length > 0) return parsed;
+    } catch(e) {}
+  }
+  try {
+    const idbData = await getFromIndexedDB(sheetName);
+    if (idbData && idbData.entries && idbData.entries.length > 0) return idbData;
+  } catch(e) {}
+  try {
+    const res = await fetch(`/api/month/${encodeURIComponent(sheetName)}`);
+    if (res.ok) {
+      const result = await res.json();
+      if (result.success && result.data) return result.data;
+    }
+  } catch(e) {}
+  if (window.GSDA_DEFAULT_DATA && window.GSDA_DEFAULT_DATA.months && window.GSDA_DEFAULT_DATA.months[sheetName]) {
+    return JSON.parse(JSON.stringify(window.GSDA_DEFAULT_DATA.months[sheetName]));
+  }
+  return null;
+}
+
+// Reusable HTML Generator for 1-Page A4 Print View
+function buildMonthPrintHtml(mdata, prof) {
+  prof = prof || appState.profile || {};
+  const entries = mdata.entries || [];
+  const officerName = prof.name || 'विनायक नवनाथ निंबाळकर';
+  const officerDesig = prof.designation || 'सहाय्यक भूवैज्ञानिक';
+  const officerDept = prof.department || 'भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर';
+  const officerHq = prof.headquarters || 'सोलापूर';
+  const officerBudget = prof.budget_head || '२७०२';
+  const officerSalary = prof.salary || '६४०००/-';
+  const subDate = mdata.submission_date || '05/08/2026';
+
+  let rowsHtml = '';
+  entries.forEach((e, idx) => {
+    let dateDisplay = '';
+    if (e.date) {
+      const d = e.date.split(' ')[0];
+      const p = d.split('-');
+      dateDisplay = p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
+    }
+
+    const formatLocationNames = (loc) => {
+      if (!loc || loc === '-') return '-';
+      return String(loc).replace(/,([^\s])/g, ', $1').replace(/\s+/g, ' ').trim();
+    };
+
+    let fromDisp = isHeadquartersLocation(e.from_loc) ? getActiveHQ() : (e.from_loc || '-');
+    let fromTimeDisp = formatTimeDisplay(e.from_time);
+    let toDisp = e.to_loc || '-';
+    let toTimeDisp = formatTimeDisplay(e.to_time);
+    let modeDisp = formatTravelMode(e.travel_mode);
+    let distDisp = e.distance_km || '-';
+    let fareDisp = e.travel_fare || '-';
+
+    let cleanFrom = formatLocationNames(fromDisp);
+    let cleanTo = formatLocationNames(toDisp);
+
+    if (e.from_loc2 || e.to_loc2) {
+      let cleanFrom2 = formatLocationNames(e.from_loc2);
+      let cleanTo2 = formatLocationNames(e.to_loc2);
+
+      fromDisp = `<div class="rt-cell"><div class="rt-leg1 break-words">${cleanFrom}</div><div class="rt-leg2 break-words">${cleanFrom2}</div></div>`;
+      fromTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fromTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.from_time2)}</div></div>`;
+      toDisp = `<div class="rt-cell"><div class="rt-leg1 break-words text-[9.5px] leading-tight">${cleanTo}</div><div class="rt-leg2 break-words text-[9.5px] leading-tight">${cleanTo2}</div></div>`;
+      toTimeDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${toTimeDisp}</div><div class="rt-leg2 font-mono">${formatTimeDisplay(e.to_time2)}</div></div>`;
+      modeDisp = `<div class="rt-cell"><div class="rt-leg1">${modeDisp}</div><div class="rt-leg2">${formatTravelMode(e.travel_mode2)}</div></div>`;
+      const k2 = (e.distance_km2 && e.distance_km2 !== '-') ? `+${e.distance_km2}` : '-';
+      distDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${distDisp}</div><div class="rt-leg2 font-mono">${k2}</div></div>`;
+      const f2 = (e.travel_fare2 && e.travel_fare2 !== '-') ? `+${e.travel_fare2}` : '-';
+      fareDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fareDisp}</div><div class="rt-leg2 font-mono">${f2}</div></div>`;
+
+      rowsHtml += `
+        <tr class="text-center rt-tr">
+          <td class="border border-black p-0.5 whitespace-nowrap font-mono text-[9px] text-center">${dateDisplay}</td>
+          <td class="rt-td border border-black text-center">${fromDisp}</td>
+          <td class="rt-td border border-black text-center">${fromTimeDisp}</td>
+          <td class="rt-td border border-black text-center">${toDisp}</td>
+          <td class="rt-td border border-black text-center">${toTimeDisp}</td>
+          <td class="rt-td border border-black text-center whitespace-nowrap">${modeDisp}</td>
+          <td class="rt-td border border-black text-center">${distDisp}</td>
+          <td class="rt-td border border-black text-center">${fareDisp}</td>
+          <td class="border border-black p-0.5 text-left max-w-[50mm] break-words">${e.work_detail || ''}</td>
+        </tr>
+      `;
+    } else {
+      rowsHtml += `
+        <tr class="text-center">
+          <td class="border border-black p-0.5 whitespace-nowrap font-mono text-[9px] text-center">${dateDisplay}</td>
+          <td class="border border-black p-0.5 text-center break-words">${cleanFrom}</td>
+          <td class="border border-black p-0.5 font-mono text-[9px] text-center">${fromTimeDisp}</td>
+          <td class="border border-black p-0.5 text-center break-words text-[9.5px] leading-tight">${cleanTo}</td>
+          <td class="border border-black p-0.5 font-mono text-[9px] text-center">${toTimeDisp}</td>
+          <td class="border border-black p-0.5 text-center whitespace-nowrap">${modeDisp}</td>
+          <td class="border border-black p-0.5 font-mono text-center">${distDisp}</td>
+          <td class="border border-black p-0.5 font-mono text-center">${fareDisp}</td>
+          <td class="border border-black p-0.5 text-left max-w-[50mm] break-words">${e.work_detail || ''}</td>
+        </tr>
+      `;
+    }
+  });
+
+  const progressList = mdata.field_progress && mdata.field_progress.length > 0
+    ? mdata.field_progress
+    : (appState.constants ? appState.constants.standard_schemes.map(s => ({ scheme: s, villages: '-', cases: '-' })) : []);
+
+  let progHtml = '';
+  progressList.forEach(p => {
+    const isMapsheet = p.scheme && (p.scheme.includes('1:10') || p.scheme.includes('Mapsheet') || p.scheme.includes('नकाशा'));
+    progHtml += `
+      <tr>
+        <td class="border border-black p-0.5 text-left ${isMapsheet ? 'font-bold' : ''}">${p.scheme}</td>
+        <td class="border border-black p-0.5 font-mono text-center font-semibold">${p.villages || '-'}</td>
+        <td class="border border-black p-0.5 font-mono text-center font-semibold">${p.cases || '-'}</td>
+      </tr>
+    `;
+  });
+
+  const sum = mdata.summary || {
+    total_days: 31,
+    office_days: 0,
+    tour_days: 0,
+    holiday_days: 0,
+    training_days: 0,
+    leave_days: 0
+  };
+
+  const sumHtml = `
+    <tr><td class="border border-black p-0.5">महिन्याचे एकूण दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.total_days}</td></tr>
+    <tr><td class="border border-black p-0.5">कार्यालयीन कामकाजाचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.office_days}</td></tr>
+    <tr><td class="border border-black p-0.5">सर्वेक्षणास्तव फिरतीचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.tour_days}</td></tr>
+    <tr><td class="border border-black p-0.5">शासकीय सुट्टीचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.holiday_days}</td></tr>
+    <tr><td class="border border-black p-0.5">प्रशिक्षण / कार्यशाळा दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.training_days}</td></tr>
+    <tr><td class="border border-black p-0.5">रजेचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.leave_days}</td></tr>
+  `;
+
+  return `
+    <div class="text-center pb-0.5" style="margin-bottom: 2px;">
+      <h2 class="text-sm font-bold underline">
+        ${mdata.title || 'माहे ची दैनंदिनी'}
+      </h2>
+    </div>
+
+    <div class="flex justify-between items-center text-[10px] pb-1 px-1 font-semibold border-b border-black">
+      <span>नाव- ${officerName}</span>
+      <span>पदनाम- ${officerDesig}</span>
+      <span>लेखाशीर्ष- ${officerBudget}</span>
+      <span>वेतन:${officerSalary}</span>
+    </div>
+
+    <table class="w-full border-collapse border border-black print-table-a1j text-[10px] my-0.5" style="table-layout: fixed; width: 100%;">
+      <colgroup>
+        <col style="width: 9.5%;">
+        <col style="width: 9.0%;">
+        <col style="width: 5.0%;">
+        <col style="width: 20.5%;">
+        <col style="width: 5.0%;">
+        <col style="width: 10.0%;">
+        <col style="width: 6.5%;">
+        <col style="width: 5.5%;">
+        <col style="width: 29.0%;">
+      </colgroup>
+      <thead>
+        <tr class="bg-slate-100 text-center font-bold">
+          <th rowspan="2" class="border border-black p-0.5">दिनांक</th>
+          <th colspan="2" class="border border-black p-0.5">निघण्याचे</th>
+          <th colspan="2" class="border border-black p-0.5">पोहचण्याचे</th>
+          <th rowspan="2" class="border border-black p-0.5">प्रवासाचे साधन</th>
+          <th rowspan="2" class="border border-black p-0.5">प्रवासाचे अंतर कि. मी.</th>
+          <th rowspan="2" class="border border-black p-0.5">प्रवास भाडे रुपये</th>
+          <th rowspan="2" class="border border-black p-0.5 text-left">कामाचे तपशील / प्रवासाचे कारण</th>
+        </tr>
+        <tr class="bg-slate-100 text-center font-bold">
+          <th class="border border-black p-0.5">ठिकाण</th>
+          <th class="border border-black p-0.5">वेळ</th>
+          <th class="border border-black p-0.5">ठिकाण</th>
+          <th class="border border-black p-0.5">वेळ</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsHtml}
+      </tbody>
+    </table>
+
+    <div>
+      <div class="print-bottom-grid grid grid-cols-2 gap-2 text-[9.5px] mt-1 border-t border-black pt-1">
+        <div>
+          <div class="font-bold text-center bg-slate-100 border border-black p-0.5">क्षे्त्रिय प्रगती</div>
+          <table class="w-full border-collapse border border-black text-center">
+            <thead>
+              <tr class="font-semibold bg-slate-50">
+                <th class="border border-black p-0.5 text-left">योजना प्रकार</th>
+                <th class="border border-black p-0.5 w-14">गावे/न.प.</th>
+                <th class="border border-black p-0.5 w-14">प्रकरणे/विहिरी</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${progHtml}
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <div class="font-bold text-center bg-slate-100 border border-black p-0.5">मासिक गोषवारा</div>
+          <table class="w-full border-collapse border border-black text-left">
+            <tbody>
+              ${sumHtml}
+            </tbody>
+          </table>
+          <div class="text-center font-bold" style="margin-top: 4px; padding-top: 2px; font-size: 8px; line-height: 1.15; white-space: nowrap;">
+            <p>(${officerName})</p>
+            <p>${officerDesig}</p>
+            <p>${officerDept}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-[8.5px] mt-1 pt-0.5 border-t border-black font-semibold" style="line-height: 1.2;">
+        <p class="font-bold">प्रति,</p>
+        <p>मा. वरिष्ठ भूवैज्ञानिक, ${officerDept} यांना माहितीस्तव व मंजूरीस्तव सविनय सादर.</p>
+      </div>
+
+      <div class="flex justify-between items-end text-[8.5px] mt-1 font-bold px-1" style="min-height: 44px;">
+        <div>
+          <div class="flex items-center gap-1 font-bold">
+            <span>दिनांक:</span>
+            <span>${subDate}</span>
+          </div>
+        </div>
+        <div class="text-center" style="min-width: 210px; white-space: nowrap; line-height: 1.2; font-size: 8px;">
+          <p style="white-space: nowrap;">आपला विश्वासु,</p>
+          <div style="height: 10px;"></div>
+          <p style="white-space: nowrap;">(${officerName})</p>
+          <p style="white-space: nowrap;">${officerDesig}, ${officerHq}</p>
+          <p style="white-space: nowrap;">${officerDept}</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ========================================================
+// MULTI-MONTH BATCH OPERATIONS (UI & ACTIONS)
+// ========================================================
+function openMultiMonthModal() {
+  const grid = document.getElementById('multiMonthGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  const sheets = (appState.sheets && appState.sheets.length > 0)
+    ? appState.sheets.filter(s => !s.is_driver)
+    : [
+        { name: 'जानेवारी', title: 'माहे जानेवारी- २०२६ ची दैनंदिनी' },
+        { name: 'Feb 26', title: 'माहे फेब्रुवारी- २०२६ ची दैनंदिनी' },
+        { name: 'Mar 26', title: 'माहे मार्च- २०२६ ची दैनंदिनी' },
+        { name: 'April 26', title: 'माहे एप्रिल- २०२६ ची दैनंदिनी' },
+        { name: 'May 26', title: 'माहे मे- २०२६ ची दैनंदिनी' },
+        { name: 'June 26', title: 'माहे जून- २०२६ ची दैनंदिनी' },
+        { name: 'Jully 26', title: 'माहे जुलै- २०२६ ची दैनंदिनी' },
+        { name: 'Augast 26', title: 'माहे ऑगस्ट- २०२६ ची दैनंदिनी' },
+        { name: 'Sapte 26', title: 'माहे सप्टेंबर- २०२६ ची दैनंदिनी' },
+        { name: 'Oct 26', title: 'माहे ऑक्टोबर- २०२६ ची दैनंदिनी' },
+        { name: 'Nov 26', title: 'माहे नोव्हेंबर- २०२६ ची दैनंदिनी' },
+        { name: 'Dec 26', title: 'माहे डिसेंबर- २०२६ ची दैनंदिनी' }
+      ];
+
+  sheets.forEach((s) => {
+    const isCurrent = s.name === appState.currentSheetName;
+    const card = document.createElement('label');
+    card.className = `flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition select-none text-[11px] ${isCurrent ? 'bg-indigo-50 border-indigo-300 font-bold' : 'bg-white border-slate-200 hover:bg-slate-50'}`;
+    card.innerHTML = `
+      <input type="checkbox" name="multiMonthCb" value="${s.name}" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500 cursor-pointer" ${isCurrent ? 'checked' : ''} onchange="updateMultiMonthSelectedCount()">
+      <div class="truncate">
+        <span class="block text-slate-800">${s.title || s.name}</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  updateMultiMonthSelectedCount();
+  showModal('multiMonthModal');
+}
+
+function selectAllMultiMonths(selectAll) {
+  const cbs = document.querySelectorAll('input[name="multiMonthCb"]');
+  cbs.forEach(cb => cb.checked = !!selectAll);
+  updateMultiMonthSelectedCount();
+}
+
+function updateMultiMonthSelectedCount() {
+  const cbs = document.querySelectorAll('input[name="multiMonthCb"]:checked');
+  const countEl = document.getElementById('multiMonthSelectedCount');
+  if (countEl) {
+    countEl.textContent = `${cbs.length} महिने निवडले`;
+  }
+}
+
+function getSelectedMultiMonthNames() {
+  const cbs = document.querySelectorAll('input[name="multiMonthCb"]:checked');
+  return Array.from(cbs).map(cb => cb.value);
+}
+
+async function executeMultiMonthAction(actionType) {
+  const selected = getSelectedMultiMonthNames();
+  if (!selected || selected.length === 0) {
+    showToast('कृपया किमान १ महिना निवडा.', 'warning');
+    return;
+  }
+
+  if (actionType === 'excel') {
+    await downloadMultiMonthExcel(selected);
+  } else if (actionType === 'print') {
+    await printMultiMonths(selected);
+  } else if (actionType === 'save') {
+    await saveMultiMonths(selected);
+  }
+}
+
+async function downloadMultiMonthExcel(sheetNames) {
+  const btn = document.getElementById('btnMultiMonthExcel');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-lg"></i><span class="text-xs">तयार होत आहे...</span>`;
+    btn.disabled = true;
+  }
+
+  try {
+    const wb = XLSX.utils.book_new();
+    const prof = appState.profile || {};
+    let addedCount = 0;
+
+    for (const sname of sheetNames) {
+      const mdata = await getMonthDataDirect(sname);
+      if (mdata) {
+        const ws = generateGovernmentStyledSheet(mdata, prof);
+        const tabTitle = (mdata.title || sname).replace(/[\/\?\:\*\[\]]/g, '').slice(0, 31);
+        XLSX.utils.book_append_sheet(wb, ws, tabTitle);
+        addedCount++;
+      }
+    }
+
+    if (addedCount === 0) {
+      showToast('कोणत्याही महिन्याचा डेटा उपलब्ध नाही.', 'error');
+      return;
+    }
+
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const fileName = `GSDA_Diary_${addedCount}_Months_2026.xlsx`;
+
+    const a = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      a.remove();
+    }, 1000);
+
+    hideModal('multiMonthModal');
+    showToast(`निवडलेल्या ${addedCount} महिन्यांची एकत्रित Excel (.xlsx) फाईल डाऊनलोड झाली!`, 'success');
+  } catch (err) {
+    console.error('Multi-month Excel download error:', err);
+    showToast('Excel फाईल तयार करताना त्रुटी आली: ' + err.message, 'error');
+  } finally {
+    if (btn) {
+      btn.innerHTML = origHtml;
+      btn.disabled = false;
+    }
+  }
+}
+
+async function printMultiMonths(sheetNames) {
+  const btn = document.getElementById('btnMultiMonthPrint');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-lg"></i><span class="text-xs">लोड होत आहे...</span>`;
+    btn.disabled = true;
+  }
+
+  try {
+    const printTabBtn = document.querySelector('[data-tab="tab-official"]');
+    if (printTabBtn) printTabBtn.click();
+
+    const host = document.getElementById('multiMonthPrintHost');
+    const singleDoc = document.getElementById('printDocument');
+    if (!host || !singleDoc) {
+      showToast('मुद्रण कंटेनर सापडला नाही.', 'error');
+      return;
+    }
+
+    host.innerHTML = '';
+    const prof = appState.profile || {};
+
+    for (let idx = 0; idx < sheetNames.length; idx++) {
+      const sname = sheetNames[idx];
+      const mdata = await getMonthDataDirect(sname);
+      if (!mdata) continue;
+
+      const isLast = (idx === sheetNames.length - 1);
+      const pageEl = document.createElement('div');
+      pageEl.className = 'print-document bg-white p-4 sm:p-5 rounded-xl shadow-md border border-slate-400 font-marathi text-black' + (isLast ? '' : ' print-page-break');
+
+      pageEl.innerHTML = buildMonthPrintHtml(mdata, prof);
+      host.appendChild(pageEl);
+    }
+
+    singleDoc.style.display = 'none';
+    host.style.display = 'block';
+
+    hideModal('multiMonthModal');
+    showToast(`${sheetNames.length} महिने मुद्रणासाठी तयार झाले आहेत.`, 'info');
+
+    setTimeout(() => {
+      window.print();
+    }, 350);
+
+    const cleanup = () => {
+      host.innerHTML = '';
+      host.style.display = 'none';
+      singleDoc.style.display = 'flex';
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    setTimeout(cleanup, 15000);
+
+  } catch (err) {
+    console.error('Multi-month print error:', err);
+    showToast('मुद्रण करताना त्रुटी आली: ' + err.message, 'error');
+  } finally {
+    if (btn) {
+      btn.innerHTML = origHtml;
+      btn.disabled = false;
+    }
+  }
+}
+
+async function saveMultiMonths(sheetNames) {
+  const btn = document.getElementById('btnMultiMonthSave');
+  const origHtml = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-lg"></i><span class="text-xs">जतन होत आहे...</span>`;
+    btn.disabled = true;
+  }
+
+  try {
+    let savedCount = 0;
+    for (const sname of sheetNames) {
+      const mdata = await getMonthDataDirect(sname);
+      if (mdata) {
+        try { localStorage.setItem(`gsda_draft_${sname}`, JSON.stringify(mdata)); } catch(e){}
+        await saveToIndexedDB(sname, mdata);
+        try {
+          await fetch(`/api/month/${encodeURIComponent(sname)}/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(mdata)
+          });
+        } catch(netErr) {}
+        savedCount++;
+      }
+    }
+
+    hideModal('multiMonthModal');
+    showToast(`निवडलेल्या सर्व ${savedCount} महिन्यांचा डेटा स्थानिक ब्राऊझर व मेमरीमध्ये यशस्वीरीत्या जतन (Saved) झाला!`, 'success');
+  } catch (err) {
+    console.error('Multi-month save error:', err);
+    showToast('डेटा जतन करताना त्रुटी आली: ' + err.message, 'error');
+  } finally {
+    if (btn) {
+      btn.innerHTML = origHtml;
+      btn.disabled = false;
+    }
+  }
+}
