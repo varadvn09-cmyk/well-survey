@@ -301,6 +301,7 @@ async function loadMonthData(sheetName) {
     try { localStorage.setItem('gsda_active_sheet', sheetName); } catch(e){}
 
     let monthDataLoaded = null;
+    let fetchedFromBackend = false;
 
     // 1. Try to fetch from backend
     try {
@@ -309,6 +310,7 @@ async function loadMonthData(sheetName) {
         const result = await res.json();
         if (result.success && result.data) {
           monthDataLoaded = result.data;
+          fetchedFromBackend = true;
         }
       }
     } catch (netErr) {
@@ -336,32 +338,34 @@ async function loadMonthData(sheetName) {
       appState.monthData = monthDataLoaded;
 
       // Recover and merge any return journey fields from localStorage draft if fetched from backend
-      const draftStr = localStorage.getItem(`gsda_draft_${sheetName}`);
-      if (draftStr && monthDataLoaded !== JSON.parse(draftStr)) {
-        try {
-          const draft = JSON.parse(draftStr);
-          if (draft && draft.entries && appState.monthData && appState.monthData.entries) {
-            let recovered = false;
-            draft.entries.forEach((de, i) => {
-              const be = appState.monthData.entries[i];
-              if (be && (de.from_loc2 || de.to_loc2 || de.distance_km2 || (de.travel_mode2 && de.travel_mode2 !== '-'))) {
-                if (!be.from_loc2 && !be.to_loc2) {
-                  be.travel_mode2 = de.travel_mode2 || be.travel_mode2;
-                  be.from_loc2 = de.from_loc2;
-                  be.from_time2 = de.from_time2;
-                  be.to_loc2 = de.to_loc2;
-                  be.to_time2 = de.to_time2;
-                  be.distance_km2 = de.distance_km2;
-                  be.travel_fare2 = de.travel_fare2;
-                  recovered = true;
+      if (fetchedFromBackend) {
+        const draftStr = localStorage.getItem(`gsda_draft_${sheetName}`);
+        if (draftStr) {
+          try {
+            const draft = JSON.parse(draftStr);
+            if (draft && draft.entries && appState.monthData && appState.monthData.entries) {
+              let recovered = false;
+              draft.entries.forEach((de, i) => {
+                const be = appState.monthData.entries[i];
+                if (be && (de.from_loc2 || de.to_loc2 || de.distance_km2 || (de.travel_mode2 && de.travel_mode2 !== '-'))) {
+                  if (!be.from_loc2 && !be.to_loc2) {
+                    be.travel_mode2 = de.travel_mode2 || be.travel_mode2;
+                    be.from_loc2 = de.from_loc2;
+                    be.from_time2 = de.from_time2;
+                    be.to_loc2 = de.to_loc2;
+                    be.to_time2 = de.to_time2;
+                    be.distance_km2 = de.distance_km2;
+                    be.travel_fare2 = de.travel_fare2;
+                    recovered = true;
+                  }
                 }
+              });
+              if (recovered) {
+                autoSaveMonthToBackend();
               }
-            });
-            if (recovered) {
-              autoSaveMonthToBackend();
             }
-          }
-        } catch(e) {}
+          } catch(e) {}
+        }
       }
 
       recalculateMonthlySummary();
@@ -2151,6 +2155,7 @@ async function saveTabProfile() {
         e.from_loc = newHq;
       }
     });
+    saveLocalDraft();
   }
 
   updateProfileDisplay(updatedProf);
@@ -2377,6 +2382,7 @@ async function saveProfileModal() {
         e.from_loc = newHq;
       }
     });
+    saveLocalDraft();
   }
   
   updateProfileDisplay(updatedProf);
@@ -2575,6 +2581,8 @@ function applyBatchFill() {
   hideModal('batchModal');
   recalculateMonthlySummary();
   renderActiveMonth();
+  saveLocalDraft();
+  autoSaveMonthToBackend();
   showToast(`${count} दिवसांसाठी सामूहिक नोंद लागू केली!`);
 }
 
@@ -2625,10 +2633,85 @@ async function submitNewMonth() {
       try { localStorage.setItem('gsda_sheets', JSON.stringify(appState.sheets)); } catch(e){}
       populateMonthDropdown(appState.sheets);
     }
+
+    // Check if draft already exists; if not, generate empty month template for offline use
+    let draftStr = localStorage.getItem(`gsda_draft_${targetSheetName}`);
+    if (!draftStr) {
+      const yNum = parseInt(year, 10);
+      const mNum = parseInt(month, 10);
+      const numDays = new Date(yNum, mNum, 0).getDate();
+      const marathiDays = ['रविवार', 'सोमवार', 'मंगळवार', 'बुधवार', 'गुरुवार', 'शुक्रवार', 'शनिवार'];
+      const entries = [];
+      const hq = (appState.profile && appState.profile.headquarters) || 'सोलापूर';
+      for (let d = 1; d <= numDays; d++) {
+        const dateObj = new Date(yNum, mNum - 1, d);
+        const dayName = marathiDays[dateObj.getDay()];
+        const dateStr = `${yNum}-${String(mNum).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isSunday = dateObj.getDay() === 0;
+        entries.push({
+          row_index: 4 + d,
+          date: dateStr,
+          day: dayName,
+          weekday_marathi: dayName,
+          from_loc: hq,
+          from_time: '-',
+          to_loc: '-',
+          to_time: '-',
+          travel_mode: '-',
+          distance_km: '-',
+          travel_fare: '-',
+          work_detail: isSunday ? 'रविवार - साप्ताहिक सुट्टी' : 'कार्यालयात उपस्थित, कार्यालयीन कामकाज केले.',
+          total: '1',
+          holiday: isSunday ? '1' : '',
+          leave: '',
+          tour: '',
+          meeting: '',
+          training: '',
+          wells: '',
+          borewells: '',
+          scheme: '',
+          villages: '',
+          cases: '',
+          travel_mode2: '',
+          from_loc2: '',
+          from_time2: '',
+          to_loc2: '',
+          to_time2: '',
+          distance_km2: '',
+          travel_fare2: ''
+        });
+      }
+      const newMonthData = {
+        sheet_name: targetSheetName,
+        title: targetTitle,
+        submission_date: '',
+        entries: entries,
+        field_progress: (appState.constants ? appState.constants.standard_schemes : []).map((s, idx) => ({
+          scheme: s,
+          villages: '-',
+          cases: '-',
+          row_index: 37 + idx
+        })),
+        summary: {
+          total_days: numDays,
+          office_days: numDays,
+          tour_days: 0,
+          holiday_days: 0,
+          meeting_days: 0,
+          leave_days: 0,
+          training_days: 0,
+          total_wells: 0,
+          total_borewells: 0,
+          total_travel_km: 0
+        }
+      };
+      try { localStorage.setItem(`gsda_draft_${targetSheetName}`, JSON.stringify(newMonthData)); } catch(e){}
+    }
+
     hideModal('newMonthModal');
     monthSelect.value = targetSheetName;
     await loadMonthData(targetSheetName);
-    showToast(`${targetTitle} महिना उघडला!`);
+    showToast(`${targetTitle} महिना तयार केला!`);
   }
 
   submitBtn.disabled = false;
@@ -2652,6 +2735,7 @@ async function saveAllToExcel() {
 
   saveLocalDraft();
 
+  let savedViaBackend = false;
   try {
     const res = await fetch(`/api/month/${encodeURIComponent(appState.currentSheetName)}/save`, {
       method: 'POST',
@@ -2661,23 +2745,29 @@ async function saveAllToExcel() {
     if (res.ok) {
       const result = await res.json();
       if (result.success) {
+        savedViaBackend = true;
         showToast('Excel मध्ये डेटा यशस्वीरीत्या जतन (Saved) झाला!');
         const pathEl = document.getElementById('savedPathDisplay');
         if (pathEl) {
           pathEl.textContent = result.file_path || 'G:\\Diary\\Diary_Blank.xlsx';
         }
         showModal('saveSuccessModal');
-        btn.innerHTML = originalHtml;
-        btn.disabled = false;
-        return;
       }
     }
   } catch (err) {
     console.warn('Backend Excel save offline fallback:', err);
   }
 
-  // Offline / GitHub fallback
-  showToast('सर्व बदल ब्राऊझर मेमरीमध्ये सुरक्षित जतन झाले!');
+  if (!savedViaBackend) {
+    // Offline / GitHub fallback: save to localStorage + show modal with download options
+    showToast('सर्व नोंदी व बदल ब्राऊझर मेमरीमध्ये सुरक्षित जतन झाले!');
+    const pathEl = document.getElementById('savedPathDisplay');
+    if (pathEl) {
+      pathEl.textContent = 'ब्राउझर ऑफलाईन मेमरी (सर्व नोंदी सुरक्षित जतन आहेत)';
+    }
+    showModal('saveSuccessModal');
+  }
+
   btn.innerHTML = originalHtml;
   btn.disabled = false;
 }
@@ -2719,23 +2809,39 @@ async function saveToCustomFolder() {
       console.warn('API download-excel unavailable, generating via SheetJS:', netErr);
     }
 
-    // 3. Fallback: Client-side SheetJS generation
+    // 3. Fallback: Client-side SheetJS generation with complete columns
     if (!blob && window.XLSX && appState.monthData && appState.monthData.entries) {
       const wb = XLSX.utils.book_new();
       const exportRows = appState.monthData.entries.map((e, idx) => ({
         'अ.क्र.': idx + 1,
         'दिनांक': e.date || '',
-        'वार': e.day || '',
+        'वार': e.day || e.weekday_marathi || '',
+        'कुठून (प्रस्थान)': e.from_loc || '',
+        'वेळ (निघाल्याची)': e.from_time || '',
+        'कुठे (मुक्काम/ठिकाण)': e.to_loc || '',
+        'वेळ (पोहोचल्याची)': e.to_time || '',
         'वाहनाचा प्रकार': e.travel_mode || '',
-        'कुठून': e.from_loc || '',
-        'वेळ': e.from_time || '',
-        'कुठे': e.to_loc || '',
-        'वेळ २': e.to_time || '',
         'अंतर (कि.मी.)': e.distance_km || '',
         'प्रवास भाडे (रु.)': e.travel_fare || '',
         'कामाचा तपशील': e.work_detail || '',
+        'एकूण दिवस': e.total || '',
+        'सुट्टी': e.holiday || '',
+        'रजा': e.leave || '',
+        'दौरा': e.tour || '',
+        'मुख्यालय/बैठक': e.meeting || '',
+        'प्रशिक्षण': e.training || '',
+        'विहिरी': e.wells || '',
+        'विंधण विहिरी': e.borewells || '',
         'योजना': e.scheme || '',
-        'गावे': e.villages || ''
+        'गावे': e.villages || '',
+        'प्रकरणे': e.cases || '',
+        'परतीचा प्रवास प्रकार': e.travel_mode2 || '',
+        'परतीचे कुठून': e.from_loc2 || '',
+        'परतीची निघाल्याची वेळ': e.from_time2 || '',
+        'परतीचे कुठे': e.to_loc2 || '',
+        'परतीची पोहोचल्याची वेळ': e.to_time2 || '',
+        'परतीचे अंतर (कि.मी.)': e.distance_km2 || '',
+        'परतीचे भाडे (रु.)': e.travel_fare2 || ''
       }));
       const ws = XLSX.utils.json_to_sheet(exportRows);
       XLSX.utils.book_append_sheet(wb, ws, appState.currentSheetName || 'दैनंदिनी');
@@ -2771,11 +2877,12 @@ async function saveToCustomFolder() {
         URL.revokeObjectURL(url);
         if (a.parentNode) a.parentNode.removeChild(a);
       }, 1000);
-      showToast('फाईल डाउनलोड झाली! आपल्या Download फोल्डरमधून हव्या तिथे सेव्ह करू शकता.');
+      showToast('Excel फाईल यशस्वीरीत्या डाउनलोड झाली!');
     }
   } catch (err) {
-    if (err.name !== 'AbortError') {
-      showToast('फाईल सेव्ह त्रुटी: ' + err.message, 'error');
+    if (err && err.name !== 'AbortError') {
+      console.error('Error saving Excel:', err);
+      showToast('Excel सेव्ह करताना त्रुटी: ' + err.message, 'error');
     }
   }
 }
@@ -2885,6 +2992,16 @@ async function autoSaveMonthToBackend() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(appState.monthData)
     });
+    if (!res.ok) {
+      // Offline / GitHub static mode - silent fallback
+      const timeStr = new Date().toLocaleTimeString('mr-IN', { hour: '2-digit', minute: '2-digit' });
+      if (indicator) indicator.classList.remove('hidden');
+      if (autoSaveText) {
+        autoSaveText.textContent = `सर्व बदल आपोआप जतन (${timeStr})`;
+        autoSaveText.classList.remove('text-red-500');
+      }
+      return;
+    }
     const result = await res.json();
     if (result.success) {
       console.log('Background Excel save successful.');
