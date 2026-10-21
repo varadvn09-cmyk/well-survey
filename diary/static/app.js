@@ -454,6 +454,7 @@ function recalculateMonthlySummary() {
   
   const office = Math.max(0, total - (holiday + tour + leave));
   
+  const existingSum = appState.monthData.summary || {};
   appState.monthData.summary = {
     total_days: total,
     office_days: office,
@@ -464,7 +465,9 @@ function recalculateMonthlySummary() {
     training_days: training,
     total_wells: wells,
     total_borewells: borewells,
-    total_travel_km: km
+    total_travel_km: km,
+    night_halt_days: (typeof existingSum.night_halt_days !== 'undefined') ? existingSum.night_halt_days : 0,
+    show_night_halt: (typeof existingSum.show_night_halt !== 'undefined') ? existingSum.show_night_halt : false
   };
 
   // Sync to field_progress if daily entries have progress
@@ -501,6 +504,12 @@ function renderSummaryCards() {
   document.getElementById('sumWells').textContent = sum.total_wells;
   document.getElementById('sumBorewells').textContent = sum.total_borewells;
   document.getElementById('sumTravelKm').textContent = sum.total_travel_km.toFixed(1) + ' कि.मी.';
+
+  // Night Halt input & checkbox
+  const inpHalt = document.getElementById('inputNightHaltDays');
+  if (inpHalt) inpHalt.value = sum.night_halt_days || 0;
+  const cbHalt = document.getElementById('checkShowNightHalt');
+  if (cbHalt) cbHalt.checked = !!sum.show_night_halt;
   
   // Table Footer Totals
   document.getElementById('tfootTotalDays').textContent = sum.total_days;
@@ -513,6 +522,18 @@ function renderSummaryCards() {
   document.getElementById('tfootTotalBorewells').textContent = sum.total_borewells;
   document.getElementById('tfootTotalKm').textContent = sum.total_travel_km.toFixed(0);
 }
+
+function updateNightHaltSettings() {
+  if (!appState.monthData) return;
+  if (!appState.monthData.summary) appState.monthData.summary = {};
+  const inpHalt = document.getElementById('inputNightHaltDays');
+  const cbHalt = document.getElementById('checkShowNightHalt');
+  appState.monthData.summary.night_halt_days = inpHalt ? parseInt(inpHalt.value, 10) || 0 : 0;
+  appState.monthData.summary.show_night_halt = cbHalt ? cbHalt.checked : false;
+  saveLocalDraft();
+  renderPrintView();
+}
+window.updateNightHaltSettings = updateNightHaltSettings;
 
 // Render Mobile Card View
 function renderMobileCards() {
@@ -1062,14 +1083,20 @@ function renderPrintView() {
   // 1-Page Monthly summary print (Rows 36-43 Right)
   const sumBody = document.getElementById('printSummaryBody');
   if (sumBody) {
-    sumBody.innerHTML = `
+    let sumHtml = `
       <tr><td class="border border-black p-0.5">महिन्याचे एकूण दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.total_days}</td></tr>
       <tr><td class="border border-black p-0.5">कार्यालयीन कामकाजाचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.office_days}</td></tr>
       <tr><td class="border border-black p-0.5">सर्वेक्षणास्तव फिरतीचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.tour_days}</td></tr>
+    `;
+    if (sum.show_night_halt) {
+      sumHtml += `<tr><td class="border border-black p-0.5 text-orange-950 font-bold bg-orange-50/50">दौऱ्यातील मुक्कामाचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.night_halt_days || 0}</td></tr>`;
+    }
+    sumHtml += `
       <tr><td class="border border-black p-0.5">शासकीय सुट्टीचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.holiday_days}</td></tr>
       <tr><td class="border border-black p-0.5">प्रशिक्षण / कार्यशाळा दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.training_days}</td></tr>
       <tr><td class="border border-black p-0.5">रजेचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.leave_days}</td></tr>
     `;
+    sumBody.innerHTML = sumHtml;
   }
 
   // ========================================================
@@ -1077,15 +1104,28 @@ function renderPrintView() {
   // ========================================================
   const p2SumBody = document.getElementById('printP2SummaryBody');
   if (p2SumBody) {
-    p2SumBody.innerHTML = `
-      <tr class="h-6"><td class="border border-black p-1 text-center font-mono">1</td><td class="border border-black p-1 text-left pl-2.5 font-semibold">महिन्यातील एकुण दिवस</td><td class="border border-black p-1 text-center font-bold font-mono">${sum.total_days}</td><td class="border border-black p-1 text-center font-mono">-</td></tr>
-      <tr class="h-6"><td class="border border-black p-1 text-center font-mono">2</td><td class="border border-black p-1 text-left pl-2.5 font-semibold">फिरतीचे दिवस</td><td class="border border-black p-1 text-center font-bold font-mono">${sum.tour_days}</td><td class="border border-black p-1 text-center font-mono">-</td></tr>
-      <tr class="h-6"><td class="border border-black p-1 text-center font-mono">3</td><td class="border border-black p-1 text-left pl-2.5 font-semibold">कार्यालयीन कामाचे दिवस</td><td class="border border-black p-1 text-center font-bold font-mono">${sum.office_days}</td><td class="border border-black p-1 text-center font-mono">-</td></tr>
-      <tr class="h-6"><td class="border border-black p-1 text-center font-mono">4</td><td class="border border-black p-1 text-left pl-2.5 font-semibold">मुक्कामाचे दिवस</td><td class="border border-black p-1 text-center font-bold font-mono">0</td><td class="border border-black p-1 text-center font-mono">-</td></tr>
-      <tr class="h-6"><td class="border border-black p-1 text-center font-mono">5</td><td class="border border-black p-1 text-left pl-2.5 font-semibold">रजेचे दिवस</td><td class="border border-black p-1 text-center font-bold font-mono">${sum.leave_days}</td><td class="border border-black p-1 text-center font-mono">-</td></tr>
-      <tr class="h-6"><td class="border border-black p-1 text-center font-mono">6</td><td class="border border-black p-1 text-left pl-2.5 font-semibold">सुट्टीचे दिवस</td><td class="border border-black p-1 text-center font-bold font-mono">${sum.holiday_days}</td><td class="border border-black p-1 text-center font-mono">-</td></tr>
-      <tr class="h-6"><td class="border border-black p-1 text-center font-mono">7</td><td class="border border-black p-1 text-left pl-2.5 font-semibold">प्रशिक्षण/ कार्यशाळा दिवस</td><td class="border border-black p-1 text-center font-bold font-mono">${sum.training_days}</td><td class="border border-black p-1 text-center font-mono">-</td></tr>
-    `;
+    const summaryItems = [
+      { label: 'महिन्यातील एकुण दिवस', val: sum.total_days },
+      { label: 'फिरतीचे दिवस', val: sum.tour_days },
+      { label: 'कार्यालयीन कामाचे दिवस', val: sum.office_days }
+    ];
+    if (sum.show_night_halt) {
+      summaryItems.push({ label: 'मुक्कामाचे दिवस', val: sum.night_halt_days || 0 });
+    }
+    summaryItems.push(
+      { label: 'रजेचे दिवस', val: sum.leave_days },
+      { label: 'सुट्टीचे दिवस', val: sum.holiday_days },
+      { label: 'प्रशिक्षण/ कार्यशाळा दिवस', val: sum.training_days }
+    );
+
+    p2SumBody.innerHTML = summaryItems.map((item, idx) => `
+      <tr class="h-6">
+        <td class="border border-black p-1 text-center font-mono">${idx + 1}</td>
+        <td class="border border-black p-1 text-left pl-2.5 font-semibold">${item.label}</td>
+        <td class="border border-black p-1 text-center font-bold font-mono">${item.val}</td>
+        <td class="border border-black p-1 text-center font-mono">-</td>
+      </tr>
+    `).join('');
   }
 
   const p2ProgBody = document.getElementById('printP2ProgressBody');
@@ -1094,11 +1134,15 @@ function renderPrintView() {
     progressList.forEach((p, idx) => {
       const ptr = document.createElement('tr');
       ptr.className = 'h-6';
-      const isMapsheet = p.scheme && (p.scheme.includes('1:10') || p.scheme.includes('Mapsheet') || p.scheme.includes('mapsheet') || p.scheme.includes('नकाशा'));
+      let schemeName = p.scheme || '';
+      if (schemeName === 'प्रयोगशाळा' || schemeName.includes('प्रयोगशाळा')) {
+        schemeName = 'प्रयोगशाळा तपासणी';
+      }
+      const isMapsheet = schemeName && (schemeName.includes('1:10') || schemeName.includes('Mapsheet') || schemeName.includes('mapsheet') || schemeName.includes('नकाशा'));
       ptr.innerHTML = `
         <td class="border border-black p-1 text-center font-mono">${idx + 1}</td>
         <td class="border border-black p-1 text-left ${isMapsheet ? 'font-bold' : ''}">
-          ${p.scheme}
+          ${schemeName}
         </td>
         <td class="border border-black p-1 font-mono text-center font-semibold">${p.villages || '-'}</td>
         <td class="border border-black p-1 font-mono text-center font-semibold">${p.cases || '-'}</td>
@@ -4149,19 +4193,30 @@ function generateGovernmentStyledSheet(mdata, prof) {
   const summaryRows = [
     { label: 'महिन्याचे एकूण दिवस', val: sum.total_days !== undefined ? sum.total_days : 31 },
     { label: 'कार्यालयीन कामकाजाचे दिवस', val: sum.office_days !== undefined ? sum.office_days : 0 },
-    { label: 'सर्वेक्षणास्तव फिरतीचे दिवस', val: sum.tour_days !== undefined ? sum.tour_days : 0 },
+    { label: 'सर्वेक्षणास्तव फिरतीचे दिवस', val: sum.tour_days !== undefined ? sum.tour_days : 0 }
+  ];
+  if (sum.show_night_halt) {
+    summaryRows.push({ label: 'मुक्कामाचे दिवस', val: sum.night_halt_days || 0 });
+  }
+  summaryRows.push(
     { label: 'शासकीय व साप्ताहिक सुट्टी', val: sum.holiday_days !== undefined ? sum.holiday_days : 0 },
     { label: 'प्रशिक्षण / कार्यशाळा दिवस', val: sum.training_days !== undefined ? sum.training_days : 0 },
     { label: 'रजेचे दिवस', val: sum.leave_days !== undefined ? sum.leave_days : 0 }
-  ];
+  );
 
-  for (let idx = 0; idx < 6; idx++) {
+  const rowCount = Math.max(fpList.length, summaryRows.length, 6);
+  for (let idx = 0; idx < rowCount; idx++) {
     const r = 36 + idx;
     const fp = fpList[idx] || { scheme: '-', villages: '-', cases: '-' };
     const sm = summaryRows[idx] || { label: '-', val: '-' };
 
+    let schemeName = fp.scheme || '-';
+    if (schemeName === 'प्रयोगशाळा' || schemeName.includes('प्रयोगशाळा')) {
+      schemeName = 'प्रयोगशाळा तपासणी';
+    }
+
     // Left: Scheme (Cols A to D merged)
-    setCell(r, 0, fp.scheme || '-', styleCellLeft);
+    setCell(r, 0, schemeName, styleCellLeft);
     setCell(r, 1, '', styleCellLeft);
     setCell(r, 2, '', styleCellLeft);
     setCell(r, 3, '', styleCellLeft);
@@ -4253,7 +4308,10 @@ function generateGovernmentStyledSheet(mdata, prof) {
 
   ws['!merges'] = merges;
   ws['!ref'] = 'A1:R53';
-  ws['!pageSetup'] = { orientation: 'portrait', paperSize: 9, fitToWidth: 1, fitToHeight: 1 };
+  // 2-Page Clean Print setup in Excel: Horizontal Page Break after Row 35
+  ws['!pageBreaks'] = { row: [35] };
+  ws['!pageSetup'] = { orientation: 'portrait', paperSize: 9, fitToWidth: 1, fitToHeight: 2, fitToPage: true };
+  ws['!margins'] = { left: 0.35, right: 0.35, top: 0.75, bottom: 0.45, header: 0.3, footer: 0.3 };
 
   return ws;
 }
@@ -4287,7 +4345,7 @@ async function getMonthDataDirect(sheetName) {
   return null;
 }
 
-// Reusable HTML Generator for 1-Page A4 Print View
+// Reusable HTML Generator for 2-Page Route 1 Official A4 Print View
 function buildMonthPrintHtml(mdata, prof) {
   prof = prof || appState.profile || {};
   const entries = mdata.entries || [];
@@ -4299,19 +4357,18 @@ function buildMonthPrintHtml(mdata, prof) {
   const officerSalary = prof.salary || '६४०००/-';
   const subDate = mdata.submission_date || '05/08/2026';
 
-  let rowsHtml = '';
-  entries.forEach((e, idx) => {
+  const formatLocationNames = (loc) => {
+    if (!loc || loc === '-') return '-';
+    return String(loc).replace(/,([^\s])/g, ', $1').replace(/\s+/g, ' ').trim();
+  };
+
+  const renderSingleRow = (e) => {
     let dateDisplay = '';
     if (e.date) {
       const d = e.date.split(' ')[0];
       const p = d.split('-');
       dateDisplay = p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : d;
     }
-
-    const formatLocationNames = (loc) => {
-      if (!loc || loc === '-') return '-';
-      return String(loc).replace(/,([^\s])/g, ', $1').replace(/\s+/g, ' ').trim();
-    };
 
     let fromDisp = isHeadquartersLocation(e.from_loc) ? getActiveHQ() : (e.from_loc || '-');
     let fromTimeDisp = formatTimeDisplay(e.from_time);
@@ -4338,7 +4395,7 @@ function buildMonthPrintHtml(mdata, prof) {
       const f2 = (e.travel_fare2 && e.travel_fare2 !== '-') ? `+${e.travel_fare2}` : '-';
       fareDisp = `<div class="rt-cell"><div class="rt-leg1 font-mono">${fareDisp}</div><div class="rt-leg2 font-mono">${f2}</div></div>`;
 
-      rowsHtml += `
+      return `
         <tr class="text-center rt-tr">
           <td class="border border-black p-0.5 whitespace-nowrap font-mono text-[9px] text-center">${dateDisplay}</td>
           <td class="rt-td border border-black text-center">${fromDisp}</td>
@@ -4352,7 +4409,7 @@ function buildMonthPrintHtml(mdata, prof) {
         </tr>
       `;
     } else {
-      rowsHtml += `
+      return `
         <tr class="text-center">
           <td class="border border-black p-0.5 whitespace-nowrap font-mono text-[9px] text-center">${dateDisplay}</td>
           <td class="border border-black p-0.5 text-center break-words">${cleanFrom}</td>
@@ -4366,7 +4423,18 @@ function buildMonthPrintHtml(mdata, prof) {
         </tr>
       `;
     }
-  });
+  };
+
+  // Route 1 (मार्ग १) Split: Days 1-28 on Page 1, remaining (29-31) on Page 2 with Goshwara
+  let page1Entries = entries;
+  let page2Entries = [];
+  if (entries.length > 28) {
+    page1Entries = entries.slice(0, 28);
+    page2Entries = entries.slice(28);
+  }
+
+  const page1RowsHtml = page1Entries.map(e => renderSingleRow(e)).join('');
+  const page2RowsHtml = page2Entries.map(e => renderSingleRow(e)).join('');
 
   const progressList = mdata.field_progress && mdata.field_progress.length > 0
     ? mdata.field_progress
@@ -4374,10 +4442,14 @@ function buildMonthPrintHtml(mdata, prof) {
 
   let progHtml = '';
   progressList.forEach(p => {
-    const isMapsheet = p.scheme && (p.scheme.includes('1:10') || p.scheme.includes('Mapsheet') || p.scheme.includes('नकाशा'));
+    let sName = p.scheme || '';
+    if (sName === 'प्रयोगशाळा' || sName.includes('प्रयोगशाळा')) {
+      sName = 'प्रयोगशाळा तपासणी';
+    }
+    const isMapsheet = sName && (sName.includes('1:10') || sName.includes('Mapsheet') || sName.includes('नकाशा'));
     progHtml += `
       <tr>
-        <td class="border border-black p-0.5 text-left ${isMapsheet ? 'font-bold' : ''}">${p.scheme}</td>
+        <td class="border border-black p-0.5 text-left ${isMapsheet ? 'font-bold' : ''}">${sName}</td>
         <td class="border border-black p-0.5 font-mono text-center font-semibold">${p.villages || '-'}</td>
         <td class="border border-black p-0.5 font-mono text-center font-semibold">${p.cases || '-'}</td>
       </tr>
@@ -4390,120 +4462,180 @@ function buildMonthPrintHtml(mdata, prof) {
     tour_days: 0,
     holiday_days: 0,
     training_days: 0,
-    leave_days: 0
+    leave_days: 0,
+    night_halt_days: 0,
+    show_night_halt: false
   };
 
-  const sumHtml = `
+  let sumHtml = `
     <tr><td class="border border-black p-0.5">महिन्याचे एकूण दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.total_days}</td></tr>
     <tr><td class="border border-black p-0.5">कार्यालयीन कामकाजाचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.office_days}</td></tr>
     <tr><td class="border border-black p-0.5">सर्वेक्षणास्तव फिरतीचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.tour_days}</td></tr>
+  `;
+  if (sum.show_night_halt) {
+    sumHtml += `<tr><td class="border border-black p-0.5 text-orange-950 font-bold bg-orange-50/50">दौऱ्यातील मुक्कामाचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.night_halt_days || 0}</td></tr>`;
+  }
+  sumHtml += `
     <tr><td class="border border-black p-0.5">शासकीय सुट्टीचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.holiday_days}</td></tr>
     <tr><td class="border border-black p-0.5">प्रशिक्षण / कार्यशाळा दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.training_days}</td></tr>
     <tr><td class="border border-black p-0.5">रजेचे दिवस</td><td class="border border-black p-0.5 text-center font-bold font-mono w-12">${sum.leave_days}</td></tr>
   `;
 
   return `
-    <div class="text-center pb-0.5" style="margin-bottom: 2px;">
-      <h2 class="text-sm font-bold underline">
-        ${mdata.title || 'माहे ची दैनंदिनी'}
-      </h2>
-    </div>
+    <div class="print-month-break font-marathi">
+      <!-- PAGE 1: DIARY ENTRIES (DAYS 1-28) -->
+      <div class="print-document bg-white p-4 sm:p-5 rounded-xl border border-black font-marathi text-black mode-2page" style="page-break-after: always; break-after: page;">
+        <div class="text-center pb-0.5" style="margin-bottom: 2px;">
+          <h2 class="text-sm font-bold underline font-marathi tracking-wide">
+            ${mdata.title || 'माहे ची दैनंदिनी'}
+          </h2>
+        </div>
 
-    <div class="flex justify-between items-center text-[10px] pb-1 px-1 font-semibold border-b border-black">
-      <span>नाव- ${officerName}</span>
-      <span>पदनाम- ${officerDesig}</span>
-      <span>लेखाशीर्ष- ${officerBudget}</span>
-      <span>वेतन:${officerSalary}</span>
-    </div>
+        <div class="flex justify-between items-center text-[10px] pb-1 px-1 font-semibold border-b border-black">
+          <span>नाव- ${officerName}</span>
+          <span>पदनाम- ${officerDesig}</span>
+          <span>लेखाशीर्ष- ${officerBudget}</span>
+          <span>वेतन:${officerSalary}</span>
+        </div>
 
-    <table class="w-full border-collapse border border-black print-table-a1j text-[10px] my-0.5" style="table-layout: fixed; width: 100%;">
-      <colgroup>
-        <col style="width: 9.5%;">
-        <col style="width: 9.0%;">
-        <col style="width: 5.0%;">
-        <col style="width: 20.5%;">
-        <col style="width: 5.0%;">
-        <col style="width: 10.0%;">
-        <col style="width: 6.5%;">
-        <col style="width: 5.5%;">
-        <col style="width: 29.0%;">
-      </colgroup>
-      <thead>
-        <tr class="bg-slate-100 text-center font-bold">
-          <th rowspan="2" class="border border-black p-0.5">दिनांक</th>
-          <th colspan="2" class="border border-black p-0.5">निघण्याचे</th>
-          <th colspan="2" class="border border-black p-0.5">पोहचण्याचे</th>
-          <th rowspan="2" class="border border-black p-0.5">प्रवासाचे साधन</th>
-          <th rowspan="2" class="border border-black p-0.5">प्रवासाचे अंतर कि. मी.</th>
-          <th rowspan="2" class="border border-black p-0.5">प्रवास भाडे रुपये</th>
-          <th rowspan="2" class="border border-black p-0.5 text-left">कामाचे तपशील / प्रवासाचे कारण</th>
-        </tr>
-        <tr class="bg-slate-100 text-center font-bold">
-          <th class="border border-black p-0.5">ठिकाण</th>
-          <th class="border border-black p-0.5">वेळ</th>
-          <th class="border border-black p-0.5">ठिकाण</th>
-          <th class="border border-black p-0.5">वेळ</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rowsHtml}
-      </tbody>
-    </table>
+        <table class="w-full border-collapse border border-black print-table-a1j text-[10px] my-0.5" style="table-layout: fixed; width: 100%;">
+          <colgroup>
+            <col style="width: 9.5%;">
+            <col style="width: 9.0%;">
+            <col style="width: 5.0%;">
+            <col style="width: 20.5%;">
+            <col style="width: 5.0%;">
+            <col style="width: 10.0%;">
+            <col style="width: 6.5%;">
+            <col style="width: 5.5%;">
+            <col style="width: 29.0%;">
+          </colgroup>
+          <thead>
+            <tr class="bg-slate-100 text-center font-bold">
+              <th rowspan="2" class="border border-black p-0.5">दिनांक</th>
+              <th colspan="2" class="border border-black p-0.5">निघण्याचे</th>
+              <th colspan="2" class="border border-black p-0.5">पोहचण्याचे</th>
+              <th rowspan="2" class="border border-black p-0.5">प्रवासाचे साधन</th>
+              <th rowspan="2" class="border border-black p-0.5">प्रवासाचे अंतर कि. मी.</th>
+              <th rowspan="2" class="border border-black p-0.5">प्रवास भाडे रुपये</th>
+              <th rowspan="2" class="border border-black p-0.5 text-left">कामाचे तपशील / प्रवासाचे कारण</th>
+            </tr>
+            <tr class="bg-slate-100 text-center font-bold">
+              <th class="border border-black p-0.5">ठिकाण</th>
+              <th class="border border-black p-0.5">वेळ</th>
+              <th class="border border-black p-0.5">ठिकाण</th>
+              <th class="border border-black p-0.5">वेळ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${page1RowsHtml}
+          </tbody>
+        </table>
 
-    <div>
-      <div class="print-bottom-grid grid grid-cols-2 gap-2 text-[9.5px] mt-1 border-t border-black pt-1">
-        <div>
-          <div class="font-bold text-center bg-slate-100 border border-black p-0.5">क्षे्त्रिय प्रगती</div>
-          <table class="w-full border-collapse border border-black text-center">
+        <div class="flex justify-end text-[9px] font-bold pr-2 mt-1">
+          <span>(${officerName}) ${officerDesig}</span>
+        </div>
+      </div>
+
+      <!-- PAGE 2: CONTINUATION DAYS (IF ANY) + GOSHAWARA & PROGRESS (TOP MARGIN 18MM FOR TAGGING) -->
+      <div class="print-document bg-white p-4 sm:p-5 rounded-xl border border-black font-marathi text-black page2-container" style="page-break-before: always; break-before: page; padding-top: 18mm !important;">
+        ${page2Entries.length > 0 ? `
+          <div class="print-continuation-header">माहे ${mdata.title || 'दैनंदिनी'} (पान २ - पुढे चालू...)</div>
+          <table class="w-full border-collapse border border-black print-table-a1j text-[10px] my-1" style="table-layout: fixed; width: 100%;">
+            <colgroup>
+              <col style="width: 9.5%;">
+              <col style="width: 9.0%;">
+              <col style="width: 5.0%;">
+              <col style="width: 20.5%;">
+              <col style="width: 5.0%;">
+              <col style="width: 10.0%;">
+              <col style="width: 6.5%;">
+              <col style="width: 5.5%;">
+              <col style="width: 29.0%;">
+            </colgroup>
             <thead>
-              <tr class="font-semibold bg-slate-50">
-                <th class="border border-black p-0.5 text-left">योजना प्रकार</th>
-                <th class="border border-black p-0.5 w-14">गावे/न.प.</th>
-                <th class="border border-black p-0.5 w-14">प्रकरणे/विहिरी</th>
+              <tr class="bg-slate-100 text-center font-bold">
+                <th rowspan="2" class="border border-black p-0.5">दिनांक</th>
+                <th colspan="2" class="border border-black p-0.5">निघण्याचे</th>
+                <th colspan="2" class="border border-black p-0.5">पोहचण्याचे</th>
+                <th rowspan="2" class="border border-black p-0.5">प्रवासाचे साधन</th>
+                <th rowspan="2" class="border border-black p-0.5">प्रवासाचे अंतर कि. मी.</th>
+                <th rowspan="2" class="border border-black p-0.5">प्रवास भाडे रुपये</th>
+                <th rowspan="2" class="border border-black p-0.5 text-left">कामाचे तपशील / प्रवासाचे कारण</th>
+              </tr>
+              <tr class="bg-slate-100 text-center font-bold">
+                <th class="border border-black p-0.5">ठिकाण</th>
+                <th class="border border-black p-0.5">वेळ</th>
+                <th class="border border-black p-0.5">ठिकाण</th>
+                <th class="border border-black p-0.5">वेळ</th>
               </tr>
             </thead>
             <tbody>
-              ${progHtml}
+              ${page2RowsHtml}
             </tbody>
           </table>
+        ` : ''}
+
+        <div class="text-center mt-2 mb-2">
+          <h2 class="text-sm font-bold underline font-marathi tracking-wide mb-1">मासिक दैनंदिनीचा गोषवारा व क्षेत्रीय प्रगती</h2>
+          <div class="flex justify-between items-center font-bold border-b border-black pb-1 text-[10px]">
+            <span>नाव : ${officerName}</span>
+            <span>पदनाम : ${officerDesig}</span>
+            <span>${officerDept}</span>
+          </div>
         </div>
 
-        <div>
-          <div class="font-bold text-center bg-slate-100 border border-black p-0.5">मासिक गोषवारा</div>
-          <table class="w-full border-collapse border border-black text-left">
-            <tbody>
-              ${sumHtml}
-            </tbody>
-          </table>
-          <div class="text-center font-bold" style="margin-top: 4px; padding-top: 2px; font-size: 8px; line-height: 1.15; white-space: nowrap;">
+        <div class="grid grid-cols-2 gap-2 text-[9.5px] mt-2">
+          <div>
+            <div class="font-bold text-center bg-slate-100 border border-black p-0.5">क्षे्त्रिय प्रगती</div>
+            <table class="w-full border-collapse border border-black text-center">
+              <thead>
+                <tr class="font-semibold bg-slate-50">
+                  <th class="border border-black p-0.5 text-left">योजना प्रकार</th>
+                  <th class="border border-black p-0.5 w-14">गावे/न.प.</th>
+                  <th class="border border-black p-0.5 w-14">प्रकरणे/विहिरी</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${progHtml}
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <div class="font-bold text-center bg-slate-100 border border-black p-0.5">मासिक गोषवारा</div>
+            <table class="w-full border-collapse border border-black text-left">
+              <tbody>
+                ${sumHtml}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="text-[9px] mt-2 pt-1 border-t border-black font-semibold" style="line-height: 1.3;">
+          <p class="font-bold">प्रति,</p>
+          <p>मा. वरिष्ठ भूवैज्ञानिक, ${officerDept} यांना माहितीस्तव व मंजूरीस्तव सविनय सादर.</p>
+        </div>
+
+        <div class="flex justify-between items-end text-[9px] mt-3 font-bold px-1" style="min-height: 38px;">
+          <div>
+            <div class="flex items-center gap-1 font-bold">
+              <span>दिनांक:</span>
+              <span>${subDate}</span>
+            </div>
+          </div>
+          <div class="text-center" style="min-width: 200px; white-space: nowrap; line-height: 1.25; font-size: 8.5px;">
+            <p>आपला विश्वासु,</p>
+            <div style="height: 12px;"></div>
             <p>(${officerName})</p>
-            <p>${officerDesig}</p>
+            <p>${officerDesig}, ${officerHq}</p>
             <p>${officerDept}</p>
           </div>
         </div>
       </div>
-
-      <div class="text-[8.5px] mt-1 pt-0.5 border-t border-black font-semibold" style="line-height: 1.2;">
-        <p class="font-bold">प्रति,</p>
-        <p>मा. वरिष्ठ भूवैज्ञानिक, ${officerDept} यांना माहितीस्तव व मंजूरीस्तव सविनय सादर.</p>
-      </div>
-
-      <div class="flex justify-between items-end text-[8.5px] mt-1 font-bold px-1" style="min-height: 44px;">
-        <div>
-          <div class="flex items-center gap-1 font-bold">
-            <span>दिनांक:</span>
-            <span>${subDate}</span>
-          </div>
-        </div>
-        <div class="text-center" style="min-width: 210px; white-space: nowrap; line-height: 1.2; font-size: 8px;">
-          <p style="white-space: nowrap;">आपला विश्वासु,</p>
-          <div style="height: 10px;"></div>
-          <p style="white-space: nowrap;">(${officerName})</p>
-          <p style="white-space: nowrap;">${officerDesig}, ${officerHq}</p>
-          <p style="white-space: nowrap;">${officerDept}</p>
-        </div>
-      </div>
     </div>
+  `;
+}
   `;
 }
 
@@ -4612,6 +4744,21 @@ async function downloadMultiMonthExcel(sheetNames) {
       return;
     }
 
+    // If batch includes March or all 12 months, automatically append Yearly Abstract sheet!
+    const hasMarch = sheetNames.some(s => {
+      const lower = s.toLowerCase();
+      return lower.includes('mar') || lower.includes('मार्च');
+    });
+    if (hasMarch || sheetNames.length >= 12) {
+      try {
+        const yaData = await generateYearlyAbstractData(prof);
+        const yaWs = buildYearlyAbstractSheetJsWorksheet(yaData, prof);
+        XLSX.utils.book_append_sheet(wb, yaWs, 'वार्षिक_गोषवारा');
+      } catch (yaErr) {
+        console.warn('Yearly abstract sheet export warning:', yaErr);
+      }
+    }
+
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const fileName = `GSDA_Diary_${addedCount}_Months_2026.xlsx`;
@@ -4667,12 +4814,22 @@ async function printMultiMonths(sheetNames) {
       const mdata = await getMonthDataDirect(sname);
       if (!mdata) continue;
 
-      const isLast = (idx === sheetNames.length - 1);
-      const pageEl = document.createElement('div');
-      pageEl.className = 'print-document bg-white p-4 sm:p-5 rounded-xl shadow-md border border-slate-400 font-marathi text-black' + (isLast ? '' : ' print-page-break');
+      const monthEl = document.createElement('div');
+      monthEl.className = 'print-month-break font-marathi';
+      monthEl.innerHTML = buildMonthPrintHtml(mdata, prof);
+      host.appendChild(monthEl);
+    }
 
-      pageEl.innerHTML = buildMonthPrintHtml(mdata, prof);
-      host.appendChild(pageEl);
+    // If batch includes March or all 12 months, append Yearly Abstract page!
+    const hasMarch = sheetNames.some(s => {
+      const lower = s.toLowerCase();
+      return lower.includes('mar') || lower.includes('मार्च');
+    });
+    if (hasMarch || sheetNames.length >= 12) {
+      const yaEl = document.createElement('div');
+      yaEl.className = 'print-month-break yearly-abstract-page font-marathi';
+      yaEl.innerHTML = await buildYearlyAbstractPrintHtml(prof);
+      host.appendChild(yaEl);
     }
 
     singleDoc.style.display = 'none';
@@ -4704,6 +4861,460 @@ async function printMultiMonths(sheetNames) {
     }
   }
 }
+
+// ========================================================
+// YEARLY ABSTRACT (वार्षिक गोषवारा - १ एप्रिल ते ३१ मार्च)
+// ========================================================
+
+async function generateYearlyAbstractData(prof) {
+  prof = prof || appState.profile || {};
+
+  const sheetsToScan = (appState.sheets && appState.sheets.length > 0)
+    ? appState.sheets.filter(s => !s.is_driver)
+    : [];
+
+  const monthlyBreakdown = [];
+  const schemeTotals = {};
+  const standardSchemes = [
+    'स्थानिक भूजल सर्वेक्षण (स्था.भू.)',
+    'अटल भूजल योजना /जलयुक्त शिवार अभियान',
+    'निरीक्षण विहीरींची वाचने',
+    'वाळू/खाणपट्टा सर्वेक्षण',
+    'भूजल मूल्यांकन माहिती',
+    'प्रयोगशाळा तपासणी',
+    'न.पा.पु.सर्वेक्षण',
+    'टांचाई अंतर्गत सर्वेक्षण',
+    'तांत्रिक सर्वेक्षण',
+    '1:10K Mapsheet'
+  ];
+
+  standardSchemes.forEach(s => {
+    schemeTotals[s] = { villages: 0, cases: 0 };
+  });
+
+  const totals = {
+    total_days: 0,
+    office_days: 0,
+    tour_days: 0,
+    night_halt_days: 0,
+    holiday_days: 0,
+    leave_days: 0,
+    training_days: 0,
+    total_wells: 0,
+    total_borewells: 0,
+    total_travel_km: 0
+  };
+
+  let hasNightHaltAnywhere = false;
+
+  for (let idx = 0; idx < sheetsToScan.length; idx++) {
+    const s = sheetsToScan[idx];
+    const mdata = await getMonthDataDirect(s.name);
+    if (!mdata) continue;
+
+    const sum = mdata.summary || {};
+    const tDays = parseInt(sum.total_days, 10) || 0;
+    const oDays = parseInt(sum.office_days, 10) || 0;
+    const trDays = parseInt(sum.tour_days, 10) || 0;
+    const nHalt = parseInt(sum.night_halt_days, 10) || 0;
+    const showHalt = !!sum.show_night_halt;
+    if (showHalt && nHalt > 0) hasNightHaltAnywhere = true;
+    const hDays = parseInt(sum.holiday_days, 10) || 0;
+    const lDays = parseInt(sum.leave_days, 10) || 0;
+    const trnDays = parseInt(sum.training_days, 10) || 0;
+    const wells = parseInt(sum.total_wells, 10) || 0;
+    const km = parseFloat(sum.total_travel_km) || 0;
+
+    totals.total_days += tDays;
+    totals.office_days += oDays;
+    totals.tour_days += trDays;
+    totals.night_halt_days += nHalt;
+    totals.holiday_days += hDays;
+    totals.leave_days += lDays;
+    totals.training_days += trnDays;
+    totals.total_wells += wells;
+    totals.total_travel_km += km;
+
+    monthlyBreakdown.push({
+      sheetName: s.name,
+      label: s.title || s.name,
+      total_days: tDays,
+      office_days: oDays,
+      tour_days: trDays,
+      night_halt_days: nHalt,
+      show_night_halt: showHalt,
+      holiday_days: hDays,
+      leave_days: lDays,
+      training_days: trnDays,
+      wells: wells,
+      travel_km: km
+    });
+
+    if (mdata.field_progress && Array.isArray(mdata.field_progress)) {
+      mdata.field_progress.forEach(fp => {
+        let sc = fp.scheme || '';
+        if (sc === 'प्रयोगशाळा' || sc.includes('प्रयोगशाळा')) sc = 'प्रयोगशाळा तपासणी';
+        if (!schemeTotals[sc]) schemeTotals[sc] = { villages: 0, cases: 0 };
+        const v = parseInt(fp.villages, 10) || 0;
+        const c = parseInt(fp.cases, 10) || 0;
+        schemeTotals[sc].villages += v;
+        schemeTotals[sc].cases += c;
+      });
+    }
+  }
+
+  return {
+    officer: prof,
+    breakdown: monthlyBreakdown,
+    totals: totals,
+    schemeTotals: schemeTotals,
+    hasNightHalt: hasNightHaltAnywhere
+  };
+}
+
+async function buildYearlyAbstractPrintHtml(prof) {
+  prof = prof || appState.profile || {};
+  const data = await generateYearlyAbstractData(prof);
+  const officerName = prof.name || 'विनायक नवनाथ निंबाळकर';
+  const officerDesig = prof.designation || 'सहाय्यक भूवैज्ञानिक';
+  const officerDept = prof.department || 'भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर';
+  const officerHq = prof.headquarters || 'सोलापूर';
+  const officerBudget = prof.budget_head || '२७०२';
+  const subDate = '३१/०३/२०२६';
+
+  let monthRowsHtml = '';
+  data.breakdown.forEach((m, idx) => {
+    monthRowsHtml += `
+      <tr class="h-5">
+        <td class="border border-black p-0.5 text-center font-mono">${idx + 1}</td>
+        <td class="border border-black p-0.5 text-left font-semibold truncate max-w-[45mm]">${m.label}</td>
+        <td class="border border-black p-0.5 font-mono text-center">${m.total_days}</td>
+        <td class="border border-black p-0.5 font-mono text-center">${m.office_days}</td>
+        <td class="border border-black p-0.5 font-mono text-center">${m.tour_days}</td>
+        ${data.hasNightHalt ? `<td class="border border-black p-0.5 font-mono text-center">${m.show_night_halt ? m.night_halt_days : '-'}</td>` : ''}
+        <td class="border border-black p-0.5 font-mono text-center">${m.holiday_days}</td>
+        <td class="border border-black p-0.5 font-mono text-center">${m.leave_days}</td>
+        <td class="border border-black p-0.5 font-mono text-center">${m.training_days}</td>
+        <td class="border border-black p-0.5 font-mono text-center">${m.travel_km.toFixed(0)}</td>
+      </tr>
+    `;
+  });
+
+  const tot = data.totals;
+  const footHtml = `
+    <tr class="h-6 font-bold bg-slate-100 text-center font-mono">
+      <td colspan="2" class="border border-black p-0.5 text-center font-marathi">वार्षिक एकूण (Annual Grand Total)</td>
+      <td class="border border-black p-0.5">${tot.total_days}</td>
+      <td class="border border-black p-0.5">${tot.office_days}</td>
+      <td class="border border-black p-0.5">${tot.tour_days}</td>
+      ${data.hasNightHalt ? `<td class="border border-black p-0.5">${tot.night_halt_days}</td>` : ''}
+      <td class="border border-black p-0.5">${tot.holiday_days}</td>
+      <td class="border border-black p-0.5">${tot.leave_days}</td>
+      <td class="border border-black p-0.5">${tot.training_days}</td>
+      <td class="border border-black p-0.5">${tot.total_travel_km.toFixed(0)}</td>
+    </tr>
+  `;
+
+  let progRowsHtml = '';
+  let scIdx = 1;
+  for (const [sName, st] of Object.entries(data.schemeTotals)) {
+    progRowsHtml += `
+      <tr class="h-5">
+        <td class="border border-black p-0.5 text-center font-mono">${scIdx++}</td>
+        <td class="border border-black p-0.5 text-left font-medium">${sName}</td>
+        <td class="border border-black p-0.5 font-mono text-center font-bold">${st.villages > 0 ? st.villages : '-'}</td>
+        <td class="border border-black p-0.5 font-mono text-center font-bold">${st.cases > 0 ? st.cases : '-'}</td>
+      </tr>
+    `;
+  }
+
+  return `
+    <div class="print-document bg-white p-4 sm:p-5 rounded-xl border border-black font-marathi text-black" style="padding-top: 18mm !important; box-sizing: border-box;">
+      <div class="text-center mb-2">
+        <h2 class="text-base font-bold underline font-marathi tracking-wide mb-1">
+          वार्षिक दैनंदिनी गोषवारा व क्षेत्रीय प्रगती अहवाल (सन २०२५-२०२६)
+        </h2>
+        <div class="flex justify-between items-center font-bold border-b border-black pb-1 text-[10.5px]">
+          <span>नाव : ${officerName}</span>
+          <span>पदनाम : ${officerDesig}</span>
+          <span>लेखाशीर्ष : ${officerBudget}</span>
+          <span>मुख्यालय : ${officerHq}</span>
+        </div>
+      </div>
+
+      <div class="my-2">
+        <h4 class="font-bold text-[10px] mb-1">१. महिनानिहाय कामाचे व फिरतीचे दिवस (१ एप्रिल ते ३१ मार्च):</h4>
+        <table class="w-full border-collapse border border-black text-[9px] text-center" style="table-layout: fixed;">
+          <thead>
+            <tr class="bg-slate-100 font-bold border-b border-black">
+              <th class="border border-black p-0.5 w-7">अ.क्र.</th>
+              <th class="border border-black p-0.5 text-left pl-1">महिना</th>
+              <th class="border border-black p-0.5 w-14">एकूण दिवस</th>
+              <th class="border border-black p-0.5 w-14">कार्यालय</th>
+              <th class="border border-black p-0.5 w-14">फिरती/दौरा</th>
+              ${data.hasNightHalt ? `<th class="border border-black p-0.5 w-12">मुक्काम</th>` : ''}
+              <th class="border border-black p-0.5 w-12">सुट्ट्या</th>
+              <th class="border border-black p-0.5 w-12">रजा</th>
+              <th class="border border-black p-0.5 w-14">प्रशिक्षण</th>
+              <th class="border border-black p-0.5 w-16">अंतर (कि.मी.)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${monthRowsHtml}
+          </tbody>
+          <tfoot>
+            ${footHtml}
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="my-3">
+        <h4 class="font-bold text-[10px] mb-1">२. योजनानिहाय वर्षभरातील एकूण क्षेत्रीय प्रगती (Annual Scheme-wise Progress):</h4>
+        <table class="w-full border-collapse border border-black text-[9.5px] text-center" style="table-layout: fixed;">
+          <thead>
+            <tr class="bg-slate-100 font-bold border-b border-black">
+              <th class="border border-black p-0.5 w-8">अ.क्र.</th>
+              <th class="border border-black p-0.5 text-left pl-2">योजना / सर्वेक्षण प्रकार</th>
+              <th class="border border-black p-0.5 w-32">वर्षभरातील एकूण गावे / न.प.</th>
+              <th class="border border-black p-0.5 w-36">वर्षभरातील एकूण प्रकरणे / विहिरी</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${progRowsHtml}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-[9px] mt-2 pt-1 border-t border-black font-semibold" style="line-height: 1.3;">
+        <p class="font-bold">प्रति,</p>
+        <p>मा. वरिष्ठ भूवैज्ञानिक, ${officerDept} यांना सन २०२५-२०२६ चा वार्षिक दैनंदिनी गोषवारा माहितीस्तव व मंजूरीस्तव सविनय सादर.</p>
+      </div>
+
+      <div class="flex justify-between items-end text-[9px] mt-4 font-bold px-1" style="min-height: 42px;">
+        <div>
+          <div class="flex items-center gap-1 font-bold">
+            <span>दिनांक:</span>
+            <span>${subDate}</span>
+          </div>
+        </div>
+        <div class="text-center" style="min-width: 210px; white-space: nowrap; line-height: 1.25; font-size: 8.5px;">
+          <p>आपला विश्वासु,</p>
+          <div style="height: 14px;"></div>
+          <p>(${officerName})</p>
+          <p>${officerDesig}, ${officerHq}</p>
+          <p>${officerDept}</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildYearlyAbstractSheetJsWorksheet(data, prof) {
+  const ws = {};
+  const setCell = (r, c, val) => {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    ws[addr] = { v: (val === undefined || val === null) ? '' : val, t: typeof val === 'number' ? 'n' : 's' };
+  };
+
+  setCell(0, 0, 'वार्षिक दैनंदिनी गोषवारा व क्षेत्रीय प्रगती अहवाल (सन २०२५-२०२६)');
+  setCell(1, 0, `नाव: ${prof.name || ''} | पदनाम: ${prof.designation || ''} | मुख्यालय: ${prof.headquarters || ''}`);
+
+  setCell(3, 0, 'अ.क्र.');
+  setCell(3, 1, 'महिना');
+  setCell(3, 2, 'एकूण दिवस');
+  setCell(3, 3, 'कार्यालय');
+  setCell(3, 4, 'दौरा दिवस');
+  setCell(3, 5, 'मुक्काम');
+  setCell(3, 6, 'सुट्ट्या');
+  setCell(3, 7, 'रजा');
+  setCell(3, 8, 'प्रशिक्षण');
+  setCell(3, 9, 'फिरती कि.मी.');
+
+  let r = 4;
+  data.breakdown.forEach((m, idx) => {
+    setCell(r, 0, idx + 1);
+    setCell(r, 1, m.label);
+    setCell(r, 2, m.total_days);
+    setCell(r, 3, m.office_days);
+    setCell(r, 4, m.tour_days);
+    setCell(r, 5, m.show_night_halt ? m.night_halt_days : 0);
+    setCell(r, 6, m.holiday_days);
+    setCell(r, 7, m.leave_days);
+    setCell(r, 8, m.training_days);
+    setCell(r, 9, m.travel_km);
+    r++;
+  });
+
+  const tot = data.totals;
+  setCell(r, 0, '');
+  setCell(r, 1, 'वार्षिक एकूण (Grand Total)');
+  setCell(r, 2, tot.total_days);
+  setCell(r, 3, tot.office_days);
+  setCell(r, 4, tot.tour_days);
+  setCell(r, 5, tot.night_halt_days);
+  setCell(r, 6, tot.holiday_days);
+  setCell(r, 7, tot.leave_days);
+  setCell(r, 8, tot.training_days);
+  setCell(r, 9, tot.total_travel_km);
+  r += 2;
+
+  setCell(r, 0, 'अ.क्र.');
+  setCell(r, 1, 'योजना प्रकार');
+  setCell(r, 2, 'वर्षभरातील एकूण गावे');
+  setCell(r, 3, 'वर्षभरातील एकूण प्रकरणे');
+  r++;
+
+  let sIdx = 1;
+  for (const [sName, st] of Object.entries(data.schemeTotals)) {
+    setCell(r, 0, sIdx++);
+    setCell(r, 1, sName);
+    setCell(r, 2, st.villages);
+    setCell(r, 3, st.cases);
+    r++;
+  }
+
+  ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: r + 1, c: 9 } });
+  ws['!cols'] = [{ wch: 8 }, { wch: 30 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 16 }];
+  ws['!pageSetup'] = { orientation: 'portrait', paperSize: 9, fitToWidth: 1, fitToHeight: 1, fitToPage: true };
+
+  return ws;
+}
+
+async function openYearlyAbstractModal() {
+  const prof = appState.profile || {};
+  showToast('वार्षिक गोषवारा संकलित होत आहे...', 'info');
+  const data = await generateYearlyAbstractData(prof);
+
+  const nameEl = document.getElementById('yaOfficerName');
+  const desigEl = document.getElementById('yaOfficerDesig');
+  const hqEl = document.getElementById('yaOfficerHQ');
+  if (nameEl) nameEl.textContent = prof.name || 'विनायक नवनाथ निंबाळकर';
+  if (desigEl) desigEl.textContent = prof.designation || 'सहाय्यक भूवैज्ञानिक';
+  if (hqEl) hqEl.textContent = prof.headquarters || 'सोलापूर';
+
+  const thHalt = document.getElementById('thYaNightHalt');
+  if (thHalt) thHalt.style.display = data.hasNightHalt ? '' : 'none';
+
+  const mBody = document.getElementById('yaMonthlyTableBody');
+  if (mBody) {
+    mBody.innerHTML = data.breakdown.map((m, idx) => `
+      <tr class="hover:bg-slate-50 transition">
+        <td class="p-1.5 border-r border-slate-200 text-left pl-2 font-semibold">${m.label}</td>
+        <td class="p-1.5 border-r border-slate-200 font-mono">${m.total_days}</td>
+        <td class="p-1.5 border-r border-slate-200 font-mono text-emerald-700">${m.office_days}</td>
+        <td class="p-1.5 border-r border-slate-200 font-mono text-green-800 font-bold">${m.tour_days}</td>
+        ${data.hasNightHalt ? `<td class="p-1.5 border-r border-slate-200 font-mono text-orange-800">${m.show_night_halt ? m.night_halt_days : '-'}</td>` : ''}
+        <td class="p-1.5 border-r border-slate-200 font-mono text-red-600">${m.holiday_days}</td>
+        <td class="p-1.5 border-r border-slate-200 font-mono text-purple-700">${m.leave_days}</td>
+        <td class="p-1.5 border-r border-slate-200 font-mono text-blue-700">${m.training_days}</td>
+        <td class="p-1.5 border-r border-slate-200 font-mono">${m.wells}</td>
+        <td class="p-1.5 font-mono text-slate-900 font-bold">${m.travel_km.toFixed(0)} km</td>
+      </tr>
+    `).join('');
+  }
+
+  const mFoot = document.getElementById('yaMonthlyTableFoot');
+  if (mFoot) {
+    const tot = data.totals;
+    mFoot.innerHTML = `
+      <tr>
+        <td class="p-2 border-r border-purple-300 text-left font-bold font-marathi">वार्षिक एकूण (Grand Total)</td>
+        <td class="p-2 border-r border-purple-300">${tot.total_days}</td>
+        <td class="p-2 border-r border-purple-300">${tot.office_days}</td>
+        <td class="p-2 border-r border-purple-300">${tot.tour_days}</td>
+        ${data.hasNightHalt ? `<td class="p-2 border-r border-purple-300">${tot.night_halt_days}</td>` : ''}
+        <td class="p-2 border-r border-purple-300">${tot.holiday_days}</td>
+        <td class="p-2 border-r border-purple-300">${tot.leave_days}</td>
+        <td class="p-2 border-r border-purple-300">${tot.training_days}</td>
+        <td class="p-2 border-r border-purple-300">${tot.total_wells}</td>
+        <td class="p-2 font-bold">${tot.total_travel_km.toFixed(0)} km</td>
+      </tr>
+    `;
+  }
+
+  const pBody = document.getElementById('yaProgressTableBody');
+  if (pBody) {
+    let pRows = '';
+    let scIdx = 1;
+    for (const [sName, st] of Object.entries(data.schemeTotals)) {
+      pRows += `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="p-1.5 border-r border-slate-200 text-center font-mono text-slate-500">${scIdx++}</td>
+          <td class="p-1.5 border-r border-slate-200 text-left pl-2 font-medium text-slate-800">${sName}</td>
+          <td class="p-1.5 border-r border-slate-200 font-mono text-center font-bold text-slate-900">${st.villages > 0 ? st.villages : '-'}</td>
+          <td class="p-1.5 font-mono text-center font-bold text-slate-900">${st.cases > 0 ? st.cases : '-'}</td>
+        </tr>
+      `;
+    }
+    pBody.innerHTML = pRows;
+  }
+
+  showModal('yearlyAbstractModal');
+}
+window.openYearlyAbstractModal = openYearlyAbstractModal;
+
+async function printYearlyAbstract() {
+  const host = document.getElementById('multiMonthPrintHost');
+  const singleDoc = document.getElementById('printDocument');
+  if (!host || !singleDoc) return;
+
+  hideModal('yearlyAbstractModal');
+  host.innerHTML = '';
+  const prof = appState.profile || {};
+  const yaHtml = await buildYearlyAbstractPrintHtml(prof);
+  host.innerHTML = yaHtml;
+
+  singleDoc.style.display = 'none';
+  host.style.display = 'block';
+
+  setTimeout(() => {
+    window.print();
+  }, 300);
+
+  const cleanup = () => {
+    host.innerHTML = '';
+    host.style.display = 'none';
+    singleDoc.style.display = 'flex';
+    window.removeEventListener('afterprint', cleanup);
+  };
+  window.addEventListener('afterprint', cleanup);
+  setTimeout(cleanup, 15000);
+}
+window.printYearlyAbstract = printYearlyAbstract;
+
+async function downloadYearlyAbstractExcel() {
+  if (!window.XLSX) {
+    showToast('XLSX लायब्ररी उपलब्ध नाही.', 'error');
+    return;
+  }
+  try {
+    const prof = appState.profile || {};
+    const data = await generateYearlyAbstractData(prof);
+    const wb = XLSX.utils.book_new();
+    const ws = buildYearlyAbstractSheetJsWorksheet(data, prof);
+
+    XLSX.utils.book_append_sheet(wb, ws, 'वार्षिक_गोषवारा');
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const fileName = `GSDA_Yearly_Abstract_2025-26.xlsx`;
+
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      URL.revokeObjectURL(a.href);
+      a.remove();
+    }, 1000);
+
+    showToast('वार्षिक गोषवारा Excel फाईल यशस्वीरीत्या डाऊनलोड झाली!', 'success');
+  } catch (e) {
+    console.error('Yearly abstract excel error:', e);
+    showToast('Excel डाऊनलोड करताना त्रुटी: ' + e.message, 'error');
+  }
+}
+window.downloadYearlyAbstractExcel = downloadYearlyAbstractExcel;
 
 async function saveMultiMonths(sheetNames) {
   const btn = document.getElementById('btnMultiMonthSave');

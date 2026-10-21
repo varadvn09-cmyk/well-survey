@@ -1,0 +1,4387 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>दैनंदिनी</title>
+  <link rel="icon" type="image/x-icon" href="./static/favicon.ico">
+  <link rel="shortcut icon" href="./static/favicon.ico">
+  
+  <!-- Google Fonts: Noto Sans Devanagari & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Offline Tailwind Stylesheet (Works 100% without Internet) -->
+  <style>
+/* OFFLINE TAILWIND */
+/* Offline Compiled Tailwind CSS for GSDA Diary */
+
+.absolute {
+  position: absolute;
+}
+.active\:scale-95:active {
+  transform: scale(0.95);
+}
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+.antialiased {
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+}
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.bg-amber-100 {
+  background-color: #fef3c7;
+}
+.bg-amber-200 {
+  background-color: #fde68a;
+}
+.bg-amber-200\/80 {
+  background-color: rgba(253, 230, 138, 0.8);
+}
+.bg-amber-50 {
+  background-color: #fffbeb;
+}
+.bg-amber-50\/60 {
+  background-color: rgba(255, 251, 235, 0.6);
+}
+.bg-amber-50\/70 {
+  background-color: rgba(255, 251, 235, 0.7);
+}
+.bg-amber-600 {
+  background-color: #d97706;
+}
+.bg-amber-700 {
+  background-color: #b45309;
+}
+.bg-black\/50 {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.bg-blue-200 {
+  background-color: #bfdbfe;
+}
+.bg-blue-50 {
+  background-color: #eff6ff;
+}
+.bg-blue-50\/50 {
+  background-color: rgba(239, 246, 255, 0.5);
+}
+.bg-blue-50\/60 {
+  background-color: rgba(239, 246, 255, 0.6);
+}
+.bg-blue-50\/70 {
+  background-color: rgba(239, 246, 255, 0.7);
+}
+.bg-blue-600 {
+  background-color: #2563eb;
+}
+.bg-blue-700 {
+  background-color: #1d4ed8;
+}
+.bg-blue-900 {
+  background-color: #1e3a8a;
+}
+.bg-blue-950\/80 {
+  background-color: rgba(23, 37, 84, 0.8);
+}
+.bg-cyan-700 {
+  background-color: #0e7490;
+}
+.bg-emerald-100 {
+  background-color: #d1fae5;
+}
+.bg-emerald-200 {
+  background-color: #a7f3d0;
+}
+.bg-emerald-300 {
+  background-color: #6ee7b7;
+}
+.bg-emerald-50 {
+  background-color: #ecfdf5;
+}
+.bg-emerald-50\/60 {
+  background-color: rgba(236, 253, 245, 0.6);
+}
+.bg-emerald-50\/70 {
+  background-color: rgba(236, 253, 245, 0.7);
+}
+.bg-emerald-500 {
+  background-color: #10b981;
+}
+.bg-emerald-600 {
+  background-color: #059669;
+}
+.bg-emerald-700 {
+  background-color: #047857;
+}
+.bg-emerald-800 {
+  background-color: #065f46;
+}
+.bg-gov-primary {
+  background-color: #1e3a8a;
+}
+.bg-green-100 {
+  background-color: #dcfce7;
+}
+.bg-green-50 {
+  background-color: #f0fdf4;
+}
+.bg-green-600 {
+  background-color: #16a34a;
+}
+.bg-indigo-50 {
+  background-color: #eef2ff;
+}
+.bg-indigo-50\/70 {
+  background-color: rgba(238, 242, 255, 0.7);
+}
+.bg-indigo-600 {
+  background-color: #4f46e5;
+}
+.bg-indigo-700 {
+  background-color: #4338ca;
+}
+.bg-purple-100 {
+  background-color: #f3e8ff;
+}
+.bg-purple-50 {
+  background-color: #faf5ff;
+}
+.bg-purple-50\/60 {
+  background-color: rgba(250, 245, 255, 0.6);
+}
+.bg-purple-700 {
+  background-color: #7e22ce;
+}
+.bg-red-100 {
+  background-color: #fee2e2;
+}
+.bg-red-50 {
+  background-color: #fef2f2;
+}
+.bg-red-600 {
+  background-color: #dc2626;
+}
+.bg-rose-100 {
+  background-color: #ffe4e6;
+}
+.bg-rose-50\/60 {
+  background-color: rgba(255, 241, 242, 0.6);
+}
+.bg-rose-700 {
+  background-color: #be123c;
+}
+.bg-sky-50 {
+  background-color: #f0f9ff;
+}
+.bg-sky-50\/60 {
+  background-color: rgba(240, 249, 255, 0.6);
+}
+.bg-sky-700 {
+  background-color: #0369a1;
+}
+.bg-slate-100 {
+  background-color: #f1f5f9;
+}
+.bg-slate-200 {
+  background-color: #e2e8f0;
+}
+.bg-slate-50 {
+  background-color: #f8fafc;
+}
+.bg-slate-700 {
+  background-color: #334155;
+}
+.bg-slate-800 {
+  background-color: #1e293b;
+}
+.bg-slate-900 {
+  background-color: #0f172a;
+}
+.bg-teal-50\/60 {
+  background-color: rgba(240, 253, 250, 0.6);
+}
+.bg-teal-700 {
+  background-color: #0f766e;
+}
+.bg-white {
+  background-color: #ffffff;
+}
+.bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.bg-white\/15 {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+.block {
+  display: block;
+}
+.border {
+  border-width: 1px; border-style: solid;
+}
+.border-2 {
+  border-width: 2px; border-style: solid;
+}
+.border-amber-100 {
+  border-color: #fef3c7;
+}
+.border-amber-200 {
+  border-color: #fde68a;
+}
+.border-amber-300 {
+  border-color: #fcd34d;
+}
+.border-amber-400 {
+  border-color: #fbbf24;
+}
+.border-amber-400\/40 {
+  border-color: rgba(251, 191, 36, 0.4);
+}
+.border-b {
+  border-bottom-width: 1px; border-bottom-style: solid;
+}
+.border-b-2 {
+  border-bottom-width: 2px; border-bottom-style: solid;
+}
+.border-black {
+  border-color: #000000;
+}
+.border-blue-100 {
+  border-color: #dbeafe;
+}
+.border-blue-200 {
+  border-color: #bfdbfe;
+}
+.border-blue-200\/60 {
+  border-color: rgba(191, 219, 254, 0.6);
+}
+.border-blue-300 {
+  border-color: #93c5fd;
+}
+.border-blue-400 {
+  border-color: #60a5fa;
+}
+.border-blue-900 {
+  border-color: #1e3a8a;
+}
+.border-collapse {
+  border-collapse: collapse;
+}
+.border-cyan-400 {
+  border-color: #22d3ee;
+}
+.border-dashed {
+  border-style: dashed;
+}
+.border-emerald-100 {
+  border-color: #d1fae5;
+}
+.border-emerald-200 {
+  border-color: #a7f3d0;
+}
+.border-emerald-300 {
+  border-color: #6ee7b7;
+}
+.border-emerald-400 {
+  border-color: #34d399;
+}
+.border-emerald-500 {
+  border-color: #10b981;
+}
+.border-green-100 {
+  border-color: #dcfce7;
+}
+.border-green-400 {
+  border-color: #4ade80;
+}
+.border-indigo-100 {
+  border-color: #e0e7ff;
+}
+.border-indigo-200 {
+  border-color: #c7d2fe;
+}
+.border-indigo-300 {
+  border-color: #a5b4fc;
+}
+.border-purple-100 {
+  border-color: #f3e8ff;
+}
+.border-purple-200 {
+  border-color: #e9d5ff;
+}
+.border-purple-300 {
+  border-color: #d8b4fe;
+}
+.border-r {
+  border-right-width: 1px; border-right-style: solid;
+}
+.border-red-100 {
+  border-color: #fee2e2;
+}
+.border-red-200 {
+  border-color: #fecaca;
+}
+.border-red-300 {
+  border-color: #fca5a5;
+}
+.border-rose-200 {
+  border-color: #fecdd3;
+}
+.border-rose-300 {
+  border-color: #fda4af;
+}
+.border-sky-200 {
+  border-color: #bae6fd;
+}
+.border-sky-400 {
+  border-color: #38bdf8;
+}
+.border-slate-100 {
+  border-color: #f1f5f9;
+}
+.border-slate-200 {
+  border-color: #e2e8f0;
+}
+.border-slate-300 {
+  border-color: #cbd5e1;
+}
+.border-slate-400 {
+  border-color: #94a3b8;
+}
+.border-t {
+  border-top-width: 1px; border-top-style: solid;
+}
+.border-t-2 {
+  border-top-width: 2px; border-top-style: solid;
+}
+.border-teal-200 {
+  border-color: #99f6e4;
+}
+.border-transparent {
+  border-color: transparent;
+}
+.border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.border-white\/20 {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.border-white\/30 {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.bottom-4 {
+  bottom: 1rem;
+}
+.break-all {
+  word-break: break-all;
+}
+.cursor-pointer {
+  cursor: pointer;
+}
+.divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #f1f5f9; }
+.divide-y > :not([hidden]) ~ :not([hidden]) { border-top-width: 1px; border-top-style: solid; }
+.duration-300 {
+  transition-duration: 300ms;
+}
+.fixed {
+  position: fixed;
+}
+.flex {
+  display: flex;
+}
+.flex-1 {
+  flex: 1 1 0%;
+}
+.flex-col {
+  flex-direction: column;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.focus\:bg-white:focus {
+  background-color: #ffffff;
+}
+.focus\:ring-2:focus {
+  outline: 2px solid #38bdf8; outline-offset: 1px;
+}
+.focus\:ring-blue-500:focus {
+  outline: 2px solid #38bdf8; outline-offset: 1px;
+}
+.focus\:ring-cyan-300:focus {
+  outline: 2px solid #38bdf8; outline-offset: 1px;
+}
+.focus\:ring-emerald-500:focus {
+  outline: 2px solid #38bdf8; outline-offset: 1px;
+}
+.font-bold {
+  font-weight: 700;
+}
+.font-extrabold {
+  font-weight: 800;
+}
+.font-marathi {
+  font-family: 'Noto Sans Devanagari', sans-serif;
+}
+.font-medium {
+  font-weight: 500;
+}
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+.font-normal {
+  font-weight: 400;
+}
+.font-sans {
+  font-family: 'Inter', 'Noto Sans Devanagari', -apple-system, sans-serif;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.gap-1 {
+  gap: 0.25rem;
+}
+.gap-1\.5 {
+  gap: 0.375rem;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.gap-2\.5 {
+  gap: 0.625rem;
+}
+.gap-3 {
+  gap: 0.75rem;
+}
+.gap-4 {
+  gap: 1rem;
+}
+.grid {
+  display: grid;
+}
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.grid-cols-7 {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+.h-2 {
+  height: 0.5rem;
+}
+.h-2\.5 {
+  height: 0.625rem;
+}
+.h-4 {
+  height: 1rem;
+}
+.h-5 {
+  height: 1.25rem;
+}
+.h-8 {
+  height: 2rem;
+}
+.hidden {
+  display: none;
+}
+.hover\:bg-amber-200:hover {
+  background-color: #fde68a;
+}
+.hover\:bg-amber-500:hover {
+  background-color: #f59e0b;
+}
+.hover\:bg-blue-100:hover {
+  background-color: #dbeafe;
+}
+.hover\:bg-blue-50:hover {
+  background-color: #eff6ff;
+}
+.hover\:bg-blue-500:hover {
+  background-color: #3b82f6;
+}
+.hover\:bg-blue-700:hover {
+  background-color: #1d4ed8;
+}
+.hover\:bg-blue-800:hover {
+  background-color: #1e40af;
+}
+.hover\:bg-cyan-600:hover {
+  background-color: #0891b2;
+}
+.hover\:bg-emerald-200:hover {
+  background-color: #a7f3d0;
+}
+.hover\:bg-emerald-50\/40:hover {
+  background-color: rgba(236, 253, 245, 0.4);
+}
+.hover\:bg-emerald-500:hover {
+  background-color: #10b981;
+}
+.hover\:bg-emerald-700:hover {
+  background-color: #047857;
+}
+.hover\:bg-emerald-800:hover {
+  background-color: #065f46;
+}
+.hover\:bg-green-200:hover {
+  background-color: #bbf7d0;
+}
+.hover\:bg-green-700:hover {
+  background-color: #15803d;
+}
+.hover\:bg-indigo-100:hover {
+  background-color: #e0e7ff;
+}
+.hover\:bg-indigo-500:hover {
+  background-color: #6366f1;
+}
+.hover\:bg-indigo-600:hover {
+  background-color: #4f46e5;
+}
+.hover\:bg-indigo-700:hover {
+  background-color: #4338ca;
+}
+.hover\:bg-indigo-800:hover {
+  background-color: #3730a3;
+}
+.hover\:bg-purple-200:hover {
+  background-color: #e9d5ff;
+}
+.hover\:bg-red-100:hover {
+  background-color: #fee2e2;
+}
+.hover\:bg-red-200:hover {
+  background-color: #fecaca;
+}
+.hover\:bg-red-500:hover {
+  background-color: #ef4444;
+}
+.hover\:bg-red-700:hover {
+  background-color: #b91c1c;
+}
+.hover\:bg-rose-200:hover {
+  background-color: #fecdd3;
+}
+.hover\:bg-sky-100:hover {
+  background-color: #e0f2fe;
+}
+.hover\:bg-slate-200:hover {
+  background-color: #e2e8f0;
+}
+.hover\:bg-slate-300:hover {
+  background-color: #cbd5e1;
+}
+.hover\:bg-slate-600:hover {
+  background-color: #475569;
+}
+.hover\:bg-slate-700:hover {
+  background-color: #334155;
+}
+.hover\:bg-white\/20:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.hover\:bg-white\/25:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+.hover\:border-emerald-500:hover {
+  border-color: #10b981;
+}
+.hover\:text-blue-900:hover {
+  color: #1e3a8a;
+}
+.hover\:text-slate-800:hover {
+  color: #1e293b;
+}
+.hover\:text-slate-900:hover {
+  color: #0f172a;
+}
+.hover\:text-white:hover {
+  color: #ffffff;
+}
+.inline-flex {
+  display: inline-flex;
+}
+.inset-0 {
+  top: 0px; right: 0px; bottom: 0px; left: 0px;
+}
+.items-center {
+  align-items: center;
+}
+.items-end {
+  align-items: flex-end;
+}
+.items-start {
+  align-items: flex-start;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-center {
+  justify-content: center;
+}
+.justify-end {
+  justify-content: flex-end;
+}
+.leading-tight {
+  line-height: 1.25;
+}
+@media (min-width: 1024px) {
+  .lg\:grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.max-w-2xl {
+  max-width: 42rem;
+}
+.max-w-7xl {
+  max-width: 80rem;
+}
+.max-w-md {
+  max-width: 28rem;
+}
+.max-w-sm {
+  max-width: 24rem;
+}
+.max-w-xl {
+  max-width: 36rem;
+}
+.mb-0\.5 {
+  margin-bottom: 0.125rem;
+}
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+.mb-1\.5 {
+  margin-bottom: 0.375rem;
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-2\.5 {
+  margin-bottom: 0.625rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+@media (min-width: 768px) {
+  .md\:block {
+    display: block !important;
+  }
+}
+@media (min-width: 768px) {
+  .md\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (min-width: 768px) {
+  .md\:hidden {
+    display: none !important;
+  }
+}
+.min-h-screen {
+  min-height: 100vh;
+}
+.ml-auto {
+  margin-left: auto;
+}
+.mr-0\.5 {
+  margin-right: 0.125rem;
+}
+.mr-1 {
+  margin-right: 0.25rem;
+}
+.mt-0\.5 {
+  margin-top: 0.125rem;
+}
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.mt-1\.5 {
+  margin-top: 0.375rem;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mt-4 {
+  margin-top: 1rem;
+}
+.mx-auto {
+  margin-left: auto; margin-right: auto;
+}
+.my-1 {
+  margin-top: 0.25rem; margin-bottom: 0.25rem;
+}
+.opacity-0 {
+  opacity: 0;
+}
+.overflow-hidden {
+  overflow: hidden;
+}
+.overflow-x-auto {
+  overflow-x: auto;
+}
+.overflow-y-auto {
+  overflow-y: auto;
+}
+.p-0\.5 {
+  padding: 0.125rem;
+}
+.p-1 {
+  padding: 0.25rem;
+}
+.p-1\.5 {
+  padding: 0.375rem;
+}
+.p-2 {
+  padding: 0.5rem;
+}
+.p-2\.5 {
+  padding: 0.625rem;
+}
+.p-3 {
+  padding: 0.75rem;
+}
+.p-3\.5 {
+  padding: 0.875rem;
+}
+.p-4 {
+  padding: 1rem;
+}
+.p-5 {
+  padding: 1.25rem;
+}
+.pb-1 {
+  padding-bottom: 0.25rem;
+}
+.pb-1\.5 {
+  padding-bottom: 0.375rem;
+}
+.pb-2 {
+  padding-bottom: 0.5rem;
+}
+.pb-3 {
+  padding-bottom: 0.75rem;
+}
+.pl-2\.5 {
+  padding-left: 0.625rem;
+}
+.pl-8 {
+  padding-left: 2rem;
+}
+.pointer-events-none {
+  pointer-events: none;
+}
+.pr-2\.5 {
+  padding-right: 0.625rem;
+}
+.pr-3 {
+  padding-right: 0.75rem;
+}
+.pr-7 {
+  padding-right: 1.75rem;
+}
+.pt-1 {
+  padding-top: 0.25rem;
+}
+.pt-2 {
+  padding-top: 0.5rem;
+}
+.pt-3 {
+  padding-top: 0.75rem;
+}
+.px-1 {
+  padding-left: 0.25rem; padding-right: 0.25rem;
+}
+.px-1\.5 {
+  padding-left: 0.375rem; padding-right: 0.375rem;
+}
+.px-2 {
+  padding-left: 0.5rem; padding-right: 0.5rem;
+}
+.px-2\.5 {
+  padding-left: 0.625rem; padding-right: 0.625rem;
+}
+.px-3 {
+  padding-left: 0.75rem; padding-right: 0.75rem;
+}
+.px-3\.5 {
+  padding-left: 0.875rem; padding-right: 0.875rem;
+}
+.px-4 {
+  padding-left: 1rem; padding-right: 1rem;
+}
+.px-5 {
+  padding-left: 1.25rem; padding-right: 1.25rem;
+}
+.py-0\.5 {
+  padding-top: 0.125rem; padding-bottom: 0.125rem;
+}
+.py-1 {
+  padding-top: 0.25rem; padding-bottom: 0.25rem;
+}
+.py-1\.5 {
+  padding-top: 0.375rem; padding-bottom: 0.375rem;
+}
+.py-2 {
+  padding-top: 0.5rem; padding-bottom: 0.5rem;
+}
+.py-2\.5 {
+  padding-top: 0.625rem; padding-bottom: 0.625rem;
+}
+.py-3 {
+  padding-top: 0.75rem; padding-bottom: 0.75rem;
+}
+.relative {
+  position: relative;
+}
+.right-4 {
+  right: 1rem;
+}
+.rounded {
+  border-radius: 0.25rem;
+}
+.rounded-2xl {
+  border-radius: 1rem;
+}
+.rounded-full {
+  border-radius: 9999px;
+}
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+.rounded-md {
+  border-radius: 0.375rem;
+}
+.rounded-xl {
+  border-radius: 0.75rem;
+}
+.scrollbar-none {
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+}
+.shadow-2xs {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.shadow-inner {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+}
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+}
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+.shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+@media (min-width: 640px) {
+  .sm\:bottom-6 {
+  bottom: 1.5rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:flex-row {
+  flex-direction: row;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:gap-1\.5 {
+  gap: 0.375rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:gap-2 {
+  gap: 0.5rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 640px) {
+  .sm\:grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (min-width: 640px) {
+  .sm\:grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 640px) {
+  .sm\:h-9 {
+  height: 2.25rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:hidden {
+  display: none !important;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:inline {
+  display: inline;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:p-2\.5 {
+  padding: 0.625rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:p-3 {
+  padding: 0.75rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:p-4 {
+  padding: 1rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:p-5 {
+  padding: 1.25rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:pb-0 {
+  padding-bottom: 0px;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:px-2\.5 {
+  padding-left: 0.625rem; padding-right: 0.625rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:px-3 {
+  padding-left: 0.75rem; padding-right: 0.75rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:px-6 {
+  padding-left: 1.5rem; padding-right: 1.5rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:right-6 {
+  right: 1.5rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:text-2xl {
+  font-size: 1.5rem; line-height: 2rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:text-base {
+  font-size: 1rem; line-height: 1.5rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:text-lg {
+  font-size: 1.125rem; line-height: 1.75rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:text-sm {
+  font-size: 0.875rem; line-height: 1.25rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:text-xs {
+  font-size: 0.75rem; line-height: 1rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:w-9 {
+  width: 2.25rem;
+  }
+}
+@media (min-width: 640px) {
+  .sm\:w-auto {
+  width: auto;
+  }
+}
+.space-x-1 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.25rem; }
+.space-x-2 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.5rem; }
+.space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem; }
+.space-y-1\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.375rem; }
+.space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+.space-y-2\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.625rem; }
+.space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+.space-y-4 > :not([hidden]) ~ :not([hidden]) { margin-top: 1rem; }
+.sticky {
+  position: sticky;
+}
+.text-2xl {
+  font-size: 1.5rem; line-height: 2rem;
+}
+.text-\[10\.5px\] {
+  font-size: 10.5px;
+}
+.text-\[10px\] {
+  font-size: 10px;
+}
+.text-\[11px\] {
+  font-size: 11px;
+}
+.text-\[9\.5px\] {
+  font-size: 9.5px;
+}
+.text-amber-300 {
+  color: #fcd34d;
+}
+.text-amber-400 {
+  color: #fbbf24;
+}
+.text-amber-500 {
+  color: #f59e0b;
+}
+.text-amber-600 {
+  color: #d97706;
+}
+.text-amber-700 {
+  color: #b45309;
+}
+.text-amber-800 {
+  color: #92400e;
+}
+.text-base {
+  font-size: 1rem; line-height: 1.5rem;
+}
+.text-black {
+  color: #000000;
+}
+.text-blue-200 {
+  color: #bfdbfe;
+}
+.text-blue-600 {
+  color: #2563eb;
+}
+.text-blue-700 {
+  color: #1d4ed8;
+}
+.text-blue-800 {
+  color: #1e40af;
+}
+.text-blue-900 {
+  color: #1e3a8a;
+}
+.text-blue-950 {
+  color: #172554;
+}
+.text-center {
+  text-align: center;
+}
+.text-cyan-200 {
+  color: #a5f3fc;
+}
+.text-cyan-300 {
+  color: #67e8f9;
+}
+.text-cyan-400 {
+  color: #22d3ee;
+}
+.text-cyan-600 {
+  color: #0891b2;
+}
+.text-cyan-700 {
+  color: #0e7490;
+}
+.text-emerald-200 {
+  color: #a7f3d0;
+}
+.text-emerald-400 {
+  color: #34d399;
+}
+.text-emerald-600 {
+  color: #059669;
+}
+.text-emerald-700 {
+  color: #047857;
+}
+.text-emerald-800 {
+  color: #065f46;
+}
+.text-gray-900 {
+  color: #111827;
+}
+.text-green-100 {
+  color: #dcfce7;
+}
+.text-green-800 {
+  color: #166534;
+}
+.text-indigo-200 {
+  color: #c7d2fe;
+}
+.text-indigo-600 {
+  color: #4f46e5;
+}
+.text-indigo-700 {
+  color: #4338ca;
+}
+.text-indigo-800 {
+  color: #3730a3;
+}
+.text-indigo-900 {
+  color: #312e81;
+}
+.text-left {
+  text-align: left;
+}
+.text-lg {
+  font-size: 1.125rem; line-height: 1.75rem;
+}
+.text-purple-600 {
+  color: #9333ea;
+}
+.text-purple-700 {
+  color: #7e22ce;
+}
+.text-red-600 {
+  color: #dc2626;
+}
+.text-red-700 {
+  color: #b91c1c;
+}
+.text-right {
+  text-align: right;
+}
+.text-rose-600 {
+  color: #e11d48;
+}
+.text-slate-100 {
+  color: #f1f5f9;
+}
+.text-slate-400 {
+  color: #94a3b8;
+}
+.text-slate-500 {
+  color: #64748b;
+}
+.text-slate-600 {
+  color: #475569;
+}
+.text-slate-700 {
+  color: #334155;
+}
+.text-slate-800 {
+  color: #1e293b;
+}
+.text-slate-900 {
+  color: #0f172a;
+}
+.text-sm {
+  font-size: 0.875rem; line-height: 1.25rem;
+}
+.text-white {
+  color: #ffffff;
+}
+.text-white\/70 {
+  color: rgba(255, 255, 255, 0.7);
+}
+.text-white\/80 {
+  color: rgba(255, 255, 255, 0.8);
+}
+.text-xl {
+  font-size: 1.25rem; line-height: 1.75rem;
+}
+.text-xs {
+  font-size: 0.75rem; line-height: 1rem;
+}
+.top-0 {
+  top: 0px;
+}
+.tracking-tight {
+  letter-spacing: -0.025em;
+}
+.tracking-wide {
+  letter-spacing: 0.025em;
+}
+.transition {
+  transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms;
+}
+.transition-all {
+  transition-property: all; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); transition-duration: 150ms;
+}
+.w-10 {
+  width: 2.5rem;
+}
+.w-12 {
+  width: 3rem;
+}
+.w-14 {
+  width: 3.5rem;
+}
+.w-16 {
+  width: 4rem;
+}
+.w-2 {
+  width: 0.5rem;
+}
+.w-2\.5 {
+  width: 0.625rem;
+}
+.w-20 {
+  width: 5rem;
+}
+.w-24 {
+  width: 6rem;
+}
+.w-4 {
+  width: 1rem;
+}
+.w-5 {
+  width: 1.25rem;
+}
+.w-8 {
+  width: 2rem;
+}
+.w-9 {
+  width: 2.25rem;
+}
+.w-\[32%\] {
+  width: 32%;
+}
+.w-\[34%\] {
+  width: 34%;
+}
+.w-\[38%\] {
+  width: 38%;
+}
+.w-\[42%\] {
+  width: 42%;
+}
+.w-full {
+  width: 100%;
+}
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+.z-30 {
+  z-index: 30;
+}
+.z-50 {
+  z-index: 50;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Offline FontAwesome Fallback */
+.fa-solid, .fa-regular, .fa-brands, [class*="fa-"] {
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
+}
+.fa-plus::before { content: "+ "; font-weight: bold; }
+.fa-print::before { content: "🖨 "; }
+.fa-floppy-disk::before { content: "💾 "; }
+.fa-share-nodes::before { content: "🔗 "; }
+.fa-calendar-days::before { content: "📅 "; }
+.fa-calendar-check::before { content: "📅 "; }
+.fa-user-gear::before { content: "👤 "; }
+.fa-moon::before { content: "🌙 "; }
+.fa-magnifying-glass::before { content: "🔍 "; }
+.fa-chart-pie::before { content: "📊 "; }
+.fa-list-check::before { content: "📋 "; }
+.fa-book-bookmark::before { content: "📖 "; }
+.fa-book-open-reader::before { content: "📖 "; }
+.fa-mobile-screen-button::before { content: "📱 "; }
+.fa-file-excel::before { content: "📊 "; }
+.fa-wand-magic-sparkles::before { content: "✨ "; }
+.fa-file-lines::before { content: "📄 "; }
+.fa-file-contract::before { content: "📑 "; }
+.fa-cloud-arrow-up::before { content: "☁ "; }
+.fa-circle-check::before { content: "✓ "; }
+.fa-circle-info::before { content: "ℹ "; }
+.fa-trash::before { content: "🗑 "; }
+.fa-route::before { content: "🛣 "; }
+.fa-table-cells-large::before { content: "▦ "; }
+.fa-table::before { content: "▤ "; }
+.fa-copy::before { content: "📋 "; }
+.fa-download::before { content: "⬇ "; }
+
+</style>
+
+  <!-- Custom Styles -->
+  <style>
+/* APP CSS */
+/* Custom styles for Official GSDA Daily Diary App */
+
+body {
+  font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+}
+
+.font-marathi {
+  font-family: 'Noto Sans Devanagari', sans-serif;
+}
+
+/* Tab navigation */
+.nav-tab {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 0.5rem 0.5rem 0 0;
+  color: #93c5fd;
+  white-space: nowrap;
+  transition: all 0.15s ease-in-out;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-tab:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-tab.active-tab {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.18);
+  border-bottom: 2px solid #38bdf8;
+  font-weight: 600;
+}
+
+/* Tab content switching */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Filter pills */
+.filter-pill {
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  font-weight: 500;
+  font-size: 0.75rem;
+  transition: all 0.15s;
+}
+
+.filter-pill:hover {
+  background-color: #e2e8f0;
+}
+
+.filter-pill.active {
+  background-color: #1e3a8a;
+  color: #ffffff;
+  border-color: #1e3a8a;
+}
+
+/* Header Column Color Coding from User Image */
+.th-total { background-color: #ffffff; color: #000000; }
+.th-holiday { background-color: #ffffff; color: #dc2626; }
+.th-leave { background-color: #e8f5e9; color: #2e7d32; }
+.th-tour { background-color: #c8e6c9; color: #1b5e20; }
+.th-meeting { background-color: #fff9c4; color: #b45309; }
+.th-training { background-color: #ffffff; color: #0284c7; }
+.th-well { background-color: #f3e8ff; color: #6b21a8; }
+.th-borewell { background-color: #dcfce7; color: #15803d; }
+
+/* Suggestion & Search chips */
+.suggestion-chip, .search-chip {
+  display: inline-block;
+  padding: 0.18rem 0.45rem;
+  border-radius: 0.375rem;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+
+.suggestion-chip:active, .search-chip:active {
+  background-color: #bae6fd;
+  transform: scale(0.97);
+}
+
+.suggestion-chip:hover, .search-chip:hover {
+  background-color: #bae6fd;
+  color: #0284c7;
+}
+
+/* Mobile Touch Optimizations */
+@media (max-width: 767px) {
+  .nav-tab {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  .cal-day-cell {
+    min-height: 60px;
+    padding: 0.2rem;
+  }
+}
+
+/* Calendar Day Box */
+.cal-day-cell {
+  min-height: 80px;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  padding: 0.4rem;
+  background-color: #ffffff;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.cal-day-cell:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.cal-day-cell.is-holiday { background-color: #fef2f2; border-color: #fecaca; }
+.cal-day-cell.is-tour { background-color: #eef2ff; border-color: #c7d2fe; }
+.cal-day-cell.is-meeting { background-color: #fffbeb; border-color: #fde68a; }
+.cal-day-cell.is-leave { background-color: #faf5ff; border-color: #e9d5ff; }
+.cal-day-cell.is-empty { background-color: #f8fafc; border-style: dashed; cursor: default; }
+
+/* =======================================================
+   EXACT 1-PAGE A4 PORTRAIT PRINT / PDF STYLES (Cell A1 to J50)
+   Ensures Row 1 to Row 50 fit on a single A4 page!
+   ======================================================= */
+/* Screen Preview for Print Document (Cell A1 to J50) */
+.print-document {
+  max-width: 210mm;
+  min-height: 285mm;
+  margin: 0 auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+table.print-table-a1j {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+table.print-table-a1j th,
+table.print-table-a1j td {
+  height: 20px;
+  vertical-align: middle;
+}
+
+/* =======================================================
+   EXACT 1-PAGE A4 PORTRAIT PRINT / PDF STYLES (Cell A1 to J50)
+   Ensures Row 1 to Row 50 fill 100% OF THE FULL A4 PAGE!
+   ======================================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  html, body {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-size: 7.8pt !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  main {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  #tab-official {
+    display: block !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .print-document {
+    padding: 8mm 6mm 6mm 10mm !important; /* Top: 8mm, Right: 6mm, Bottom: 6mm, Left: 10mm */
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    box-sizing: border-box !important;
+    height: 297mm !important; /* Spans full A4 page height cleanly */
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    overflow: hidden !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-document.print-page-break {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .print-document h2 {
+    font-size: 10.5pt !important;
+    margin: 0 !important;
+    padding: 1px 0 !important;
+    margin-bottom: 6px !important;
+    font-weight: bold !important;
+  }
+
+  table.print-table-a1j {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    border: 1px solid #000000 !important;
+    font-size: 7.6pt !important;
+    line-height: 1.15 !important;
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+  }
+
+  table.print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: 1px solid #000000 !important;
+    font-size: 7.4pt !important;
+    line-height: 1.15 !important;
+    margin-top: 2px !important;
+    margin-bottom: 2px !important;
+  }
+
+  table.print-table-a1j th, 
+  table.print-table-a1j td,
+  table.print-table th, 
+  table.print-table td {
+    border: 0.75px solid #000000 !important;
+    padding: 1.5px 2px !important;
+    color: #000000 !important;
+    min-height: 4.95mm !important;
+    height: auto !important;
+    vertical-align: middle !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  table.print-table-a1j thead th,
+  table.print-table thead th {
+    background-color: #f1f5f9 !important;
+    font-weight: bold !important;
+    font-size: 7.8pt !important;
+    height: 5.6mm !important;
+  }
+
+  table.print-table-a1j td:nth-child(4) {
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+    font-size: 7.0pt !important;
+    line-height: 1.05 !important;
+  }
+
+  table.print-table-a1j th:last-child,
+  table.print-table-a1j td:last-child {
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .print-bottom-grid {
+    display: grid !important;
+    grid-template-columns: 1.15fr 1fr !important;
+    gap: 6px !important;
+    font-size: 7.2pt !important;
+    line-height: 1.15 !important;
+    margin-top: 2.5mm !important;
+    margin-bottom: 2mm !important;
+  }
+
+  .print-bottom-grid table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: 0.75px solid #000 !important;
+  }
+
+  .print-bottom-grid table th,
+  .print-bottom-grid table td {
+    border: 0.75px solid #000 !important;
+    padding: 1.5px 2px !important;
+    height: 4.3mm !important;
+    vertical-align: middle !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+  }
+
+  /* 1-Page mode: ultra-compact precise fit without bottom clipping */
+  .mode-1page {
+    height: 297mm !important;
+    max-height: 297mm !important;
+    overflow: hidden !important;
+    padding: 5mm 6mm 6mm 9mm !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-document.print-page-break {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .mode-1page table.print-table-a1j th,
+  .mode-1page table.print-table-a1j td {
+    min-height: 4.2mm !important;
+    height: 4.2mm !important;
+    max-height: 4.6mm !important;
+    padding: 0.4px 1.5px !important;
+    font-size: 7.0pt !important;
+    line-height: 1.05 !important;
+    box-sizing: border-box !important;
+  }
+
+  .mode-1page table.print-table-a1j thead th {
+    height: 4.8mm !important;
+    font-size: 7.4pt !important;
+    padding: 0.5px 1px !important;
+  }
+
+  .mode-1page .print-table-a1j .rt-cell {
+    height: 4.3mm !important;
+    min-height: 4.3mm !important;
+  }
+
+  .mode-1page .print-table-a1j .rt-leg1 {
+    height: 2.3mm !important;
+    min-height: 2.3mm !important;
+    max-height: 2.3mm !important;
+    padding: 0 1px !important;
+    font-size: 5.8pt !important;
+    line-height: 1.0 !important;
+  }
+
+  .mode-1page .print-table-a1j .rt-leg2 {
+    height: 2.0mm !important;
+    min-height: 2.0mm !important;
+    max-height: 2.0mm !important;
+    border-top: 0.5px solid #000000 !important;
+    padding: 0 1px !important;
+    font-size: 5.8pt !important;
+    line-height: 1.0 !important;
+  }
+
+  .mode-1page .print-bottom-grid {
+    display: grid !important;
+    grid-template-columns: 1.15fr 1fr !important;
+    gap: 4px !important;
+    font-size: 6.8pt !important;
+    line-height: 1.1 !important;
+    margin-top: 1mm !important;
+    margin-bottom: 0.5mm !important;
+  }
+
+  .mode-1page .print-bottom-grid table th,
+  .mode-1page .print-bottom-grid table td {
+    padding: 0.75px 2px !important;
+    height: 3.5mm !important;
+    min-height: 3.5mm !important;
+    font-size: 6.6pt !important;
+    line-height: 1.05 !important;
+  }
+
+  .mode-2page {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    page-break-after: auto !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    padding: 8mm 6mm 6mm 10mm !important;
+    box-sizing: border-box !important;
+  }
+
+  .mode-2page table.print-table-a1j {
+    width: 100% !important;
+    table-layout: fixed !important;
+    box-sizing: border-box !important;
+    font-size: 8.5pt !important;
+    line-height: 1.25 !important;
+  }
+
+  .mode-2page table.print-table-a1j th,
+  .mode-2page table.print-table-a1j td {
+    height: 7.6mm !important;
+    min-height: 7.6mm !important;
+    padding: 1.5px 2px !important;
+    vertical-align: middle !important;
+    font-size: 8.2pt !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    box-sizing: border-box !important;
+  }
+
+  .mode-2page table.print-table-a1j thead th {
+    height: 8.5mm !important;
+    font-size: 8.8pt !important;
+  }
+
+  .mode-2page table.print-table-a1j tbody tr {
+    height: 7.6mm !important;
+  }
+  .mode-2page .print-table-a1j .rt-cell {
+    height: 7.6mm !important;
+    min-height: 7.6mm !important;
+    box-sizing: border-box !important;
+  }
+  .mode-2page .print-table-a1j .rt-leg1 {
+    height: 4.0mm !important;
+    min-height: 4.0mm !important;
+    max-height: 4.0mm !important;
+    overflow: hidden !important;
+    word-break: break-word !important;
+    font-size: 7.0pt !important;
+    line-height: 1.05 !important;
+    box-sizing: border-box !important;
+  }
+  .mode-2page .print-table-a1j .rt-leg2 {
+    height: 3.6mm !important;
+    min-height: 3.6mm !important;
+    max-height: 3.6mm !important;
+    border-top: 0.75px solid #000000 !important;
+    overflow: hidden !important;
+    word-break: break-word !important;
+    font-size: 7.0pt !important;
+    line-height: 1.05 !important;
+    box-sizing: border-box !important;
+  }
+
+  .mode-2page .page2-container {
+    page-break-before: always !important;
+    break-before: page !important;
+    margin-top: 0 !important;
+    border-top: none !important;
+    padding-top: 18mm !important; /* Proper 18mm top margin for hole punching & tagging */
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .mode-2page .page2-container table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    box-sizing: border-box !important;
+  }
+
+  .mode-2page .page2-container table th,
+  .mode-2page .page2-container table td {
+    height: 6.8mm !important;
+    font-size: 8.5pt !important;
+    padding: 2.5px 4px !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Strict Month Break for Multi-Month bulk print - prevents any bleed across months */
+  .print-month-break {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  /* Continuation header on Page 2 */
+  .print-continuation-header {
+    text-align: center;
+    font-weight: 700;
+    font-size: 9pt;
+    text-decoration: underline;
+    margin-bottom: 2mm;
+    letter-spacing: 0.2px;
+  }
+
+  /* Yearly Abstract (वार्षिक गोषवारा) Page Print */
+  .yearly-abstract-page {
+    page-break-before: always !important;
+    break-before: page !important;
+    padding-top: 18mm !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* 2-Page mode screen preview */
+.mode-2page {
+  height: auto !important;
+  min-height: 285mm;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mode-2page table.print-table-a1j {
+  width: 100%;
+  table-layout: fixed;
+  box-sizing: border-box;
+}
+.mode-2page table.print-table-a1j th,
+.mode-2page table.print-table-a1j td {
+  height: 7.6mm;
+  min-height: 7.6mm;
+  padding: 1.5px 2px;
+  font-size: 8.2pt;
+  line-height: 1.25;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+.mode-2page table.print-table-a1j thead th {
+  height: 8.5mm;
+  font-size: 8.8pt;
+}
+.mode-2page table.print-table-a1j tbody tr {
+  height: 7.6mm;
+}
+.mode-2page .print-table-a1j .rt-cell {
+  height: 7.6mm;
+  min-height: 7.6mm;
+}
+.mode-2page .print-table-a1j .rt-leg1 {
+  height: 4.0mm;
+  min-height: 4.0mm;
+  max-height: 4.0mm;
+  overflow: hidden;
+  word-break: break-word;
+  font-size: 7.0pt;
+  line-height: 1.05;
+}
+.mode-2page .print-table-a1j .rt-leg2 {
+  height: 3.6mm;
+  min-height: 3.6mm;
+  max-height: 3.6mm;
+  border-top: 0.75px solid #000000;
+  overflow: hidden;
+  word-break: break-word;
+  font-size: 7.0pt;
+  line-height: 1.05;
+}
+.mode-2page .page2-container {
+  margin-top: 30px;
+  border-top: none !important;
+  padding-top: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mode-2page .page2-container table {
+  width: 100%;
+  table-layout: fixed;
+  box-sizing: border-box;
+}
+
+/* Unbroken seamless divider line across travel columns */
+td.rt-td {
+  padding: 0 !important;
+  vertical-align: top !important;
+}
+.rt-cell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+.rt-leg1 {
+  height: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 1px 4px;
+  box-sizing: border-box;
+  line-height: 1.1;
+  overflow: hidden;
+}
+.rt-leg2 {
+  height: 25px;
+  min-height: 25px;
+  max-height: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-top: 1.5px solid #64748b; /* unbroken solid line across all travel columns */
+  padding: 1px 4px;
+  box-sizing: border-box;
+  font-size: 10px;
+  line-height: 1.1;
+  color: #15803d;
+  font-weight: 600;
+  overflow: hidden;
+}
+.print-table-a1j td.rt-td {
+  padding: 0 !important;
+  vertical-align: top !important;
+}
+.print-table-a1j .rt-cell {
+  height: 100%;
+  min-height: auto;
+}
+.print-table-a1j .rt-leg1 {
+  min-height: 5.1mm !important;
+  height: auto !important;
+  padding: 0.2mm 0.5mm !important;
+  font-size: 6.8pt !important;
+  line-height: 1.05 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  overflow: visible !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  box-sizing: border-box !important;
+}
+.print-table-a1j .rt-leg2 {
+  min-height: 4.5mm !important;
+  height: auto !important;
+  border-top: 0.75px solid #000000 !important;
+  padding: 0.2mm 0.5mm !important;
+  font-size: 6.8pt !important;
+  line-height: 1.05 !important;
+  color: #000000 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  overflow: visible !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  box-sizing: border-box !important;
+  font-weight: normal !important;
+}
+
+/* Explicit Desktop & Mobile Entries Containers */
+@media (min-width: 768px) {
+  #desktopTableContainer {
+    display: block !important;
+  }
+  #mobileCardsContainer {
+    display: none !important;
+  }
+}
+
+/* ========================================================== */
+/* MODAL SYSTEM: SAFE VIEWPORT BOUNDARIES & INNER SCROLLBAR  */
+/* Prevents any modal from expanding beyond screen or hiding buttons */
+/* ========================================================== */
+#entryModal,
+#profileModal,
+#batchModal,
+#newMonthModal,
+#shareModal,
+#saveSuccessModal,
+#subDateModal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  background-color: rgba(15, 23, 42, 0.72) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+}
+
+#entryModal > div,
+#profileModal > div,
+#batchModal > div,
+#newMonthModal > div,
+#shareModal > div,
+#saveSuccessModal > div,
+#subDateModal > div {
+  max-height: 90vh !important;
+  height: auto !important;
+  max-width: 680px !important;
+  width: 100% !important;
+  background-color: #ffffff !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  margin: auto !important;
+}
+
+/* Modal Headers: Stay pinned at top */
+#entryModal > div > div:first-child,
+#profileModal > div > div:first-child,
+#batchModal > div > div:first-child,
+#newMonthModal > div > div:first-child,
+#shareModal > div > div:first-child,
+#saveSuccessModal > div > div:first-child,
+#subDateModal > div > div:first-child {
+  flex-shrink: 0 !important;
+}
+
+/* Modal Bodies: Clean inner scrolling within screen */
+#entryModal > div > div:nth-child(2),
+#profileModal > div > div:nth-child(2),
+#batchModal > div > div:nth-child(2),
+#newMonthModal > div > div:nth-child(2),
+#shareModal > div > div:nth-child(2),
+#saveSuccessModal > div > div:nth-child(2),
+#subDateModal > div > div:nth-child(2) {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  max-height: calc(90vh - 110px) !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+}
+
+/* Modal Footers: Stay pinned at bottom */
+#entryModal > div > div:last-child,
+#profileModal > div > div:last-child,
+#batchModal > div > div:last-child,
+#newMonthModal > div > div:last-child,
+#shareModal > div > div:last-child,
+#saveSuccessModal > div > div:last-child,
+#subDateModal > div > div:last-child {
+  flex-shrink: 0 !important;
+  background-color: #f8fafc !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+
+</style>
+
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <script>
+    window.tailwind = window.tailwind || {};
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gov: {
+              primary: '#1e3a8a',
+              secondary: '#1e40af',
+              accent: '#d97706',
+              surface: '#f8fafc',
+            }
+          },
+          fontFamily: {
+            marathi: ['Noto Sans Devanagari', 'sans-serif'],
+            sans: ['Inter', 'Noto Sans Devanagari', 'sans-serif'],
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Tailwind CSS CDN (Deferred so offline loading never freezes or hangs) -->
+  <script src="https://cdn.tailwindcss.com" defer></script>
+  
+  <style>
+    /* Dark Mode & Font Zoom Styles */
+    html.dark {
+      background-color: #0b1120 !important;
+      color: #f1f5f9 !important;
+    }
+    html.dark body {
+      background-color: #0b1120 !important;
+      color: #f1f5f9 !important;
+    }
+    html.dark .bg-slate-100 { background-color: #0f172a !important; }
+    html.dark .bg-white { background-color: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important; }
+    html.dark .text-slate-800, html.dark .text-slate-900, html.dark .text-slate-700 { color: #f1f5f9 !important; }
+    html.dark .text-slate-600, html.dark .text-slate-500 { color: #94a3b8 !important; }
+    html.dark .border-slate-200, html.dark .border-slate-300 { border-color: #334155 !important; }
+    html.dark .bg-slate-50 { background-color: #0f172a !important; color: #e2e8f0 !important; }
+    html.dark input, html.dark select, html.dark textarea { background-color: #0f172a !important; color: #f8fafc !important; border-color: #475569 !important; }
+    /* Printable document MUST always stay 100% white and black */
+    html.dark #printDocument, html.dark #printDocument * {
+      background-color: white !important;
+      color: black !important;
+      border-color: black !important;
+    }
+
+    /* Unbroken seamless divider line across travel columns */
+    td.rt-td {
+      padding: 0 !important;
+      vertical-align: top !important;
+    }
+    .rt-cell {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+    }
+    .rt-leg1 {
+      height: 30px;
+      min-height: 30px;
+      max-height: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 1px 4px;
+      box-sizing: border-box;
+      line-height: 1.1;
+      overflow: hidden;
+    }
+    .rt-leg2 {
+      height: 25px;
+      min-height: 25px;
+      max-height: 25px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      border-top: 1.5px solid #64748b; /* unbroken solid line across all travel columns */
+      padding: 1px 4px;
+      box-sizing: border-box;
+      font-size: 10px;
+      line-height: 1.1;
+      color: #15803d;
+      font-weight: 600;
+      overflow: hidden;
+    }
+    .print-table-a1j td.rt-td {
+      padding: 0 !important;
+      vertical-align: top !important;
+    }
+    .print-table-a1j .rt-cell {
+      height: 100%;
+      min-height: auto;
+    }
+    .print-table-a1j .rt-leg1 {
+      height: 5.1mm !important;
+      min-height: 5.1mm !important;
+      max-height: 5.1mm !important;
+      padding: 0.2mm 0.5mm !important;
+      font-size: 6.8pt !important;
+      line-height: 1.0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      text-align: center !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+    .print-table-a1j .rt-leg2 {
+      height: 4.5mm !important;
+      min-height: 4.5mm !important;
+      max-height: 4.5mm !important;
+      border-top: 0.75px solid #000000 !important;
+      padding: 0.2mm 0.5mm !important;
+      font-size: 6.8pt !important;
+      line-height: 1.0 !important;
+      color: #000000 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: center !important;
+      text-align: center !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+      font-weight: normal !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+
+  <!-- DEVICE-BOUND ACTIVATION LOCK SCREEN (OFFLINE ANTI-PIRACY) -->
+  <div id="deviceActivationOverlay" style="position: fixed; inset: 0; z-index: 9999999; background: rgba(11, 17, 32, 0.98); backdrop-filter: blur(14px); display: none; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <div style="background: #1e293b; border: 2px solid #1d4ed8; border-radius: 18px; max-width: 440px; width: 100%; box-shadow: 0 16px 50px rgba(0,0,0,0.6); overflow: hidden; color: #f8fafc;">
+      <div style="background: linear-gradient(135deg, rgba(29, 78, 216, 0.3) 0%, rgba(30, 41, 59, 0.7) 100%); padding: 22px 20px; border-bottom: 1.5px solid #334155; text-align: center;">
+        <div style="width: 58px; height: 58px; margin: 0 auto 10px auto; border-radius: 50%; background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 16px rgba(29, 78, 216, 0.4); border: 2px solid rgba(255,255,255,0.2);">
+          🔐
+        </div>
+        <h2 style="font-size: 1.25rem; font-weight: 900; color: #f8fafc; margin: 0;">GSDA दैनंदिनी (Diary Pro)</h2>
+        <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 3px 12px; border-radius: 20px; background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; font-size: 0.72rem; font-weight: 800; color: #f59e0b;">
+          ⚠️ अ‍ॅप सक्रियीकरण आवश्यक (Activation Required)
+        </div>
+      </div>
+
+      <div style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+        <p style="font-size: 0.8rem; color: #94a3b8; line-height: 1.45; margin: 0; text-align: center;">
+          हे अ‍ॅप या उपकरणासाठी सुरक्षित (Lock) केलेले आहे. अ‍ॅप सुरू करण्यासाठी खालील <strong>Device Request Code</strong> निर्मात्यांना (<strong>Vrad Vinayak</strong>) WhatsApp वर पाठवून Activation Key मिळवा.
+        </p>
+
+        <!-- Device Request Code Card -->
+        <div style="background: #0f172a; border: 1.5px dashed #1d4ed8; border-radius: 12px; padding: 14px; text-align: center;">
+          <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em;">
+            तुमचा Device Request Code
+          </div>
+          <div id="lblDeviceRequestCode" style="font-size: 1.6rem; font-weight: 900; font-family: monospace; color: #60a5fa; letter-spacing: 2px; margin: 6px 0;">
+            REQ-......
+          </div>
+          <div style="display: flex; gap: 8px; justify-content: center; margin-top: 6px;">
+            <button type="button" class="px-3 py-1.5 text-xs font-bold bg-slate-700 hover:bg-slate-600 text-slate-100 rounded-lg cursor-pointer transition" onclick="copyDeviceRequestCode()">
+              📋 Copy Code
+            </button>
+            <button type="button" class="px-3 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer transition shadow" onclick="sendActivationOnWhatsApp()">
+              💬 WhatsApp वर पाठवा
+            </button>
+          </div>
+        </div>
+
+        <div id="activationErrorBanner" style="display: none; padding: 10px 12px; border-radius: 8px; background: rgba(239, 68, 68, 0.15); border: 1.5px solid #ef4444; color: #ef4444; font-size: 0.8rem; font-weight: 700; text-align: center;">
+        </div>
+
+        <!-- Key Input Field -->
+        <div style="margin: 0;">
+          <label style="font-size: 0.76rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">🔑 ६-अंकी Activation Key टाका</label>
+          <input type="text" id="activationKeyInput" placeholder="उदा. 482915" maxlength="20" style="width: 100%; padding: 12px; font-size: 1.15rem; font-weight: 800; text-align: center; letter-spacing: 3px; font-family: monospace; border-radius: 8px; border: 1.5px solid #475569; background: #0f172a; color: #f8fafc; box-sizing: border-box;" onkeydown="if(event.key==='Enter') handleDeviceActivation();" />
+        </div>
+
+        <button type="button" class="w-full py-3 px-4 font-bold rounded-lg text-white text-sm shadow-lg cursor-pointer transition" style="background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);" onclick="handleDeviceActivation()">
+          🔓 अ‍ॅप सक्रिय करा (Activate App)
+        </button>
+
+        <div style="text-align: center; font-size: 0.72rem; color: #94a3b8; font-weight: 600; line-height: 1.35;">
+          🛡️ <em>100% ऑफलाइन पडताळणी. एकदा सक्रिय झाल्यावर हे उपकरण कायमस्वरूपी सुरू राहील.</em>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP HEADER (CLEAN & MINIMALIST: ONLY 'दैनंदिनी') -->
+  <header class="bg-blue-900 text-white shadow-md sticky top-0 z-30 no-print">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 flex flex-wrap items-center justify-between gap-2">
+      
+      <!-- Minimalist Brand Title: ONLY 'दैनंदिनी' -->
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 bg-white/10 rounded-lg flex items-center justify-center border border-white/20 shadow-inner">
+          <i class="fa-solid fa-book-bookmark text-cyan-300 text-base sm:text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-extrabold font-marathi tracking-tight text-white">
+            दैनंदिनी
+          </h1>
+        </div>
+      </div>
+
+      <!-- Action Controls -->
+      <div class="flex items-center flex-wrap gap-1.5 sm:gap-2 ml-auto">
+        <!-- Month Selector Dropdown -->
+        <div class="relative">
+          <select id="monthSelect" class="bg-white/15 border border-white/30 text-white text-xs sm:text-sm rounded-lg px-2.5 sm:px-3 py-1.5 pr-7 focus:ring-2 focus:ring-cyan-300 focus:outline-none font-marathi font-medium backdrop-blur-sm cursor-pointer hover:bg-white/25 transition">
+            <option value="" disabled selected class="text-gray-900">महिना निवडा...</option>
+          </select>
+        </div>
+
+        <!-- New Month Button -->
+        <button id="btnNewMonth" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition active:scale-95">
+          <i class="fa-solid fa-plus"></i>
+          <span class="hidden sm:inline">नवीन महिना</span>
+          <span class="sm:hidden">नवीन</span>
+        </button>
+
+        <!-- Save to Excel Button -->
+        <button id="btnSaveExcel" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-lg shadow-sm transition active:scale-95">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span class="hidden sm:inline">जतन करा</span>
+          <span class="sm:hidden">सेव्ह</span>
+        </button>
+
+        <!-- Official Print Button -->
+        <button id="btnPrint" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-sm transition active:scale-95">
+          <i class="fa-solid fa-print"></i>
+          <span>मुद्रण / PDF</span>
+        </button>
+
+        <!-- Multi-Month Operations Button -->
+        <button id="btnMultiMonthNav" onclick="openMultiMonthModal()" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold rounded-lg shadow-sm transition active:scale-95 border border-amber-400/50 cursor-pointer" title="एकाधिक महिने सेव्ह, प्रिंट व डाऊनलोड">
+          <i class="fa-solid fa-layer-group text-amber-200"></i>
+          <span class="hidden sm:inline">एकाधिक महिने</span>
+          <span class="sm:hidden">बॅच</span>
+        </button>
+
+        <!-- Yearly Abstract (वार्षिक गोषवारा - एप्रिल ते मार्च) Button -->
+        <button id="btnYearlyAbstract" onclick="openYearlyAbstractModal()" class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold rounded-lg shadow-sm transition active:scale-95 border border-purple-400/50 cursor-pointer" title="वार्षिक गोषवारा (Yearly Abstract - एप्रिल ते मार्च)">
+          <i class="fa-solid fa-calendar-check text-purple-200"></i>
+          <span class="hidden sm:inline">वार्षिक गोषवारा</span>
+          <span class="sm:hidden">वार्षिक</span>
+        </button>
+
+        <!-- Share Monthly Report Button -->
+        <button id="btnOpenShare" class="inline-flex items-center gap-1 px-2.5 sm:px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm transition active:scale-95" title="मासिक दैनंदिनी व गोषवारा शेअर करा">
+          <i class="fa-solid fa-share-nodes"></i>
+          <span>शेअर</span>
+        </button>
+
+        <!-- Download Mobile App -->
+        <a href="./mobile.html" download="diary_mobile.html" class="inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold rounded-lg shadow-sm transition" title="मोबाईल ऍप फाइल (Offline Download)">
+          <i class="fa-solid fa-mobile-screen-button text-white"></i>
+          <span class="hidden sm:inline">मोबाईल</span>
+        </a>
+
+        <!-- Profile Settings Button (Prominent) -->
+        <button id="btnOpenProfile" onclick="switchToProfileTab()" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold rounded-lg shadow-sm transition active:scale-95 cursor-pointer border border-cyan-400" title="अधिकारी प्रोफाइल संपादन">
+          <i class="fa-solid fa-user-gear text-cyan-200"></i>
+          <span>प्रोफाइल</span>
+        </button>
+
+        <!-- Download Excel -->
+        <a href="javascript:void(0)" onclick="saveToCustomFolder()" class="inline-flex items-center gap-1 px-2 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-semibold rounded-lg shadow-sm transition" title="Excel डाऊनलोड">
+          <i class="fa-solid fa-file-excel text-emerald-400"></i>
+        </a>
+
+        <!-- Font Zoom Controls (A- / A / A+) -->
+        <div class="inline-flex items-center bg-white/15 rounded-lg p-0.5 border border-white/30 text-white text-xs" title="अक्षरांचा आकार (Font Zoom)">
+          <button type="button" onclick="changeAppZoom(-1)" class="px-2 py-0.5 hover:bg-white/20 rounded font-bold" title="अक्षरे लहान करा">A-</button>
+          <button type="button" onclick="resetAppZoom()" class="px-1.5 py-0.5 hover:bg-white/20 rounded text-[10.5px]" title="मूळ आकार">A</button>
+          <button type="button" onclick="changeAppZoom(1)" class="px-2 py-0.5 hover:bg-white/20 rounded font-bold" title="अक्षरे मोठी करा">A+</button>
+        </div>
+
+        <!-- Prominent Dark Mode Toggle Button with Clear Text -->
+        <button type="button" id="btnThemeToggle" onclick="toggleDarkMode()" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-300 rounded-lg border border-amber-400/40 text-xs font-bold shadow-sm transition active:scale-95 cursor-pointer" title="डार्क मोड चालू / बंद करा">
+          <i id="themeIcon" class="fa-solid fa-moon text-amber-300"></i>
+          <span id="themeText">डार्क मोड</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <div class="bg-blue-950/80 border-t border-white/10 px-2 sm:px-6">
+      <div class="max-w-7xl mx-auto flex space-x-1 overflow-x-auto py-1 scrollbar-none font-marathi text-xs sm:text-sm">
+        <button class="nav-tab active-tab" data-tab="tab-entries">
+          <i class="fa-solid fa-list-check mr-1"></i> नोंदी
+        </button>
+        <button class="nav-tab" data-tab="tab-calendar">
+          <i class="fa-regular fa-calendar-days mr-1"></i> कॅलेंडर
+        </button>
+        <button class="nav-tab" data-tab="tab-summary">
+          <i class="fa-solid fa-chart-pie mr-1"></i> गोषवारा व प्रगती
+        </button>
+        <button class="nav-tab" data-tab="tab-official">
+          <i class="fa-solid fa-file-contract mr-1"></i> प्रपत्र (1-Page Print)
+        </button>
+        <button class="nav-tab" data-tab="tab-holidays">
+          <i class="fa-solid fa-calendar-check mr-1"></i> सुट्ट्या (Holidays)
+        </button>
+        <button class="nav-tab" data-tab="tab-search">
+          <i class="fa-solid fa-magnifying-glass mr-1"></i> शोध
+        </button>
+        <button class="nav-tab text-amber-300 hover:text-white" data-tab="tab-guide" title="ॲप वापर मार्गदर्शिका पहा">
+          <i class="fa-solid fa-book-open-reader mr-1 text-amber-400"></i> मार्गदर्शिका (User Guide)
+        </button>
+        <button class="nav-tab text-cyan-300 hover:text-white" data-tab="tab-profile" title="अधिकारी नाव, पदनाम, कार्यालय बदल करा">
+          <i class="fa-solid fa-user-gear mr-1 text-cyan-400"></i> प्रोफाइल (Profile)
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 py-3 flex-1 w-full">
+
+    <!-- ACTIVE MONTH BANNER -->
+    <div id="monthBanner" class="bg-white rounded-xl shadow-sm border border-slate-200 p-2.5 sm:p-3 mb-3 flex flex-wrap items-center justify-between gap-2.5 no-print">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <h2 id="activeMonthTitle" class="text-base sm:text-lg font-bold text-slate-800 font-marathi">
+          माहे ...
+        </h2>
+        <span id="activeSheetBadge" class="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-300 font-mono">
+          Sheet
+        </span>
+        <!-- Offline Auto-Save Indicator -->
+        <span id="autoSaveIndicator" class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-900 border border-emerald-400 rounded-lg text-[11px] font-bold font-marathi shadow-2xs whitespace-nowrap">
+          <i class="fa-solid fa-cloud-arrow-up text-emerald-700 text-xs"></i>
+          <span id="autoSaveText">सर्व बदल आपोआप जतन (Auto-Saved)</span>
+        </span>
+      </div>
+
+      <!-- Quick Summary Badges -->
+      <div class="flex items-center gap-1.5 font-marathi text-[11px] sm:text-xs overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
+        <div class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200 whitespace-nowrap">
+          एकूण: <strong id="statTotalDays" class="font-bold">0</strong>
+        </div>
+        <div class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 whitespace-nowrap">
+          कार्यालय: <strong id="statOfficeDays" class="font-bold">0</strong>
+        </div>
+        <div class="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300 whitespace-nowrap">
+          दौरा: <strong id="statTourDays" class="font-bold">0</strong>
+        </div>
+        <div class="bg-amber-50 text-amber-700 px-2 py-0.5 rounded border border-amber-200 whitespace-nowrap">
+          बैठक: <strong id="statMeetingDays" class="font-bold">0</strong>
+        </div>
+        <div class="bg-red-50 text-red-700 px-2 py-0.5 rounded border border-red-200 whitespace-nowrap">
+          सुट्टी: <strong id="statHolidayDays" class="font-bold">0</strong>
+        </div>
+        <div class="bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-200 whitespace-nowrap">
+          विहिरी: <strong id="statTotalWells" class="font-bold">0</strong>
+        </div>
+        <div class="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded border border-emerald-200 whitespace-nowrap">
+          विंधण: <strong id="statTotalBorewells" class="font-bold">0</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: DAILY DIARY ENTRIES (दैनंदिनी नोंदी) -->
+    <!-- ========================================== -->
+    <div id="tab-entries" class="tab-content active no-print">
+      
+      <!-- Toolbar -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-2 sm:p-2.5 mb-2.5 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5">
+          <button id="btnQuickAddEntry" class="inline-flex items-center gap-1 px-3 py-1.5 bg-gov-primary hover:bg-blue-800 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+            <i class="fa-solid fa-plus"></i>
+            <span>नोंद जोडा</span>
+          </button>
+          <button id="btnBatchFill" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i>
+            <span>सामूहिक नोंद</span>
+          </button>
+          <!-- Download Monthly Notes .txt button -->
+          <button type="button" onclick="downloadMonthNotes()" class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-300 text-xs font-semibold rounded-lg shadow-2xs transition active:scale-95" title="या महिन्यातील सर्व महत्त्वाच्या टिपणी व बैठकीचे मुद्दे .txt फाईलमध्ये डाउनलोड करा">
+            <i class="fa-solid fa-file-lines text-indigo-600"></i>
+            <span>महिन्याची टिपणी (.txt)</span>
+          </button>
+          
+          <!-- Mobile View Switcher Toggle -->
+          <div class="flex md:hidden border border-slate-300 rounded-lg overflow-hidden text-xs">
+            <button id="btnViewCards" class="px-2 py-1 bg-blue-900 text-white font-semibold">
+              <i class="fa-solid fa-table-cells-large"></i>
+            </button>
+            <button id="btnViewTable" class="px-2 py-1 bg-white text-slate-600">
+              <i class="fa-solid fa-table-list"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter pills -->
+        <div class="flex items-center gap-1 text-[11px] sm:text-xs font-marathi overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0 scrollbar-none">
+          <button class="filter-pill active" data-filter="all">सर्व</button>
+          <button class="filter-pill" data-filter="tour">दौरा</button>
+          <button class="filter-pill" data-filter="meeting">बैठक</button>
+          <button class="filter-pill" data-filter="holiday">सुट्टी</button>
+          <button class="filter-pill" data-filter="leave">रजा</button>
+          <button class="filter-pill" data-filter="wells">विहीर / विंधण</button>
+        </div>
+      </div>
+
+      <!-- MOBILE CARDS CONTAINER -->
+      <div id="mobileCardsContainer" class="block md:hidden space-y-2 mb-4 font-marathi">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- MAIN TABLE (WITH USER'S EXACT COLUMNS & COLORS) -->
+      <div id="desktopTableContainer" class="hidden md:block bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead class="bg-slate-50 border-b border-slate-300 font-marathi text-slate-800 sticky top-0 font-bold">
+              <tr>
+                <th class="p-2 text-center w-8 border-r border-slate-200">क्र.</th>
+                <th class="p-2 text-center w-20 border-r border-slate-200">दिनांक</th>
+                <th class="p-2 text-center w-16 border-r border-slate-200">कोठून</th>
+                <th class="p-2 text-center w-12 border-r border-slate-200">वेळ</th>
+                <th class="p-2 text-center w-32 border-r border-slate-200">कोठे</th>
+                <th class="p-2 text-center w-12 border-r border-slate-200">वेळ</th>
+                <th class="p-2 text-center w-20 border-r border-slate-200">प्रवासाचे साधन</th>
+                <th class="p-2 text-center w-14 border-r border-slate-200">कि.मी.</th>
+                <th class="p-2 text-center w-14 border-r border-slate-200">भाडे रु</th>
+                <th class="p-2 border-r border-slate-200 min-w-[240px]">कामाचे तपशील / प्रवासाचे कारण</th>
+                
+                <!-- USER'S EXACT COLUMNS WITH PRECISE COLORS -->
+                <th class="p-2 text-center w-9 border-r border-slate-200 th-total" title="एकूण">एकूण</th>
+                <th class="p-2 text-center w-9 border-r border-slate-200 th-holiday" title="सुट्टी">सुट्टी</th>
+                <th class="p-2 text-center w-9 border-r border-slate-200 th-leave" title="रजा">रजा</th>
+                <th class="p-2 text-center w-9 border-r border-slate-200 th-tour" title="दौरा">दौरा</th>
+                <th class="p-2 text-center w-9 border-r border-slate-200 th-meeting" title="बैठक">बैठक</th>
+                <th class="p-2 text-center w-10 border-r border-slate-200 th-training" title="प्रशिक्षण">प्रशिक्षण</th>
+                <th class="p-2 text-center w-10 border-r border-slate-200 th-well" title="विहिर संख्या">विहिर</th>
+                <th class="p-2 text-center w-12 border-r border-slate-200 th-borewell" title="विंधण विहिर संख्या">विंधण विहिर</th>
+                
+                <th class="p-2 text-center w-14">कृती</th>
+              </tr>
+            </thead>
+            <tbody id="entriesTableBody" class="divide-y divide-slate-100 font-marathi">
+              <!-- Rendered via JS -->
+            </tbody>
+            <!-- Table Footer Totals -->
+            <tfoot class="bg-slate-100 font-bold border-t-2 border-slate-300 text-xs font-marathi">
+              <tr>
+                <td colspan="7" class="p-2 text-right pr-3 text-slate-700">एकूण (Totals):</td>
+                <td id="tfootTotalKm" class="p-2 text-center text-indigo-700 font-mono">0</td>
+                <td id="tfootTotalFare" class="p-2 text-center text-slate-700 font-mono">-</td>
+                <td class="p-2 text-slate-500 italic">मासिक गोषवारा व प्रगती</td>
+                <td id="tfootTotalDays" class="p-2 text-center text-slate-800 font-mono">0</td>
+                <td id="tfootTotalHoliday" class="p-2 text-center text-red-600 font-mono">0</td>
+                <td id="tfootTotalLeave" class="p-2 text-center text-emerald-700 font-mono">0</td>
+                <td id="tfootTotalTour" class="p-2 text-center text-emerald-800 font-mono">0</td>
+                <td id="tfootTotalMeeting" class="p-2 text-center text-amber-700 font-mono">0</td>
+                <td id="tfootTotalTraining" class="p-2 text-center text-blue-700 font-mono">0</td>
+                <td id="tfootTotalWells" class="p-2 text-center text-purple-700 font-mono">0</td>
+                <td id="tfootTotalBorewells" class="p-2 text-center text-emerald-700 font-mono">0</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: CALENDAR VIEW (मासिक कॅलेंडर) -->
+    <!-- ========================================== -->
+    <div id="tab-calendar" class="tab-content no-print">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5 pb-2 border-b border-slate-100">
+          <h3 id="calMonthTitle" class="text-base font-bold font-marathi text-slate-800">
+            कॅलेंडर दृश्य
+          </h3>
+          <div class="flex flex-wrap items-center gap-2 text-[11px] font-marathi">
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-100 border border-emerald-300"></span> कार्यालय</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-300 border border-emerald-500"></span> दौरा</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-100 border border-amber-300"></span> बैठक</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-red-100 border border-red-300"></span> सुट्टी</span>
+            <span class="inline-flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-purple-100 border border-purple-300"></span> विहिर/विंधण</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-7 gap-1 sm:gap-1.5 mb-1.5 text-center text-[10px] sm:text-xs font-bold font-marathi text-slate-600">
+          <div class="py-1 bg-red-50 text-red-700 rounded">रवि</div>
+          <div class="py-1 bg-slate-50 rounded">सोम</div>
+          <div class="py-1 bg-slate-50 rounded">मंगळ</div>
+          <div class="py-1 bg-slate-50 rounded">बुध</div>
+          <div class="py-1 bg-slate-50 rounded">गुरु</div>
+          <div class="py-1 bg-slate-50 rounded">शुक्र</div>
+          <div class="py-1 bg-blue-50 text-blue-700 rounded">शनि</div>
+        </div>
+
+        <div id="calendarGrid" class="grid grid-cols-7 gap-1 sm:gap-1.5"></div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: MONTHLY SUMMARY & FIELD PROGRESS -->
+    <!-- ========================================== -->
+    <div id="tab-summary" class="tab-content no-print">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        <!-- Left: Field Progress (क्षेत्रीय प्रगती) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+          <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold font-marathi text-slate-800">
+                क्षेत्रीय प्रगती (Field Progress)
+              </h3>
+              <p class="text-[11px] text-slate-500 font-marathi">दैनिक नोंदींमधून संकलित केलेली गावे व प्रकरणे संख्या</p>
+            </div>
+            <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+              मासिक प्रगती
+            </span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs font-marathi">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-700">
+                <tr>
+                  <th class="p-2 text-left">योजना / सर्वेक्षण प्रकार</th>
+                  <th class="p-2 text-center w-28">गावे / न.प. (Mapsheet)</th>
+                  <th class="p-2 text-center w-28">प्रकरणे / विहिरी (Wells)</th>
+                </tr>
+              </thead>
+              <tbody id="fieldProgressTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right: Monthly Summary (मासिक गोषवारा) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+              <h3 class="text-base font-bold font-marathi text-slate-800">
+                मासिक गोषवारा (Monthly Abstract)
+              </h3>
+              <span class="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                स्वयंचलित
+              </span>
+            </div>
+
+            <div class="space-y-1.5 font-marathi text-xs">
+              <div class="flex items-center justify-between p-1.5 bg-slate-50 rounded border border-slate-100">
+                <span class="text-slate-700">महिन्याचे एकूण दिवस:</span>
+                <span id="sumTotalDays" class="font-bold text-slate-900 font-mono">0</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 bg-emerald-50 rounded border border-emerald-100">
+                <span class="text-emerald-900">कार्यालयीन कामकाजाचे दिवस:</span>
+                <span id="sumOfficeDays" class="font-bold text-emerald-700 font-mono">0</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 bg-green-50 rounded border border-green-100">
+                <span class="text-green-900">सर्वेक्षणास्तव फिरतीचे दिवस:</span>
+                <span id="sumTourDays" class="font-bold text-green-800 font-mono">0</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 bg-red-50 rounded border border-red-100">
+                <span class="text-red-900">शासकीय / साप्ताहिक सुट्टीचे दिवस:</span>
+                <span id="sumHolidayDays" class="font-bold text-red-700 font-mono">0</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 bg-amber-50 rounded border border-amber-100">
+                <span class="text-amber-900">बैठकांचे दिवस:</span>
+                <span id="sumMeetingDays" class="font-bold text-amber-700 font-mono">0</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 bg-blue-50 rounded border border-blue-100">
+                <span class="text-blue-900">प्रशिक्षण / कार्यशाळा दिवस:</span>
+                <span id="sumTrainingDays" class="font-bold text-blue-700 font-mono">0</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 bg-purple-50 rounded border border-purple-100">
+                <span class="text-purple-900">रजेचे दिवस:</span>
+                <span id="sumLeaveDays" class="font-bold text-purple-700 font-mono">0</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 bg-indigo-50 rounded border border-indigo-100">
+                <span class="text-indigo-900 font-semibold">तपासलेल्या विहिरी / विंधण विहिरी संख्या:</span>
+                <span class="font-bold text-indigo-800 font-mono"><span id="sumWells">0</span> विहिरी | <span id="sumBorewells">0</span> विंधण</span>
+              </div>
+              <div class="flex items-center justify-between p-1.5 bg-slate-50 rounded border border-slate-100">
+                <span class="text-slate-800 font-semibold">एकूण फिरतीचे अंतर कि.मी.:</span>
+                <span id="sumTravelKm" class="font-bold text-slate-800 font-mono">0 km</span>
+              </div>
+              <!-- मुक्कामाचे दिवस (Night Halt) सह Hide / Show Checkbox -->
+              <div class="flex flex-wrap items-center justify-between p-2 bg-orange-50/80 rounded-lg border border-orange-200 gap-1.5 mt-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-orange-950 font-bold">दौऱ्यातील मुक्कामाचे दिवस:</span>
+                  <input type="number" id="inputNightHaltDays" min="0" max="31" class="w-14 px-1.5 py-0.5 text-xs border border-orange-300 rounded font-bold font-mono text-center bg-white shadow-2xs" placeholder="0" value="0" onchange="updateNightHaltSettings()">
+                </div>
+                <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-orange-950 font-medium select-none bg-orange-100/60 px-2 py-1 rounded border border-orange-200 hover:bg-orange-100 transition" title="हा चेकबॉक्स बंद ठेवल्यास कोणताही आकडा असला तरी प्रिंट व एक्सेलमध्ये मुक्काम दाखवला जाणार नाही">
+                  <input type="checkbox" id="checkShowNightHalt" class="w-3.5 h-3.5 text-orange-600 rounded border-orange-300 focus:ring-orange-500 cursor-pointer" onchange="updateNightHaltSettings()">
+                  <span>प्रिंट व Excel मध्ये दाखवा</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: OFFICIAL PRINT PREVIEW (EXACT CELL A1:J1 TO A50:J50) -->
+    <!-- Fits on EXACTLY 1 PAGE A4 PORTRAIT -->
+    <!-- ========================================== -->
+    <div id="tab-official" class="tab-content">
+      
+      <!-- Clean Print Toolbar with Format Switch & 1-Page A4 Fit Indicator -->
+      <div class="no-print bg-white p-2.5 rounded-xl border border-slate-200 mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Quick Print Format Switcher -->
+          <div class="inline-flex rounded-lg border border-slate-300 p-0.5 bg-slate-100 text-xs font-marathi">
+            <button type="button" id="btnQuickFormat1Page" onclick="switchPrintFormatDirect('1page')" class="px-2.5 py-1 rounded-md font-bold transition bg-white text-blue-700 shadow-sm" title="१ पान कॉम्पॅक्ट रोजनिशी">
+              <i class="fa-solid fa-file mr-1"></i>१ पान (Compact)
+            </button>
+            <button type="button" id="btnQuickFormat2Page" onclick="switchPrintFormatDirect('2page')" class="px-2.5 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition" title="२ पाने सविस्तर रोजनिशी (पान १ नोंदी + पान २ गोषवारा)">
+              <i class="fa-solid fa-file-lines mr-1"></i>२ पाने (Varad Format)
+            </button>
+          </div>
+          <div id="fitToPageBadge" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg text-xs font-bold font-marathi">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="fitToPageBadgeText">१००% १ पान A4 अचूक फिट (Fit to 1 Page A4)</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="openProfileModalDirect()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 flex items-center gap-1">
+            <i class="fa-solid fa-user-gear text-cyan-700"></i>
+            <span>प्रोफाइल व सेटिंग्ज</span>
+          </button>
+          <button onclick="window.print()" class="px-4 py-2 bg-indigo-700 hover:bg-indigo-600 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition active:scale-95" title="A4 प्रिंट करा किंवा PDF सेव्ह करा">
+            <i class="fa-solid fa-print"></i>
+            <span>मुद्रण करा / PDF सेव्ह करा (Print A4)</span>
+          </button>
+          <button type="button" onclick="openMultiMonthModal()" class="px-3.5 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition active:scale-95 border border-amber-400/50 cursor-pointer" title="एकाधिक महिने सलग प्रिंट किंवा Excel">
+            <i class="fa-solid fa-layer-group text-amber-200"></i>
+            <span>एकाधिक महिने प्रिंट / Excel</span>
+          </button>
+        </div>
+      </div>
+      <div class="no-print bg-amber-50 border border-amber-200 text-amber-900 text-[11px] px-3 py-1.5 rounded-lg mb-2 flex items-center gap-1.5 font-marathi">
+        <i class="fa-solid fa-circle-info text-amber-600"></i>
+        <span><strong>टीप:</strong> मुद्रण करताना प्रिंट विंडोमध्ये 'More settings' (अधिक पर्याय) वर जाऊन <strong>'Headers and footers' (शीर्षलेख आणि तळटीप) अनचेक (बंद)</strong> ठेवा म्हणजे तारीख-वेळेचे हेडर येणार नाही.</span>
+      </div>
+
+      <!-- Printable 1-Page A4 Container (Cell A1 to J50) -->
+      <div id="printDocument" class="bg-white p-4 sm:p-5 rounded-xl shadow-md border border-slate-400 font-marathi text-black print-document">
+        
+        <!-- Row 1: Header Title (Merged A1:J1) -->
+        <div class="text-center pb-0.5" style="margin-bottom: 2px;">
+          <h2 id="printMonthTitle" class="text-sm font-bold underline">
+            माहे ... ची दैनंदिनी
+          </h2>
+        </div>
+
+        <!-- Row 2: Officer Meta (A2:J2) -->
+        <div class="flex justify-between items-center text-[10px] pb-1 px-1 font-semibold border-b border-black">
+          <span id="printOfficerName">नाव-विनायक नवनाथ निंबाळकर</span>
+          <span id="printOfficerDesig">पदनाम- सहाय्यक भूवैज्ञानिक</span>
+          <span id="printOfficerBudget">लेखाशीर्ष- २७०२</span>
+          <span id="printOfficerSalary">वेतन:६४०००/-</span>
+        </div>
+
+        <!-- Rows 3 to 35: Table Columns A to J (Fixed proportions, 100% full width, compact date, expanded to & work details) -->
+        <table id="tableA1J" class="w-full border-collapse border border-black print-table-a1j text-[10px] my-0.5" style="table-layout: fixed; width: 100%;">
+          <colgroup>
+            <col style="width: 9.5%;">  <!-- दिनांक -->
+            <col style="width: 9.0%;">  <!-- निघण्याचे ठिकाण -->
+            <col style="width: 5.0%;">  <!-- निघण्याची वेळ -->
+            <col style="width: 20.5%;"> <!-- पोहचण्याचे ठिकाण -->
+            <col style="width: 5.0%;">  <!-- पोहचण्याची वेळ -->
+            <col style="width: 10.0%;"> <!-- प्रवासाचे साधन -->
+            <col style="width: 6.5%;">  <!-- प्रवासाचे अंतर -->
+            <col style="width: 5.5%;">  <!-- प्रवास भाडे -->
+            <col style="width: 29.0%;"> <!-- कामाचा तपशील / प्रवासाचे कारण -->
+          </colgroup>
+          <thead>
+            <tr class="bg-slate-100 text-center font-bold">
+              <th rowspan="2" class="border border-black p-0.5">दिनांक</th>
+              <th colspan="2" class="border border-black p-0.5">निघण्याचे</th>
+              <th colspan="2" class="border border-black p-0.5">पोहचण्याचे</th>
+              <th rowspan="2" class="border border-black p-0.5">प्रवासाचे साधन</th>
+              <th rowspan="2" class="border border-black p-0.5">प्रवासाचे अंतर कि. मी.</th>
+              <th rowspan="2" class="border border-black p-0.5">प्रवास भाडे रुपये</th>
+              <th rowspan="2" class="border border-black p-0.5 text-left">कामाचे तपशील / प्रवासाचे कारण</th>
+            </tr>
+            <tr class="bg-slate-100 text-center font-bold">
+              <th class="border border-black p-0.5">ठिकाण</th>
+              <th class="border border-black p-0.5">वेळ</th>
+              <th class="border border-black p-0.5">ठिकाण</th>
+              <th class="border border-black p-0.5">वेळ</th>
+            </tr>
+          </thead>
+          <tbody id="printTableA1JBody">
+            <!-- 31 days rendered by JS -->
+          </tbody>
+        </table>
+
+        <!-- Rows 36 to 51: Bottom Summary Section -->
+        <div id="printBottomSummarySection">
+
+          <!-- ======================================================== -->
+          <!-- 1-PAGE COMPACT FORMAT: Side-by-Side Tables               -->
+          <!-- ======================================================== -->
+          <div id="printSummary1PageSection">
+            <!-- Left: क्षेत्रीय प्रगती (Cols A to F) | Right: मासिक गोषवारा (Cols G to J) -->
+            <div class="print-bottom-grid grid grid-cols-2 gap-2 text-[9.5px] mt-1 border-t border-black pt-1">
+              
+              <!-- Left: क्षेत्रीय प्रगती (Cols A to F) -->
+              <div>
+                <div class="font-bold text-center bg-slate-100 border border-black p-0.5">क्षे्त्रिय प्रगती</div>
+                <table class="w-full border-collapse border border-black text-center">
+                  <thead>
+                    <tr class="font-semibold bg-slate-50">
+                      <th class="border border-black p-0.5 text-left">योजना प्रकार</th>
+                      <th class="border border-black p-0.5 w-14">गावे/न.प.</th>
+                      <th class="border border-black p-0.5 w-14">प्रकरणे/विहिरी</th>
+                    </tr>
+                  </thead>
+                  <tbody id="printProgressBody"></tbody>
+                </table>
+              </div>
+
+              <!-- Right: मासिक गोषवारा (Cols G to J) -->
+              <div>
+                <div class="font-bold text-center bg-slate-100 border border-black p-0.5">मासिक गोषवारा</div>
+                <table class="w-full border-collapse border border-black text-left">
+                  <tbody id="printSummaryBody"></tbody>
+                </table>
+                <!-- Officer Signature Block right under summary (Rows 44 to 46, Cols G to J) -->
+                <div class="text-center font-bold" style="margin-top: 4px; padding-top: 2px; font-size: 8px; line-height: 1.15; white-space: nowrap;">
+                  <p id="printSigOfficer">(विनायक नवनाथ निंबाळकर)</p>
+                  <p id="printSigDesig">सहाय्यक भूवैज्ञानिक</p>
+                  <p id="printSigOffice">भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर</p>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Rows 47 to 48: Submission Remark (Cols A to J) -->
+            <div class="text-[8.5px] mt-1 pt-0.5 border-t border-black font-semibold" style="line-height: 1.2;">
+              <p class="font-bold">प्रति,</p>
+              <p id="printSubmissionOffice">मा. वरिष्ठ भूवैज्ञानिक, भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर यांना माहितीस्तव व मंजूरीस्तव सविनय सादर.</p>
+            </div>
+
+            <!-- Rows 49 to 51: Date & Final Signature -->
+            <div class="flex justify-between items-end text-[8.5px] mt-1 font-bold px-1" style="min-height: 44px;">
+              <div>
+                <div class="flex items-center gap-1 font-bold">
+                  <span>दिनांक:</span>
+                  <input type="text" id="printBottomDateInput" class="border border-blue-400 bg-blue-50/70 hover:bg-blue-50 focus:bg-white text-blue-950 font-mono font-bold w-28 min-w-[105px] px-1 py-0.2 rounded text-center transition print:border-none print:bg-transparent print:p-0" value="05/08/2026" oninput="onSubmissionDateChange(this.value)" title="सादर दिनांक संपादित करा">
+                  <button type="button" onclick="openSubmissionDateModal()" class="no-print inline-flex items-center gap-1 px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[9.5px] font-bold shadow-sm transition active:scale-95 cursor-pointer" title="सादर दिनांक बदला">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>दिनांक बदला</span>
+                  </button>
+                </div>
+              </div>
+              <div class="text-center" style="min-width: 210px; white-space: nowrap; line-height: 1.2; font-size: 8px;">
+                <p style="white-space: nowrap;">आपला विश्वासु,</p>
+                <div style="height: 10px;"></div>
+                <p id="printBottomSig" style="white-space: nowrap;">(विनायक नवनाथ निंबाळकर)</p>
+                <p id="printBottomDesigCity" style="white-space: nowrap;">सहाय्यक भूवैज्ञानिक, सोलापूर</p>
+                <p id="printBottomOffice" style="white-space: nowrap;">भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ======================================================== -->
+          <!-- 2-PAGE VARAD FORMAT: Sheet 2 with Tables Up and Down      -->
+          <!-- ======================================================== -->
+          <div id="printSummary2PageSection" style="display: none;" class="page2-container pt-3">
+            <!-- Sheet 2 Title Header (Matching Varad Sheet 2 Rows 1 & 2) -->
+            <div class="text-center mb-3">
+              <h2 class="text-base font-bold underline font-marathi tracking-wide mb-1">मासिक दैनंदिनीचा गोषवारा</h2>
+              <div class="flex justify-between items-center font-bold border-b-2 border-black pb-1.5 text-[11px] text-slate-900">
+                <span id="printP2OfficerName">नाव : विनायक नवनाथ निंबाळकर</span>
+                <span id="printP2OfficerDesig">पदनाम : सहाय्यक भूवैज्ञानिक</span>
+                <span id="printP2OfficerDept">भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर</span>
+              </div>
+            </div>
+
+            <!-- Table 1 (TOP): मासिक गोषवारा (Full Width, Matching Varad Rows 3-10) -->
+            <div class="mb-4">
+              <table class="w-full border-collapse border border-black text-left text-[10.5px]" style="table-layout: fixed; width: 100%;">
+                <colgroup>
+                  <col style="width: 7%;">
+                  <col style="width: 45%;">
+                  <col style="width: 18%;">
+                  <col style="width: 30%;">
+                </colgroup>
+                <thead>
+                  <tr class="bg-slate-100 font-bold border-b border-black text-center">
+                    <th class="border border-black p-1 text-center">अ.क्र.</th>
+                    <th class="border border-black p-1 text-left pl-2.5">तपशील</th>
+                    <th class="border border-black p-1 text-center">एकुण दिवस</th>
+                    <th class="border border-black p-1 text-center">शेरा</th>
+                  </tr>
+                </thead>
+                <tbody id="printP2SummaryBody">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Table 2 (BOTTOM): क्षेत्रीय प्रगती (Full Width, Matching Varad Rows 11-22) -->
+            <div class="mb-4">
+              <table class="w-full border-collapse border border-black text-center text-[10.5px]" style="table-layout: fixed; width: 100%;">
+                <colgroup>
+                  <col style="width: 6%;">
+                  <col style="width: 34%;">
+                  <col style="width: 15%;">
+                  <col style="width: 15%;">
+                  <col style="width: 12%;">
+                  <col style="width: 18%;">
+                </colgroup>
+                <thead>
+                  <tr class="bg-slate-100 font-bold border-b border-black text-center">
+                    <th class="border border-black p-1 text-center">अ.क्र.</th>
+                    <th class="border border-black p-1 text-left pl-2.5">योजना</th>
+                    <th class="border border-black p-1 text-center">गावे / वाडी</th>
+                    <th class="border border-black p-1 text-center">सर्वेक्षित प्रकरणे</th>
+                    <th class="border border-black p-1 text-center">मंजूर प्रकरणे</th>
+                    <th class="border border-black p-1 text-center">शेरा</th>
+                  </tr>
+                </thead>
+                <tbody id="printP2ProgressBody">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Submission Line (Matching Varad Row 24) -->
+            <div class="text-[11px] font-bold mt-4 mb-6 leading-relaxed border-t border-black pt-2">
+              <p id="printP2SubmissionLine">उपरोक्त माहे ची मासिक दैनंदिनी मंजूरीसाठी सविनय सादर.</p>
+            </div>
+
+            <!-- Bottom Row: Date on Left, Signature on Right (Matching Varad Rows 27-32) -->
+            <div class="flex justify-between items-end text-[11px] font-bold px-2 mt-4">
+              <div>
+                <div class="flex items-center gap-1.5 font-bold">
+                  <span>दिनांक:</span>
+                  <input type="text" id="printP2DateInput" class="border border-blue-400 bg-blue-50/70 hover:bg-blue-50 focus:bg-white text-blue-950 font-mono font-bold w-28 px-1.5 py-0.5 rounded text-center transition print:border-none print:bg-transparent print:p-0" value="05/08/2026" oninput="onSubmissionDateChange(this.value)" title="सादर दिनांक संपादित करा">
+                  <button type="button" onclick="openSubmissionDateModal()" class="no-print inline-flex items-center gap-1 px-2 py-0.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px] font-bold shadow-sm transition active:scale-95 cursor-pointer" title="सादर दिनांक बदला">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>दिनांक बदला</span>
+                  </button>
+                </div>
+              </div>
+              <div class="text-center min-w-[220px]">
+                <p>आपला विश्वासु,</p>
+                <div style="height: 35px;"></div>
+                <p id="printP2SigName">(विनायक नवनाथ निंबाळकर)</p>
+                <p id="printP2SigDesig">सहाय्यक भूवैज्ञानिक</p>
+                <p id="printP2SigDept">भूजल सर्वेक्षण आणि विकास यंत्रणा,</p>
+                <p id="printP2SigCity">सोलापूर</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Multi-Month Batch Print Host Container (Populated dynamically during batch print) -->
+      <div id="multiMonthPrintHost" style="display: none;"></div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: HOLIDAYS (शासकीय व सोलापूर जिल्हा स्थानिक सुट्ट्या २०२६) -->
+    <!-- ========================================== -->
+    <div id="tab-holidays" class="tab-content no-print">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-200">
+          <div>
+            <h3 class="text-base sm:text-lg font-bold font-marathi text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-calendar-check text-red-600"></i>
+              <span>अधिकृत सुट्ट्या व शासन निर्णय (Official Holidays & GR)</span>
+            </h3>
+            <p class="text-xs text-slate-500 font-marathi">
+              सर्व शनिवार व रविवार साप्ताहिक सुट्टी, महाराष्ट्र शासन सार्वजनिक सुट्ट्या व जिल्हाधिकारी स्थानिक सुट्ट्या आदेश
+            </p>
+          </div>
+          
+          <button id="btnApplyHolidaysToMonth" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition active:scale-95">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>सर्व शनिवार, रविवार व सुट्ट्या चालू महिन्यात लागू करा</span>
+          </button>
+        </div>
+
+        <!-- 2 BUTTONS: SHASKIY SUTTI UPLOAD (PDF) - SARVJANIK & STANIK SUTTYA (FOR 2026, 2027 & FUTURE) -->
+        <div class="bg-slate-50 border border-blue-200 rounded-xl p-3 mb-4">
+          <div class="font-bold text-xs sm:text-sm text-blue-900 mb-1.5 flex items-center gap-2 font-marathi">
+            <i class="fa-solid fa-file-pdf text-red-600 text-base"></i>
+            <span>शासकीय सुट्टी शासन निर्णय / आदेश PDF अपलोड व व्यवस्थापन (२०२६, २०२७ व पुढील वर्षांसाठी):</span>
+          </div>
+          <p class="text-[11px] text-slate-600 mb-3 font-marathi">
+            भविष्यातील वर्षांसाठी (उदा. २०२७ च्या सुट्ट्या) आपण शासन निर्णय व स्थानिक आदेशाची PDF येथे सुरक्षित अपलोड करून पाहू शकता:
+          </p>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 font-marathi text-xs">
+            <!-- 1. सार्वजनिक सुट्ट्या शासन निर्णय PDF -->
+            <div class="bg-white border border-blue-200 rounded-lg p-3 shadow-xs">
+              <div class="font-bold text-blue-900 mb-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-landmark text-blue-700"></i> १. सार्वजनिक सुट्ट्या (शासन निर्णय PDF)
+              </div>
+              <div id="deskSarvjanikPdfStatus" class="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded p-1.5 mb-2">
+                <i class="fa-solid fa-file-circle-check"></i> महाराष्ट्र शासन अधिकृत राजपत्र २०२६ उपलब्ध
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded flex items-center gap-1 text-[11px]" onclick="viewSarvjanikPdf()">
+                  <i class="fa-solid fa-eye"></i> सार्वजनिक सुट्ट्या PDF पहा
+                </button>
+                <button type="button" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold rounded flex items-center gap-1 text-[11px]" onclick="triggerUploadSarvjanikPdf()">
+                  <i class="fa-solid fa-upload"></i> नवीन PDF अपलोड (२०२७+)
+                </button>
+                <input type="file" id="deskInputSarvjanikPdf" accept="application/pdf,image/*" class="hidden" onchange="handleUploadSarvjanikPdf(event)">
+              </div>
+            </div>
+
+            <!-- 2. स्थानिक सुट्ट्या जिल्हाधिकारी आदेश PDF -->
+            <div class="bg-white border border-red-200 rounded-lg p-3 shadow-xs">
+              <div class="font-bold text-red-900 mb-1 flex items-center gap-1.5">
+                <i class="fa-solid fa-building-circle-check text-red-700"></i> २. स्थानिक सुट्ट्या (जिल्हाधिकारी आदेश PDF)
+              </div>
+              <div id="deskStanikPdfStatus" class="text-[11px] text-red-800 bg-red-50 border border-red-200 rounded p-1.5 mb-2">
+                <i class="fa-solid fa-file-circle-check"></i> जिल्हाधिकारी स्थानिक सुट्टी आदेश २०२६ उपलब्ध
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold rounded flex items-center gap-1 text-[11px]" onclick="viewStanikPdf()">
+                  <i class="fa-solid fa-eye"></i> स्थानिक सुट्ट्या आदेश पहा
+                </button>
+                <button type="button" class="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold rounded flex items-center gap-1 text-[11px]" onclick="triggerUploadStanikPdf()">
+                  <i class="fa-solid fa-upload"></i> नवीन PDF अपलोड (२०२७+)
+                </button>
+                <input type="file" id="deskInputStanikPdf" accept="application/pdf,image/*" class="hidden" onchange="handleUploadStanikPdf(event)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Holidays Notice -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 mb-3 text-xs text-blue-900 font-marathi flex items-center gap-2">
+          <i class="fa-solid fa-circle-info text-blue-600 text-sm"></i>
+          <span><strong>साप्ताहिक सुट्टी नियम:</strong> शासकीय नियमानुसार महिन्यातील <strong>सर्व शनिवार आणि रविवार</strong> हे साप्ताहिक सुट्टी (Weekly Holiday) म्हणून स्वयंचलित चिन्हांकित केले जातात.</span>
+        </div>
+
+        <!-- Sub Tabs: 1. महाराष्ट्र शासन सार्वजनिक सुट्ट्या 2. सोलापूर स्थानिक सुट्ट्या -->
+        <div class="flex space-x-2 border-b border-slate-200 mb-3 text-xs font-marathi">
+          <button id="btnSubtabGovt" class="px-3 py-2 border-b-2 border-blue-900 text-blue-900 font-bold flex items-center gap-1.5" onclick="switchHolidaySubtab('govt')">
+            <i class="fa-solid fa-landmark"></i>
+            <span>महाराष्ट्र शासन सार्वजनिक सुट्ट्या २०२६ (२४ दिवस)</span>
+          </button>
+          <button id="btnSubtabSolapur" class="px-3 py-2 border-b-2 border-transparent text-slate-500 hover:text-slate-800 font-medium flex items-center gap-1.5" onclick="switchHolidaySubtab('solapur')">
+            <i class="fa-solid fa-map-pin text-red-600"></i>
+            <span>सोलापूर जिल्हा स्थानिक सुट्ट्या २०२६ (३ दिवस)</span>
+          </button>
+        </div>
+
+        <!-- Subtab 1: Maharashtra Govt Public Holidays -->
+        <div id="subtabGovtContent" class="space-y-2">
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 text-xs text-blue-900 font-marathi flex items-center justify-between">
+            <div>
+              <strong>अधिसूचना:</strong> सामान्य प्रशासन विभाग, मंत्रालय, मुंबई क्र. PHD-1125/C.R.199/Japuk (29), दि. ०५/१२/२०२५
+            </div>
+            <span class="text-[11px] bg-blue-200 text-blue-800 px-2 py-0.5 rounded font-mono font-bold">२४ सार्वजनिक सुट्ट्या</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs font-marathi border border-slate-200">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
+                <tr>
+                  <th class="p-2 text-center w-12 border-r border-slate-200">अ.क्र.</th>
+                  <th class="p-2 text-center w-28 border-r border-slate-200">दिनांक</th>
+                  <th class="p-2 text-center w-24 border-r border-slate-200">वार</th>
+                  <th class="p-2 text-left">सुट्टीचे नाव / सण</th>
+                </tr>
+              </thead>
+              <tbody id="govtHolidaysTableBody" class="divide-y divide-slate-100">
+                <!-- Rendered dynamically by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Subtab 2: Solapur Local Holidays -->
+        <div id="subtabSolapurContent" class="space-y-2 hidden">
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-xs text-amber-900 font-marathi flex items-center justify-between">
+            <div>
+              <strong>जिल्हाधिकारी आदेश:</strong> जिल्हाधिकारी कार्यालय सोलापूर, आदेश क्र.मह/आस्था-१/प्र.क्र.७४(२०२२)/आरआर/१६३५, दि. ३१/१२/२०२५
+            </div>
+            <span class="text-[11px] bg-amber-200 text-amber-800 px-2 py-0.5 rounded font-mono font-bold">३ स्थानिक सुट्ट्या</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs font-marathi border border-slate-200">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold">
+                <tr>
+                  <th class="p-2 text-center w-12 border-r border-slate-200">अ.क्र.</th>
+                  <th class="p-2 text-center w-28 border-r border-slate-200">दिनांक</th>
+                  <th class="p-2 text-center w-24 border-r border-slate-200">वार</th>
+                  <th class="p-2 text-left">स्थानिक सुट्टीचे नाव / प्रसंग</th>
+                  <th class="p-2 text-center w-36">लागू जिल्हा</th>
+                </tr>
+              </thead>
+              <tbody id="solapurHolidaysTableBody" class="divide-y divide-slate-100">
+                <!-- Rendered dynamically by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 6: GLOBAL SEARCH -->
+    <!-- ========================================== -->
+    <div id="tab-search" class="tab-content no-print">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <div class="max-w-xl mb-4">
+          <h3 class="text-base font-bold font-marathi text-slate-800 mb-1">
+            सर्वंकष दैनंदिनी शोध (Universal Search)
+          </h3>
+          <div class="flex gap-1.5">
+            <div class="relative flex-1">
+              <input type="text" id="globalSearchInput" placeholder="उदा. अटल भूजल, जिल्हाधिकारी, रेणापूर, विहिर..." class="w-full pl-8 pr-2.5 py-1.5 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-marathi">
+              <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
+            </div>
+            <button id="btnExecuteSearch" class="px-3 py-1.5 bg-gov-primary hover:bg-blue-800 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+              शोधा
+            </button>
+          </div>
+        </div>
+
+        <div id="searchResultsCount" class="text-xs font-semibold font-marathi text-slate-600 mb-2 hidden">
+          शोध परिणाम: <span id="countNumber" class="text-blue-700">0</span> नोंदी सापडल्या
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs font-marathi border border-slate-200">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-700">
+              <tr>
+                <th class="p-2 border-r border-slate-200 text-center w-24">महिना</th>
+                <th class="p-2 border-r border-slate-200 text-center w-20">दिनांक</th>
+                <th class="p-2 border-r border-slate-200 text-center w-24">ठिकाण</th>
+                <th class="p-2 border-r border-slate-200">कामाचे तपशील</th>
+                <th class="p-2 border-r border-slate-200 text-center w-14">किमी</th>
+                <th class="p-2 border-r border-slate-200 text-center w-16">प्रकार</th>
+                <th class="p-2 text-center w-14">कृती</th>
+              </tr>
+            </thead>
+            <tbody id="searchResultsBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 7: USER GUIDE (वापर कसा करावा मार्गदर्शिका) -->
+    <!-- ========================================== -->
+    <div id="tab-guide" class="tab-content no-print">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 font-marathi space-y-4">
+        <div class="border-b border-slate-200 pb-3 flex items-center justify-between">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-blue-900 flex items-center gap-2">
+              <i class="fa-solid fa-book-open-reader text-cyan-600"></i>
+              <span>GSDA दैनंदिनी ॲप वापर मार्गदर्शिका (User Guide)</span>
+            </h2>
+            <p class="text-xs text-slate-600 mt-0.5">अधिकृत दैनंदिनी भरणे, प्रवास नोंद, १-पान प्रिंट आणि एक्सेल डाऊनलोड सोप्या पायऱ्यांत</p>
+          </div>
+          <span class="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold border border-emerald-300">
+            आवृत्ती २०२६
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <!-- Guide Card 1 -->
+          <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-3.5 space-y-2">
+            <h3 class="font-bold text-blue-900 text-sm flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-blue-700 text-white inline-flex items-center justify-center text-[11px]">१</span>
+              <span>अधिकारी प्रोफाइल भरणे (Profile Setup)</span>
+            </h3>
+            <ul class="list-disc list-inside text-slate-700 space-y-1 leading-relaxed">
+              <li>वर मेनूमध्ये <strong>'⚙️ प्रोफाइल'</strong> बटण दाबा.</li>
+              <li>आपले नाव, पदनाम, कार्यालय, मुख्यालय (उदा. सोलापूर / लातूर) व वेतन भरा.</li>
+              <li><strong>प्रवास भाडे दर (रु./कि.मी.):</strong> येथे दर टाका (डिफॉल्ट १० रु.), त्यानुसार खाजगी वाहनाचे भाडे आपोआप गणले जाईल.</li>
+            </ul>
+          </div>
+
+          <!-- Guide Card 2 -->
+          <div class="bg-emerald-50/60 border border-emerald-200 rounded-xl p-3.5 space-y-2">
+            <h3 class="font-bold text-emerald-900 text-sm flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-emerald-700 text-white inline-flex items-center justify-center text-[11px]">२</span>
+              <span>दैनिक नोंद भरणे (Daily Entry)</span>
+            </h3>
+            <ul class="list-disc list-inside text-slate-700 space-y-1 leading-relaxed">
+              <li><strong>'नोंदी'</strong> टॅबमध्ये ज्या तारखेची नोंद करायची आहे तिच्या पेन्सिल आयकॉनवर क्लिक करा.</li>
+              <li><strong>झटपट स्थिती:</strong> 🏢 मुख्यालय, 🚗 दौरा, 🚩 साप्ताहिक सुट्टी यावर १-क्लिक करून वेळ व मजकूर आपोआप भरता येतो.</li>
+              <li><strong>मराठी व्हाईस टायपिंग:</strong> माईकचे लाल बटण दाबून मराठीत बोलूनही कामकाज नोंदवता येते.</li>
+            </ul>
+          </div>
+
+          <!-- Guide Card 3 -->
+          <div class="bg-amber-50/60 border border-amber-200 rounded-xl p-3.5 space-y-2">
+            <h3 class="font-bold text-amber-900 text-sm flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-amber-700 text-white inline-flex items-center justify-center text-[11px]">३</span>
+              <span>परतीचा प्रवास नोंदवणे (Return Journey)</span>
+            </h3>
+            <ul class="list-disc list-inside text-slate-700 space-y-1 leading-relaxed">
+              <li>जाण्याचा प्रवास भरल्यावर खाली <strong>'+ Add Return / Multi Journey'</strong> बटण दाबा.</li>
+              <li>परतीच्या प्रवासाचे साधन (शासकीय/खाजगी/एस.टी./ट्रेन), कोठून-कोठे, वेळ आणि कि.मी. भरा.</li>
+              <li><strong>शासकीय वाहन:</strong> निवडल्यास भाडे आपोआप <code>०</code> (शून्य) होईल.</li>
+              <li>दोन्ही प्रवासाचे कि.मी. आणि भाडे आपोआप एकत्रित बेरजेत मोजले जातात.</li>
+              <li><strong>दुसऱ्या दिवशी आगमन (Next Day Arrival):</strong> वेळ व कंसात तारीख लिहा, उदा. <code>०१.०० (८/७/२६)</code>. यामुळे प्रिंट व टेबलमध्ये वेळ आणि तारीख आपोआप वर-खाली (२ ओळींत) बसते व रकान्याची रुंदी (Column Width) अजिबात वाढत नाही.</li>
+            </ul>
+          </div>
+
+          <!-- Guide Card 4 -->
+          <div class="bg-purple-50/60 border border-purple-200 rounded-xl p-3.5 space-y-2">
+            <h3 class="font-bold text-purple-900 text-sm flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-purple-700 text-white inline-flex items-center justify-center text-[11px]">४</span>
+              <span>क्षेत्रीय प्रगती योजना (Add/Delete Schemes)</span>
+            </h3>
+            <ul class="list-disc list-inside text-slate-700 space-y-1 leading-relaxed">
+              <li>नोंद संपादनात एकाच ओळीत <strong>योजना निवडा | गावे | प्रकरणे</strong> उपलब्ध आहेत.</li>
+              <li><strong>+ योजना जोडा:</strong> नवीन कोणतीही शासकीय योजना तत्काळ यादीत जोडा.</li>
+              <li><strong>🗑️ योजना हटवा:</strong> नको असलेली जुनी योजना एका क्लिकवर काढून टाका.</li>
+            </ul>
+          </div>
+
+          <!-- Guide Card 5 -->
+          <div class="bg-rose-50/60 border border-rose-200 rounded-xl p-3.5 space-y-2">
+            <h3 class="font-bold text-rose-900 text-sm flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-rose-700 text-white inline-flex items-center justify-center text-[11px]">५</span>
+              <span>सुट्ट्या व शासकीय आदेश (Holidays)</span>
+            </h3>
+            <ul class="list-disc list-inside text-slate-700 space-y-1 leading-relaxed">
+              <li><strong>'सुट्ट्या'</strong> टॅबमध्ये सर्व शनिवार आणि रविवार आपोआप साप्ताहिक सुट्टी म्हणून नोंदवले जातात.</li>
+              <li>सार्वजनिक सुट्ट्या आणि स्थानिक सुट्ट्यांचे अधिकृत <strong>शासकीय आदेश / GR PDF</strong> पाहता येतात व नवीन PDF अपलोड करता येतात.</li>
+            </ul>
+          </div>
+
+          <!-- Guide Card 6 -->
+          <div class="bg-teal-50/60 border border-teal-200 rounded-xl p-3.5 space-y-2">
+            <h3 class="font-bold text-teal-900 text-sm flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-teal-700 text-white inline-flex items-center justify-center text-[11px]">६</span>
+              <span>प्रिंट (1-Page Print) आणि Excel डाऊनलोड</span>
+            </h3>
+            <ul class="list-disc list-inside text-slate-700 space-y-1 leading-relaxed">
+              <li><strong>'प्रपत्र (1-Page Print)':</strong> एकाच A4 पानात संपूर्ण ३१ दिवसांची दैनंदिनी, गोषवारा आणि स्वाक्षरी अचूक बसते.</li>
+              <li><strong>सादर दिनांक:</strong> पुढील महिन्याची ५ तारीख आपोआप येते (बदलण्यायोग्य).</li>
+              <li><strong>Excel डाऊनलोड:</strong> मूळ अधिकृत 18-रकाने (A to R) मास्टर फॉरमॅटनुसार .xlsx फाईल एका क्लिकवर डाऊनलोड होते.</li>
+            </ul>
+          </div>
+
+          <!-- Guide Card 7 -->
+          <div class="bg-sky-50/60 border border-sky-200 rounded-xl p-3.5 space-y-2">
+            <h3 class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-sky-700 text-white inline-flex items-center justify-center text-[11px]">७</span>
+              <span>गुगल ड्राईव्ह बॅकअप व सुरक्षा (Google Drive Backup & Sync)</span>
+            </h3>
+            <ul class="list-disc list-inside text-slate-700 space-y-1 leading-relaxed">
+              <li><strong>डेटा सुरक्षितता:</strong> महिन्याचे काम पूर्ण झाल्यावर किंवा दर आठवड्याला <strong>'Excel डाऊनलोड'</strong> करून ती फाईल तुमच्या Google Drive वर सेव्ह करा. यामुळे संगणक खराब झाला तरी तुमचा डेटा सुरक्षित राहतो.</li>
+              <li><strong>स्वयंचलित सिंक (Google Drive for Desktop):</strong> तुमच्या संगणकावर 'Google Drive for Desktop' इन्स्टॉल असल्यास, दैनंदिनी फोल्डर थेट गुगल ड्राईव्हशी लिंक करून सर्व महिने आपोआप क्लाऊडवर बॅकअप ठेवता येतात.</li>
+              <li><strong>मोबाईल व संगणक दोन्हीवर सहज वापर:</strong> गुगल ड्राईव्हवर सेव्ह केलेली एक्सेल फाईल तुम्ही मोबाईलवरूनही उघडू शकता व गरजेनुसार पुन्हा इम्पोर्ट करू शकता.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 8: FULL PROFILE SETTINGS (अधिकारी प्रोफाइल) -->
+    <!-- EXACT MATCH TO http://127.0.0.1:5000/diary -->
+    <!-- ========================================== -->
+    <div id="tab-profile" class="tab-content no-print">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 font-marathi space-y-5">
+        
+        <!-- Header -->
+        <div class="border-b border-slate-200 pb-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-blue-900 flex items-center gap-2">
+              <i class="fa-solid fa-user-gear text-cyan-600"></i>
+              <span>अधिकारी प्रोफाइल व संरचना (Profile & System Settings)</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              अधिकृत दैनंदिनी, प्रपत्र (1-Page / 2-Page Print) आणि एक्सेल मधील सर्व स्वाक्षऱ्या व तपशील
+            </p>
+          </div>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-cyan-100 text-cyan-900 rounded-full text-xs font-bold border border-cyan-300">
+            <i class="fa-solid fa-shield-check text-cyan-700"></i>
+            <span>अधिकृत खाते (Active Profile)</span>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <!-- Left Column: Officer Information Form -->
+          <div class="space-y-4">
+            <div class="bg-slate-50/80 border border-slate-200 rounded-xl p-4 space-y-3.5">
+              <h3 class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5 pb-2 border-b border-slate-200">
+                <i class="fa-solid fa-id-card text-blue-700"></i>
+                <span>अधिकारी तपशील (Officer Information)</span>
+              </h3>
+
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1 text-xs">अधिकाऱ्याचे नाव (Officer Name):</label>
+                <input type="text" id="tabProfName" class="w-full p-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-medium text-slate-900" placeholder="उदा. विनायक नवनाथ निंबाळकर" />
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1 text-xs">पदनाम (Designation):</label>
+                  <input type="text" id="tabProfDesig" class="w-full p-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-medium text-slate-900" placeholder="सहाय्यक भूवैज्ञानिक" />
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1 text-xs">मूळ वेतन (Basic Salary):</label>
+                  <input type="text" id="tabProfSalary" class="w-full p-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-medium text-slate-900" placeholder="६४०००/-" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1 text-xs">मुख्यालय (Headquarters):</label>
+                  <input type="text" id="tabProfHQ" class="w-full p-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-medium text-slate-900" placeholder="सोलापूर" />
+                  <span class="text-[10px] text-emerald-700 mt-0.5 block font-medium">* बदलल्यास कार्यालय व 'कोठून' आपोआप अद्ययावत होते.</span>
+                </div>
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1 text-xs">लेखाशीर्ष (Budget Head):</label>
+                  <input type="text" id="tabProfBudget" class="w-full p-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-medium text-slate-900" placeholder="२७०२" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1 text-xs">कार्यालय (Department / Office):</label>
+                <input type="text" id="tabProfDept" class="w-full p-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-medium text-slate-900" placeholder="भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर" />
+              </div>
+
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1 text-xs">नियंत्रक / सादर अधिकारी (Controlling Officer):</label>
+                <input type="text" id="tabProfControlling" class="w-full p-2 text-xs sm:text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-medium text-slate-900" placeholder="वरिष्ठ भूवैज्ञानिक, भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर" />
+              </div>
+
+              <!-- Editable Fare Rate & Formula in Profile -->
+              <div class="bg-amber-50/80 p-3 rounded-xl border border-amber-300 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="text-amber-900 font-bold text-xs flex items-center gap-1">
+                    <i class="fa-solid fa-bolt text-amber-600"></i> प्रवास भाडे दर (रु./कि.मी.):
+                  </label>
+                  <span id="tabFareFormulaDisplay" class="text-[11px] font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-amber-200">
+                    सूत्र: अंतर × १० रु.
+                  </span>
+                </div>
+                <input type="number" id="tabProfFareRate" min="1" max="100" value="10" class="w-full p-2 text-xs sm:text-sm border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none bg-white font-bold text-slate-900" placeholder="10" oninput="updateTabFareFormulaText(this.value)" />
+                <span class="text-[10px] text-amber-800 block leading-tight">
+                  * अंतर टाकून 'भाडे गणना' दाबल्यावर या दरानुसार प्रवास भाडे स्वयंचलित गणले जाईल.
+                </span>
+              </div>
+
+              <!-- Print / Report Page Format Option -->
+              <div class="bg-emerald-50/80 p-3 rounded-xl border border-emerald-300 space-y-2">
+                <label class="text-emerald-950 font-bold text-xs flex items-center gap-1.5">
+                  <i class="fa-solid fa-file-invoice text-emerald-700"></i> रोजनिशी प्रिंट / अहवाल स्वरूप (Print & Report Format):
+                </label>
+                <div class="flex gap-4 flex-wrap text-xs font-semibold text-slate-800">
+                  <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" name="tabProfPrintFormat" value="1page" checked onchange="onTabPrintFormatChange(this.value)" class="text-emerald-600 focus:ring-emerald-500" />
+                    <span>१ पान कॉम्पॅक्ट (1-Page Fit)</span>
+                  </label>
+                  <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                    <input type="radio" name="tabProfPrintFormat" value="2page" onchange="onTabPrintFormatChange(this.value)" class="text-emerald-600 focus:ring-emerald-500" />
+                    <span>२ पाने सविस्तर (2-Page / Varad Format)</span>
+                  </label>
+                </div>
+                <div class="text-[10px] text-emerald-800 leading-relaxed">
+                  • <strong>१ पान:</strong> संपूर्ण ३१ दिवसांची दैनंदिनी, गोषवारा व स्वाक्षरी एकाच A4 पानात बसते.<br>
+                  • <strong>२ पाने:</strong> पान १ वर सर्व दैनंदिन नोंदी व पान २ वर स्वतंत्र मासिक गोषवारा, क्षेत्रीय प्रगती व स्वाक्षरी.
+                </div>
+              </div>
+
+              <button type="button" id="btnSaveTabProfile" onclick="saveTabProfile()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-md transition active:scale-95 cursor-pointer">
+                <i class="fa-solid fa-floppy-disk text-base"></i>
+                <span>प्रोफाइल सेव्ह करा (Save Profile)</span>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- Right Column: Storage Paths, Backups, & Device Licensing -->
+          <div class="space-y-4">
+            
+            <!-- MASTER STORAGE PATH & BACKUP BUTTONS -->
+            <div class="bg-sky-50/70 border border-sky-300 rounded-xl p-4 space-y-3">
+              <h3 class="text-xs sm:text-sm font-bold text-sky-950 flex items-center gap-1.5 pb-2 border-b border-sky-200">
+                <i class="fa-solid fa-hard-drive text-sky-700"></i>
+                <span>मास्टर फाईल व डेटा सेव्ह फोल्डर मार्ग (Storage Paths)</span>
+              </h3>
+
+              <div class="space-y-2 text-xs text-slate-700">
+                <div>
+                  <span class="font-bold text-slate-800">💻 PC मास्टर Excel फाईल मार्ग:</span>
+                  <code class="block mt-0.5 bg-white border border-sky-200 text-sky-900 px-2 py-1 rounded font-mono text-[11px] font-bold select-all break-all">
+                    e:\Diary\Diary_app_varad.xlsx
+                  </code>
+                </div>
+
+                <div>
+                  <span class="font-bold text-slate-800">📁 बॅकअप व डेटा सेव्ह फोल्डर (PC):</span>
+                  <code class="block mt-0.5 bg-white border border-sky-200 text-sky-900 px-2 py-1 rounded font-mono text-[11px] font-bold select-all break-all">
+                    e:\Diary\backups\
+                  </code>
+                </div>
+
+                <div>
+                  <span class="font-bold text-slate-800">📱 मोबाईल सेव्ह लोकेशन:</span>
+                  <p class="text-[11px] text-emerald-800 font-medium mt-0.5">
+                    आपल्या मोबाईलचे मुख्य 'Downloads' (किंवा My Files / Documents) फोल्डर.
+                  </p>
+                </div>
+              </div>
+
+              <div class="pt-2 border-t border-sky-200 space-y-2">
+                <a href="javascript:void(0)" onclick="saveToCustomFolder()" class="w-full py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition active:scale-95">
+                  <i class="fa-solid fa-file-excel text-emerald-200"></i>
+                  <span>चालू महिना अधिकृत Excel (.xlsx) डाउनलोड</span>
+                </a>
+
+                <button type="button" onclick="exportDataJson()" class="w-full py-2 bg-blue-700 hover:bg-blue-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition active:scale-95">
+                  <i class="fa-solid fa-cloud-arrow-down text-cyan-200"></i>
+                  <span>संपूर्ण १२ महिन्यांचा बॅकअप (.json) सेव्ह करा</span>
+                </button>
+
+                <button type="button" onclick="document.getElementById('tabJsonRestoreInput').click()" class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition active:scale-95">
+                  <i class="fa-solid fa-cloud-arrow-up text-amber-200"></i>
+                  <span>मागील डेटा बॅकअप रिस्टोअर करा (Restore)</span>
+                </button>
+                <input type="file" id="tabJsonRestoreInput" accept=".json" style="display: none;" onchange="handleTabRestoreJson(event)">
+              </div>
+            </div>
+
+            <!-- DEVICE ACTIVATION STATUS CARD -->
+            <div class="bg-indigo-50/70 border border-indigo-200 rounded-xl p-4 space-y-2.5">
+              <div class="flex items-center justify-between pb-1.5 border-b border-indigo-200">
+                <h3 class="text-xs sm:text-sm font-bold text-indigo-950 flex items-center gap-1.5">
+                  <i class="fa-solid fa-shield-halved text-indigo-700"></i>
+                  <span>उपकरण सुरक्षा व परवाना (Device Activation)</span>
+                </h3>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                  ✓ कायमस्वरूपी सक्रिय (100% Offline Active)
+                </span>
+              </div>
+
+              <p class="text-[11px] text-slate-600 leading-normal">
+                हे ॲप १००% ऑफलाइन सुरक्षित असून तुमच्या संगणकावर / उपकरणावर पूर्ण क्षमतेने चालण्यासाठी परवानाधारक आहे.
+              </p>
+
+              <div class="bg-white border border-indigo-200 rounded-lg p-2.5 flex items-center justify-between gap-2">
+                <div class="text-xs">
+                  <span class="text-slate-500 font-medium">उपकरण कोड:</span>
+                  <strong id="lblTabDeviceReqCode" class="font-mono text-indigo-700 font-bold ml-1 text-sm">REQ-LOCAL-OK</strong>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" onclick="copyDeviceRequestCode()" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-xs font-semibold border border-slate-300 transition">
+                    <i class="fa-solid fa-copy"></i> कॉपी
+                  </button>
+                  <button type="button" onclick="sendActivationOnWhatsApp()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-bold transition">
+                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SHARE REPORT (शेअर करा) -->
+  <!-- ========================================== -->
+  <div id="shareModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-3 no-print" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+      <div class="bg-emerald-800 text-white px-4 py-3 flex items-center justify-between">
+        <h3 class="text-sm sm:text-base font-bold font-marathi flex items-center gap-2">
+          <i class="fa-solid fa-share-nodes"></i>
+          <span>मासिक दैनंदिनी व गोषवारा शेअर करा</span>
+        </h3>
+        <button id="btnCloseShareModal" class="text-white/70 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 font-marathi text-xs">
+        <p class="text-slate-600 text-sm">
+          या महिन्याची अधिकृत दैनंदिनी थेट Excel फाईल (.xlsx) किंवा 1-Page A4 PDF (.pdf) मध्ये डाउनलोड व शेअर करा:
+        </p>
+
+        <!-- Quick Share Action Buttons: Excel, PDF & Direct WhatsApp Share -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+          <!-- Download / Share Excel (.xlsx) -->
+          <a href="javascript:void(0)" onclick="saveToCustomFolder()" id="btnShareExcelDirect" class="flex flex-col items-center justify-center gap-1.5 p-3.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold shadow-md transition active:scale-95 text-center cursor-pointer">
+            <i class="fa-solid fa-file-excel text-2xl text-emerald-200"></i>
+            <span class="text-xs">Excel (.xlsx) शेअर</span>
+            <span class="text-[9.5px] text-emerald-200 font-normal">May 26 फॉरमॅट</span>
+          </a>
+
+          <!-- Download / Print 1-Page A4 PDF -->
+          <button id="btnSharePrintDirect" onclick="hideModal('shareModal'); window.print();" class="flex flex-col items-center justify-center gap-1.5 p-3.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded-xl font-bold shadow-md transition active:scale-95 text-center">
+            <i class="fa-solid fa-file-pdf text-2xl text-indigo-200"></i>
+            <span class="text-xs">1-Page A4 PDF मुद्रण</span>
+            <span class="text-[9.5px] text-indigo-200 font-normal">पूर्ण १ पान प्रपत्र</span>
+          </button>
+
+          <!-- Direct WhatsApp Share Button -->
+          <button id="btnShareWhatsAppDirect" onclick="shareViaWhatsApp()" class="flex flex-col items-center justify-center gap-1.5 p-3.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold shadow-md transition active:scale-95 text-center cursor-pointer">
+            <i class="fa-brands fa-whatsapp text-2xl text-white"></i>
+            <span class="text-xs">थेट WhatsApp वर पाठवा</span>
+            <span class="text-[9.5px] text-green-100 font-normal">वरिष्ठ अधिकारी / कार्यालय</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-end">
+        <button id="btnDismissShare" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg font-marathi">
+          बंद करा
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: SAVE SUCCESS & DOWNLOAD / FOLDER PICKER -->
+  <!-- ========================================== -->
+  <div id="saveSuccessModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 no-print" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+      <div class="bg-emerald-700 text-white px-5 py-3 flex items-center justify-between">
+        <h3 class="text-base font-bold font-marathi flex items-center gap-2">
+          <i class="fa-solid fa-circle-check text-lg text-emerald-200"></i>
+          <span>डेटा यशस्वीरीत्या जतन (Saved) झाला!</span>
+        </h3>
+        <button onclick="hideModal('saveSuccessModal')" class="text-white/80 hover:text-white text-lg p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4 font-marathi text-xs">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+          <div class="font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+            <i class="fa-regular fa-folder-open text-amber-600"></i>
+            <span>संगणकावरील सेव्ह पाथ (File Path):</span>
+          </div>
+          <code id="savedPathDisplay" class="block font-mono text-[11px] text-blue-900 bg-white p-2 border border-slate-200 rounded break-all select-all">G:\Diary\Diary_Blank.xlsx</code>
+        </div>
+
+        <p class="text-slate-600">
+          आपण जतन केलेली फाईल खालील पर्यायांद्वारे थेट डाउनलोड करू शकता किंवा आपल्या पसंतीच्या फोल्डरमध्ये सेव्ह करू शकता:
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <a href="javascript:void(0)" onclick="saveToCustomFolder()" class="flex items-center justify-center gap-2 p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm transition active:scale-95 text-xs text-center">
+            <i class="fa-solid fa-download"></i>
+            <span>Excel (.xlsx) डाउनलोड</span>
+          </a>
+          <button onclick="hideModal('saveSuccessModal'); window.print();" class="flex items-center justify-center gap-2 p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm transition active:scale-95 text-xs text-center">
+            <i class="fa-solid fa-print"></i>
+            <span>1-Page A4 PDF सेव्ह</span>
+          </button>
+        </div>
+
+        <button onclick="saveToCustomFolder()" class="w-full flex items-center justify-center gap-2 p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-xl font-bold transition text-xs">
+          <i class="fa-solid fa-folder-arrow-up text-blue-700"></i>
+          <span>आपल्या पसंतीच्या फोल्डरमध्ये सेव्ह करा (Save As Folder Picker)</span>
+        </button>
+      </div>
+
+      <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-end">
+        <button onclick="hideModal('saveSuccessModal')" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg font-marathi">
+          बंद करा
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: EDIT SUBMISSION DATE (सादर दिनांक) -->
+  <!-- ========================================== -->
+  <div id="subDateModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 no-print" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
+      <div class="bg-blue-900 text-white px-4 py-2.5 flex items-center justify-between">
+        <h3 class="text-sm font-bold font-marathi flex items-center gap-2">
+          <i class="fa-solid fa-calendar-day"></i>
+          <span>सादर दिनांक संपादित करा</span>
+        </h3>
+        <button onclick="hideModal('subDateModal')" class="text-white/80 hover:text-white text-base">✕</button>
+      </div>
+      <div class="p-4 space-y-3 font-marathi text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">सादर दिनांक (Submission Date):</label>
+          <input type="text" id="modalSubDateInput" class="w-full p-2 border border-blue-400 bg-blue-50/50 rounded-lg font-mono text-sm text-center font-bold" placeholder="DD/MM/YYYY" value="31/07/2026">
+        </div>
+        <div class="flex gap-1.5">
+          <button type="button" onclick="setSubDateToNextMonth5()" class="flex-1 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-300 rounded text-[11px] font-bold text-center">
+            पुढील ५ तारीख
+          </button>
+          <button type="button" onclick="setSubDateToMonthEnd()" class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-[11px] font-semibold text-center">
+            महिन्याचा शेवट
+          </button>
+          <button type="button" onclick="setSubDateToToday()" class="flex-1 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded text-[11px] font-semibold text-center">
+            आजचा दिनांक
+          </button>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+          <button onclick="hideModal('subDateModal')" class="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg">रद्द</button>
+          <button onclick="saveSubmissionDateFromModal()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm">जतन करा</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: ENTRY EDIT / ADD (नोंद संपादन) -->
+  <!-- Includes विहिर, विंधण विहिर & क्षेत्रीय प्रगती -->
+  <!-- ========================================== -->
+  <div id="entryModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 no-print" style="display: none; position: fixed; inset: 0; z-index: 99999; overflow-y: auto;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden border border-slate-200 flex flex-col my-auto" style="max-height: 90vh; height: auto;">
+      
+      <!-- Modal Header -->
+      <div class="bg-blue-900 text-white px-4 sm:px-6 py-2.5 flex items-center justify-between" style="flex-shrink: 0;">
+        <h3 id="modalTitle" class="text-sm sm:text-base font-bold font-marathi">दैनिक नोंद संपादन</h3>
+        <button id="btnCloseModal" class="text-white/80 hover:text-white text-lg p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 sm:p-5 space-y-3 overflow-y-auto text-xs font-marathi flex-1" style="flex: 1 1 auto; overflow-y: auto; max-height: calc(90vh - 110px); overscroll-behavior: contain;">
+        <input type="hidden" id="entryIndex">
+
+        <!-- Quick Status Chips & Clone Previous Entry (१-टॅप झटपट स्थिती) -->
+        <div class="bg-slate-100 p-2 sm:p-2.5 rounded-xl border border-slate-200">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+              <i class="fa-solid fa-bolt text-amber-500"></i>
+              <span>झटपट स्थिती निवडा (Quick Status Chips):</span>
+            </span>
+            <button type="button" onclick="copyPreviousDayEntry()" class="px-2 py-0.5 bg-white hover:bg-slate-200 text-indigo-700 border border-indigo-200 rounded text-[10.5px] font-bold inline-flex items-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer" title="मागील दिवसाची नोंद या नोंदीत कॉपी करा">
+              <i class="fa-solid fa-copy text-indigo-600"></i>
+              <span>मागील नोंद कॉपी करा</span>
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-1.5 text-xs">
+            <button type="button" onclick="applyQuickStatus('office')" class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-lg font-bold border border-emerald-300 transition active:scale-95">
+              🏢 मुख्यालयीन काम
+            </button>
+            <button type="button" onclick="applyQuickStatus('tour')" class="px-2.5 py-1 bg-green-100 hover:bg-green-200 text-green-900 rounded-lg font-bold border border-green-400 transition active:scale-95">
+              🚗 क्षेत्रीय दौरा
+            </button>
+            <button type="button" onclick="applyQuickStatus('holiday_weekly')" class="px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-800 rounded-lg font-bold border border-red-300 transition active:scale-95">
+              🚩 साप्ताहिक सुट्टी
+            </button>
+            <button type="button" onclick="applyQuickStatus('holiday_govt')" class="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-lg font-bold border border-rose-300 transition active:scale-95">
+              🏛️ शासकीय सुट्टी
+            </button>
+            <button type="button" onclick="applyQuickStatus('leave')" class="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded-lg font-bold border border-purple-300 transition active:scale-95">
+              🏖️ रजा
+            </button>
+            <button type="button" onclick="applyQuickStatus('meeting')" class="px-2.5 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg font-bold border border-amber-300 transition active:scale-95">
+              💼 बैठक
+            </button>
+          </div>
+        </div>
+
+        <!-- Date & Travel Mode -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">दिनांक (Date):</label>
+            <input type="date" id="entryDate" class="w-full p-2 border border-slate-300 rounded-lg bg-white">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">प्रवासाचे साधन:</label>
+            <select id="entryTravelMode" class="w-full p-2 border border-slate-300 rounded-lg bg-white" onchange="onTravelModeChangeDesktop(this.value, 'entryFare', 'entryDistance')">
+              <option value="-">- लागू नाही -</option>
+              <option value="शासकीय वाहन">शासकीय वाहन</option>
+              <option value="खाजगी वाहन">खाजगी वाहन</option>
+              <option value="एस.टी. / बस">एस.टी. / बस</option>
+              <option value="रेल्वे">रेल्वे</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Travel Journey details -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 p-2 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-slate-600 mb-0.5">कोठून:</label>
+            <input type="text" id="entryFrom" placeholder="सोलापूर" class="w-full p-1.5 border border-slate-300 rounded bg-white">
+          </div>
+          <div>
+            <label class="block text-slate-600 mb-0.5">प्रस्थान वेळ:</label>
+            <input type="text" id="entryFromTime" placeholder="10.00" class="w-full p-1.5 border border-slate-300 rounded bg-white">
+          </div>
+          <div>
+            <label class="block text-slate-600 mb-0.5">कोठे:</label>
+            <input type="text" id="entryTo" placeholder="बार्शी / पंढरपूर" class="w-full p-1.5 border border-slate-300 rounded bg-white">
+          </div>
+          <div>
+            <label class="block text-slate-600 mb-0.5">आगमन वेळ:</label>
+            <input type="text" id="entryToTime" placeholder="17.30 किंवा ०१.०० (८/७/२६)" class="w-full p-1.5 border border-slate-300 rounded bg-white">
+          </div>
+        </div>
+
+        <!-- Distance & Fare with Smart Suggestions & Quick Routes -->
+        <div class="bg-slate-50 p-2 rounded-xl border border-slate-200">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">प्रवासाचे अंतर कि. मी.:</label>
+              <input type="text" id="entryDistance" placeholder="-" class="w-full p-1.5 border border-slate-300 rounded-lg bg-white font-mono" oninput="autoCalculateFare()">
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="block font-semibold text-slate-700">प्रवास भाडे रुपये:</label>
+                <button type="button" onclick="autoCalculateFare(true)" class="text-[10.5px] text-blue-700 hover:text-blue-900 font-bold cursor-pointer" title="सरकारी नियमांनुसार अंदाजे भाडे गणना">⚡ भाडे गणना</button>
+              </div>
+              <input type="text" id="entryFare" placeholder="-" class="w-full p-1.5 border border-slate-300 rounded-lg bg-white font-mono">
+            </div>
+          </div>
+          <!-- Quick Popular Routes based on District -->
+          <div class="mt-1.5 pt-1 border-t border-slate-200 flex flex-wrap items-center gap-1">
+            <span class="text-[10px] text-slate-500 font-semibold">वारंवार जाणारी गावे (किमी):</span>
+            <div id="quickRouteChips" class="flex flex-wrap gap-1"></div>
+          </div>
+        </div>
+
+        <!-- + Add Return / Multi Journey Button & Section (Desktop) -->
+        <div class="mb-2">
+          <button type="button" id="btnToggleReturnDesktop" onclick="toggleReturnJourneyDesktop()" class="w-full py-1.5 px-3 bg-sky-50 hover:bg-sky-100 text-sky-800 border-2 border-dashed border-sky-400 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-route"></i>
+            <span>+ Add Return / Multi Journey (परतीचा / दुसरा प्रवास जोडा)</span>
+          </button>
+
+          <div id="returnJourneyContainerDesktop" style="display: none;" class="mt-2 bg-emerald-50/70 border border-emerald-300 rounded-xl p-3">
+            <div class="flex items-center justify-between pb-1.5 mb-2 border-b border-dashed border-emerald-300">
+              <span class="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                <span>परतीचा / दुसरा प्रवास तपशील (Return Journey):</span>
+              </span>
+              <button type="button" onclick="clearAndHideReturnDesktop()" class="text-red-600 hover:text-red-800 text-[11px] font-bold cursor-pointer">
+                <i class="fa-solid fa-trash mr-1"></i>प्रवास काढा
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+              <div>
+                <label class="block text-slate-600 mb-0.5">प्रवासाचे साधन:</label>
+                <select id="entryTravelMode2" class="w-full p-1.5 border border-slate-300 rounded bg-white text-xs" onchange="onTravelModeChangeDesktop(this.value, 'entryFare2', 'entryDistance2')">
+                  <option value="-">- लागू नाही -</option>
+                  <option value="शासकीय वाहन">शासकीय वाहन</option>
+                  <option value="खाजगी वाहन">खाजगी वाहन</option>
+                  <option value="एस.टी. / बस">एस.टी. / बस</option>
+                  <option value="रेल्वे">रेल्वे</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div>
+                  <label class="block text-slate-600 mb-0.5">अंतर (कि.मी.):</label>
+                  <input type="text" id="entryDistance2" placeholder="-" class="w-full p-1.5 border border-slate-300 rounded bg-white text-xs font-mono" oninput="calculateReturnDesktopFare()">
+                </div>
+                <div>
+                  <div class="flex items-center justify-between mb-0.5">
+                    <label class="block text-slate-600">भाडे रु.:</label>
+                    <button type="button" onclick="calculateReturnDesktopFare(true)" class="text-[10px] text-emerald-700 font-bold cursor-pointer">⚡ गणना</button>
+                  </div>
+                  <input type="text" id="entryFare2" placeholder="-" class="w-full p-1.5 border border-slate-300 rounded bg-white text-xs font-mono">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div>
+                <label class="block text-slate-600 mb-0.5">कोठून:</label>
+                <input type="text" id="entryFrom2" placeholder="पुणे" class="w-full p-1.5 border border-slate-300 rounded bg-white text-xs">
+              </div>
+              <div>
+                <label class="block text-slate-600 mb-0.5">प्रस्थान वेळ:</label>
+                <input type="text" id="entryFromTime2" placeholder="19.00" class="w-full p-1.5 border border-slate-300 rounded bg-white text-xs">
+              </div>
+              <div>
+                <label class="block text-slate-600 mb-0.5">कोठे:</label>
+                <input type="text" id="entryTo2" placeholder="सोलापूर" class="w-full p-1.5 border border-slate-300 rounded bg-white text-xs">
+              </div>
+              <div>
+                <label class="block text-slate-600 mb-0.5">आगमन वेळ:</label>
+                <input type="text" id="entryToTime2" placeholder="23.55 किंवा ०१.०० (८/७/२६)" class="w-full p-1.5 border border-slate-300 rounded bg-white text-xs">
+              </div>
+            </div>
+            <p class="text-[10.5px] text-emerald-700 mt-1.5">
+              * शासकीय वाहन निवडल्यास भाडे आपोआप ० होईल.
+            </p>
+          </div>
+        </div>
+
+        <!-- Work Detail with Marathi Voice Typing -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-semibold text-slate-700">कामाचे तपशील / प्रवासाचे कारण:</label>
+            <button type="button" id="btnVoiceTyping" onclick="toggleVoiceTyping()" class="px-2 py-0.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition cursor-pointer shadow-2xs active:scale-95" title="माईक दाबून मराठीत बोला">
+              <i class="fa-solid fa-microphone text-red-600"></i>
+              <span id="voiceStatusText">मराठी बोला (Voice Type)</span>
+            </button>
+          </div>
+          <textarea id="entryWorkDetail" rows="2" class="w-full p-2 border border-slate-300 rounded-lg bg-white" placeholder="कामकाजाचा तपशील लिहा किंवा वरील माईक दाबून मराठीत बोला..."></textarea>
+          
+          <div class="mt-1">
+            <div class="flex flex-wrap gap-1" id="suggestionChips"></div>
+          </div>
+        </div>
+
+        <!-- DEDICATED SEPARATE NOTES & MEETING MINUTES (स्वतंत्र टिपणी - मुख्य १-पान प्रपत्रात छापले जात नाही) -->
+        <div class="bg-indigo-50/70 p-2.5 rounded-xl border border-indigo-200">
+          <div class="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+            <span class="font-bold text-indigo-950 text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-clipboard-list text-indigo-700"></i>
+              <span>दैनिक टिपणी / बैठकीचे मुद्दे (Meeting Notes & Remarks):</span>
+            </span>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="toggleVoiceForNotes()" id="btnVoiceNotes" class="px-2 py-0.5 bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 rounded text-[10.5px] font-bold inline-flex items-center gap-1 transition active:scale-95 cursor-pointer" title="बोलून बैठकीचे मुद्दे टिपून घ्या">
+                <i class="fa-solid fa-microphone text-rose-600"></i>
+                <span id="voiceNotesStatus">मुद्दे बोला</span>
+              </button>
+              <button type="button" onclick="downloadSingleDayNotes()" class="px-2 py-0.5 bg-indigo-700 hover:bg-indigo-800 text-white rounded text-[10.5px] font-bold inline-flex items-center gap-1 shadow-2xs transition active:scale-95 cursor-pointer" title="या दिवसाची टिपणी स्वतंत्र टेक्स्ट फाईलमध्ये (.txt) डाउनलोड करा">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                <span>टिपणी .txt डाऊनलोड</span>
+              </button>
+            </div>
+          </div>
+          <textarea id="entryNotes" rows="2" class="w-full p-2 border border-indigo-300 rounded-lg bg-white text-xs font-marathi" placeholder="बैठकीतील महत्त्वाचे मुद्दे, वरिष्ठ अधिकाऱ्यांचे निर्देश, तपासणी निरीक्षणे किंवा विशेष टिपणी येथे स्वतंत्रपणे नोंदवून ठेवा... (टीप: ही टिपणी १-पान मुख्य प्रपत्रात छापली जात नाही)"></textarea>
+          <div class="text-[10px] text-indigo-700 mt-0.5 italic flex items-center justify-between">
+            <span>* ही टिपणी अधिकृत १-पान A4 प्रिंट प्रपत्रात छापली जाणार नाही (१००% स्वतंत्र राहील).</span>
+            <span class="font-bold text-indigo-900">फक्त .txt फाईलमध्ये सेव्ह होते</span>
+          </div>
+        </div>
+
+        <!-- FLAGS & COUNTERS: एकूण, सुट्टी, रजा, दौरा, बैठक, प्रशिक्षण, विहिर, विंधण विहिर -->
+        <div class="bg-blue-50/60 p-2.5 rounded-xl border border-blue-200">
+          <span class="block font-semibold text-slate-700 mb-1.5">वर्गवारी व संख्या (Categories & Counts):</span>
+          
+          <!-- Checkbox row -->
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 mb-2">
+            <label class="flex items-center space-x-1 p-1 bg-white rounded border border-slate-200 cursor-pointer">
+              <input type="checkbox" id="chkTotal" class="rounded text-blue-600" checked>
+              <span class="text-slate-800">एकूण (1)</span>
+            </label>
+            <label class="flex items-center space-x-1 p-1 bg-white rounded border border-slate-200 cursor-pointer">
+              <input type="checkbox" id="chkHoliday" class="rounded text-red-600">
+              <span class="text-red-700 font-semibold">सुट्टी (1)</span>
+            </label>
+            <label class="flex items-center space-x-1 p-1 bg-emerald-50 rounded border border-emerald-300 cursor-pointer">
+              <input type="checkbox" id="chkLeave" class="rounded text-emerald-700">
+              <span class="text-emerald-800 font-semibold">रजा (1)</span>
+            </label>
+            <label class="flex items-center space-x-1 p-1 bg-green-100 rounded border border-green-400 cursor-pointer">
+              <input type="checkbox" id="chkTour" class="rounded text-green-800">
+              <span class="text-green-900 font-semibold">दौरा (1)</span>
+            </label>
+            <label class="flex items-center space-x-1 p-1 bg-amber-50 rounded border border-amber-300 cursor-pointer">
+              <input type="checkbox" id="chkMeeting" class="rounded text-amber-700">
+              <span class="text-amber-800 font-semibold">बैठक (1)</span>
+            </label>
+            <label class="flex items-center space-x-1 p-1 bg-blue-50 rounded border border-blue-300 cursor-pointer">
+              <input type="checkbox" id="chkTraining" class="rounded text-blue-700">
+              <span class="text-blue-800 font-semibold">प्रशिक्षण</span>
+            </label>
+          </div>
+
+          <!-- Numbers row: विहिर, विंधण विहिर -->
+          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-blue-200/60">
+            <div class="bg-purple-50 p-2 rounded-lg border border-purple-200">
+              <label class="block font-semibold text-purple-900 mb-0.5">
+                <i class="fa-solid fa-water text-purple-600 mr-1"></i>विहिर संख्या (Wells):
+              </label>
+              <input type="number" id="entryWells" min="0" placeholder="उदा. 3" class="w-full p-1.5 border border-purple-300 rounded font-bold text-center bg-white text-purple-900" onchange="validateVillagesAndWells()">
+            </div>
+            <div class="bg-emerald-50 p-2 rounded-lg border border-emerald-200">
+              <label class="block font-semibold text-emerald-900 mb-0.5">
+                <i class="fa-solid fa-bore-hole text-emerald-600 mr-1"></i>विंधण विहिर संख्या (Borewells):
+              </label>
+              <input type="number" id="entryBorewells" min="0" placeholder="उदा. 2" class="w-full p-1.5 border border-emerald-300 rounded font-bold text-center bg-white text-emerald-900" onchange="validateVillagesAndWells()">
+            </div>
+          </div>
+        </div>
+
+        <!-- FIELD PROGRESS LINKING (क्षेत्रीय प्रगती संलग्नता) -->
+        <div class="bg-amber-50/70 p-2.5 rounded-xl border border-amber-200">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="font-semibold text-amber-900 text-xs">
+              <i class="fa-solid fa-chart-line text-amber-700 mr-1"></i>क्षेत्रीय प्रगती नोंद (Field Progress Link):
+            </span>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="addNewSchemePromptDesktop()" class="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10.5px] font-bold cursor-pointer" title="नवीन योजना जोडा">
+                <i class="fa-solid fa-plus mr-0.5"></i>योजना जोडा
+              </button>
+              <button type="button" onclick="removeSelectedSchemePromptDesktop()" class="px-2 py-0.5 bg-red-600 hover:bg-red-700 text-white rounded text-[10.5px] font-bold cursor-pointer" title="निवडलेली योजना हटवा">
+                <i class="fa-solid fa-trash mr-0.5"></i>योजना हटवा
+              </button>
+            </div>
+          </div>
+
+          <!-- Single horizontal row: योजना | गावे | प्रकरणे -->
+          <div class="flex flex-col sm:flex-row items-center gap-2">
+            <div class="flex-1 w-full">
+              <div class="flex items-center gap-1.5">
+                <label class="whitespace-nowrap text-slate-700 font-semibold text-xs">योजना निवडा:</label>
+                <select id="entryScheme" class="flex-1 p-1.5 border border-slate-300 rounded bg-white text-xs" onchange="handleEntrySchemeChange(this.value)">
+                  <option value="">- योजना लागू नाही -</option>
+                  <option value="इतर योजना सर्वेक्षण">१. इतर योजना सर्वेक्षण</option>
+                  <option value="अटल भूजल योजना /जलयुक्त शिवार अभियान">२. अटल भूजल / जलयुक्त शिवार</option>
+                  <option value="निरीक्षण विहीरींची वाचने">३. निरीक्षण विहीरींची वाचने</option>
+                  <option value="वाळू/खाणपट्टा सर्वेक्षण">४. वाळू/खाणपट्टा सर्वेक्षण</option>
+                  <option value="भूजल मूल्यांकन माहिती">५. भूजल मूल्यांकन माहिती</option>
+                  <option value="प्रयोगशाळा">६. प्रयोगशाळा पाणी नमुने</option>
+                  <option value="न.पा.पु.सर्वेक्षण">७. न.पा.पु.सर्वेक्षण</option>
+                  <option value="टांचाई अंतर्गत सर्वेक्षण">८. टांचाई अंतर्गत सर्वेक्षण</option>
+                  <option value="तांत्रिक सर्वेक्षण">९. तांत्रिक सर्वेक्षण</option>
+                  <option value="1:10K Mapsheet Survey">१०. 1:10K Mapsheet Survey</option>
+                </select>
+              </div>
+            </div>
+            <div class="w-full sm:w-36">
+              <div class="flex items-center gap-1.5">
+                <label id="lblEntryVillages" class="whitespace-nowrap text-slate-700 font-semibold text-xs">गावे:</label>
+                <input type="number" id="entryVillages" min="0" placeholder="1" class="w-full p-1.5 border border-slate-300 rounded bg-white text-center font-bold text-xs" onchange="validateVillagesAndWells()">
+              </div>
+            </div>
+            <div class="w-full sm:w-40">
+              <div class="flex items-center gap-1.5">
+                <label id="lblEntryCases" class="whitespace-nowrap text-slate-700 font-semibold text-xs">प्रकरणे:</label>
+                <input type="number" id="entryCases" min="0" placeholder="उदा. 3" class="w-full p-1.5 border border-slate-300 rounded bg-white text-center font-bold text-xs">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-4 sm:px-6 py-2 border-t border-slate-200 flex items-center justify-between font-marathi" style="flex-shrink: 0;">
+        <button id="btnDeleteEntry" class="text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1">
+          <i class="fa-solid fa-trash-can"></i> हटवा
+        </button>
+        <div class="flex gap-2">
+          <button id="btnCancelModal" class="px-3 py-1.5 bg-white border border-slate-300 text-slate-700 rounded-lg text-xs font-semibold">
+            रद्द
+          </button>
+          <button id="btnSaveEntry" class="px-3.5 py-1.5 bg-gov-primary hover:bg-blue-800 text-white rounded-lg text-xs font-semibold shadow-sm">
+            जतन करा
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: PROFILE SETTINGS (एकाच वेळी सर्व माहिती भरा) -->
+  <!-- ========================================== -->
+  <div id="profileModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 no-print" style="display: none; position: fixed; inset: 0; z-index: 99999; overflow-y: auto;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 flex flex-col my-auto" style="max-height: 90vh; height: auto;">
+      <div class="bg-blue-900 text-white px-4 py-3 flex items-center justify-between" style="flex-shrink: 0;">
+        <div>
+          <h3 class="text-sm sm:text-base font-bold font-marathi">अधिकारी प्रोफाइल संपादन</h3>
+          <p class="text-[11px] text-blue-200 font-marathi">येथे भरलेली माहिती एकाच वेळी सर्व महिन्यांवर व प्रपत्रांवर लागू होईल</p>
+        </div>
+        <button id="btnCloseProfileModal" class="text-white/80 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="p-4 space-y-2.5 text-xs font-marathi overflow-y-auto" style="flex: 1 1 auto; overflow-y: auto; max-height: calc(90vh - 120px); overscroll-behavior: contain;">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-0.5">अधिकाऱ्याचे नाव:</label>
+          <input type="text" id="profName" class="w-full p-2 border border-slate-300 rounded-lg font-medium" placeholder="उदा. विनायक नवनाथ निंबाळकर">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">पदनाम (Designation):</label>
+            <input type="text" id="profDesignation" class="w-full p-2 border border-slate-300 rounded-lg" placeholder="सहाय्यक भूवैज्ञानिक">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">मूळ वेतन (Basic Salary):</label>
+            <input type="text" id="profSalary" class="w-full p-2 border border-slate-300 rounded-lg" placeholder="६४०००/-">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">कार्यालय (Office):</label>
+            <input type="text" id="profDepartment" class="w-full p-2 border border-slate-300 rounded-lg" placeholder="भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-0.5">मुख्यालय (Headquarters):</label>
+            <input type="text" id="profHeadquarters" class="w-full p-2 border border-slate-300 rounded-lg" placeholder="सोलापूर">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-0.5">लेखाशीर्ष (Budget Head):</label>
+          <input type="text" id="profBudgetHead" class="w-full p-2 border border-slate-300 rounded-lg" placeholder="२७०२">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-0.5">नियंत्रक / सादर अधिकारी (Controlling Officer):</label>
+          <input type="text" id="profControlling" class="w-full p-2 border border-slate-300 rounded-lg" placeholder="वरिष्ठ भूवैज्ञानिक, भूजल सर्वेक्षण आणि विकास यंत्रणा, सोलापूर">
+        </div>
+        <!-- Editable Travel Fare Rate & Formula (⚡ भाडे गणना दर व सूत्र) -->
+        <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-300">
+          <div class="flex items-center justify-between mb-1">
+            <label class="block font-bold text-amber-950 text-xs">
+              <i class="fa-solid fa-calculator text-amber-700 mr-1"></i>वाहन प्रवास भाडे दर (रुपये प्रति कि.मी.):
+            </label>
+            <span class="text-[10px] text-amber-800 font-bold bg-amber-200/80 px-2 py-0.5 rounded font-mono">
+              ⚡ भाडे गणना सूत्र
+            </span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 items-center">
+            <div>
+              <input type="number" id="profFareRate" min="1" max="100" class="w-full p-2 border border-amber-400 rounded-lg font-bold font-mono text-center text-sm bg-white" placeholder="10" value="10" oninput="updateFareFormulaText(this.value)">
+            </div>
+            <div class="text-[11px] text-amber-900 font-marathi leading-tight">
+              <strong>सूत्र (Formula):</strong><br>
+              <span id="fareFormulaDisplay" class="font-mono text-blue-900 font-bold">भाडे = अंतर (km) × १० रु.</span>
+            </div>
+          </div>
+          <p class="text-[10.5px] text-amber-800 mt-1 italic font-marathi">
+            (नोंद करताना "भाडे गणना" बटण दाबल्यास किंवा अंतर टाकल्यास या दरानुसार प्रवास भाडे स्वयंचलित गणले जाईल.)
+          </p>
+        </div>
+
+        <!-- Print / Report Page Format Option (१ पान कॉम्पॅक्ट / २ पाने सविस्तर) -->
+        <div class="bg-gradient-to-r from-emerald-50 via-teal-50 to-blue-50 p-3 rounded-xl border-2 border-emerald-500 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <label class="block font-bold text-emerald-950 text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-file-invoice text-emerald-700 text-sm"></i>रोजनिशी प्रिंट / अहवाल स्वरूप (Print & Report Format):
+            </label>
+            <span class="text-[10px] text-emerald-900 font-bold bg-emerald-200 px-2 py-0.5 rounded font-mono shadow-xs">
+              ✨ फॉरमॅट पर्याय
+            </span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <label class="flex items-start gap-2.5 p-2 rounded-lg border-2 border-slate-300 bg-white cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/40 transition">
+              <input type="radio" name="profPrintFormat" value="1page" checked class="mt-0.5 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer">
+              <div>
+                <div class="font-bold text-slate-900 text-xs flex items-center gap-1">
+                  <i class="fa-solid fa-file text-blue-600"></i>१ पान कॉम्पॅक्ट (1-Page Fit)
+                </div>
+                <div class="text-[10px] text-slate-600 mt-0.5 leading-tight">
+                  सर्व दैनंदिन नोंदी व गोषवारा एकाच A4 पानात अचूक बसतो.
+                </div>
+              </div>
+            </label>
+            <label class="flex items-start gap-2.5 p-2 rounded-lg border-2 border-slate-300 bg-white cursor-pointer hover:border-emerald-500 hover:bg-emerald-50/40 transition">
+              <input type="radio" name="profPrintFormat" value="2page" class="mt-0.5 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer">
+              <div>
+                <div class="font-bold text-slate-900 text-xs flex items-center gap-1">
+                  <i class="fa-solid fa-file-lines text-emerald-600"></i>२ पाने सविस्तर (2-Page / Varad)
+                </div>
+                <div class="text-[10px] text-slate-600 mt-0.5 leading-tight">
+                  पान १ वर सविस्तर दैनंदिन नोंदी आणि पान २ वर स्वतंत्र मासिक गोषवारा + प्रगती + स्वाक्षरी.
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-end gap-2 font-marathi" style="flex-shrink: 0;">
+        <button id="btnCancelProfile" class="px-3 py-1.5 border rounded-lg text-slate-600 text-xs">रद्द</button>
+        <button id="btnSaveProfile" class="px-4 py-1.5 bg-gov-primary hover:bg-blue-800 text-white rounded-lg text-xs font-bold shadow-sm">
+          प्रोफाइल सेव्ह करा व सर्व पानांवर लागू करा
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: BATCH FILL (सामूहिक नोंद) -->
+  <!-- ========================================== -->
+  <div id="batchModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 no-print" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200">
+      <div class="bg-slate-800 text-white px-4 py-3 flex items-center justify-between">
+        <h3 class="text-sm sm:text-base font-bold font-marathi">सामूहिक नोंद भरा (Batch Fill)</h3>
+        <button id="btnCloseBatchModal" class="text-white/70 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-4 space-y-3 text-xs font-marathi">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">प्रारंभ दिनांक:</label>
+            <input type="date" id="batchStartDate" class="w-full p-2 border border-slate-300 rounded-lg">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">अंतिम दिनांक:</label>
+            <input type="date" id="batchEndDate" class="w-full p-2 border border-slate-300 rounded-lg">
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">कामाचे तपशील:</label>
+          <input type="text" id="batchWorkDetail" class="w-full p-2 border border-slate-300 rounded-lg" placeholder="उदा. स्थानिक भूजल सर्वेक्षण">
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">वर्गवारी:</label>
+          <select id="batchCategory" class="w-full p-2 border border-slate-300 rounded-lg">
+            <option value="office">कार्यालयीन कामकाज</option>
+            <option value="tour">दौरा / फिरती</option>
+            <option value="meeting">बैठक</option>
+            <option value="holiday">साप्ताहिक / शासकीय सुट्टी</option>
+            <option value="leave">रजा</option>
+          </select>
+        </div>
+      </div>
+      <div class="bg-slate-50 px-4 py-2 border-t border-slate-200 flex justify-end gap-2 font-marathi">
+        <button id="btnCancelBatch" class="px-3 py-1.5 border rounded-lg text-slate-600 text-xs">रद्द</button>
+        <button id="btnApplyBatch" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold">लागू करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- MODAL: MULTI-MONTH BATCH (एकाधिक महिने सेव्ह, प्रिंट, डाऊनलोड) -->
+  <!-- ======================================================== -->
+  <div id="multiMonthModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 no-print" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden border border-slate-300 flex flex-col max-h-[92vh]">
+      <!-- Modal Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white px-5 py-3.5 flex items-center justify-between border-b border-indigo-800">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-400/40 flex items-center justify-center text-amber-300">
+            <i class="fa-solid fa-layer-group text-sm"></i>
+          </div>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold font-marathi">एकाधिक महिने संचलन (Multi-Month Batch Suite)</h3>
+            <p class="text-[11px] text-slate-300 font-marathi">एकाच वेळी अनेक महिन्यांचा डेटा सेव्ह करा, प्रिंट/PDF करा किंवा Excel डाऊनलोड करा</p>
+          </div>
+        </div>
+        <button onclick="hideModal('multiMonthModal')" class="text-white/70 hover:text-white p-1 text-base transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 font-marathi text-xs">
+        <!-- Quick Select Buttons -->
+        <div class="flex items-center justify-between bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+          <span class="font-bold text-slate-700">महिने निवडा:</span>
+          <div class="flex items-center gap-1.5">
+            <button type="button" onclick="selectAllMultiMonths(true)" class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-md text-[11px] font-bold transition">
+              <i class="fa-solid fa-check-double mr-1"></i>सर्व महिने निवडा (All 12)
+            </button>
+            <button type="button" onclick="selectAllMultiMonths(false)" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 rounded-md text-[11px] font-semibold transition">
+              रद्द करा
+            </button>
+          </div>
+        </div>
+
+        <!-- Month Grid Checkboxes -->
+        <div id="multiMonthGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-56 overflow-y-auto p-1 border border-slate-200 rounded-xl bg-slate-50/50">
+          <!-- Dynamically populated by JS -->
+        </div>
+
+        <!-- Action Cards -->
+        <div class="space-y-2.5 pt-1">
+          <div class="font-bold text-slate-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-bolt text-amber-500"></i>
+            <span>उपलब्ध कृती (Actions):</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <!-- Action 1: Excel Download -->
+            <button type="button" id="btnMultiMonthExcel" onclick="executeMultiMonthAction('excel')" class="flex flex-col items-center justify-center p-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-sm transition active:scale-95 text-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-file-excel text-lg text-emerald-200"></i>
+              <span class="text-xs">Excel डाऊनलोड</span>
+              <span class="text-[10px] text-emerald-100 font-normal">सर्व महिने १ फाईलमध्ये (.xlsx)</span>
+            </button>
+
+            <!-- Action 2: Batch Print / PDF -->
+            <button type="button" id="btnMultiMonthPrint" onclick="executeMultiMonthAction('print')" class="flex flex-col items-center justify-center p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-sm transition active:scale-95 text-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-print text-lg text-indigo-200"></i>
+              <span class="text-xs">बॅच मुद्रण / PDF</span>
+              <span class="text-[10px] text-indigo-100 font-normal">सर्व महिने १-पान A4 सलग</span>
+            </button>
+
+            <!-- Action 3: Batch Save -->
+            <button type="button" id="btnMultiMonthSave" onclick="executeMultiMonthAction('save')" class="flex flex-col items-center justify-center p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-sm transition active:scale-95 text-center gap-1 cursor-pointer">
+              <i class="fa-solid fa-floppy-disk text-lg text-blue-200"></i>
+              <span class="text-xs">सुरक्षित जतन (Save)</span>
+              <span class="text-[10px] text-blue-100 font-normal">LocalStorage + IndexedDB</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Note info -->
+        <div class="bg-blue-50 border border-blue-200 text-blue-900 text-[11px] p-2.5 rounded-xl flex items-start gap-2">
+          <i class="fa-solid fa-circle-info text-blue-600 mt-0.5"></i>
+          <div>
+            <strong>टीप:</strong> 'Excel डाऊनलोड' केल्यावर निवडलेल्या प्रत्येक महिन्याची स्वतंत्र टॅब (Sheet) असलेली परिपूर्ण अधिकृत Excel फाईल तयार होईल. 'बॅच मुद्रण' निवडल्यास प्रत्येक महिना स्वतंत्र A4 पानावर प्रिंट/PDF होईल.
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-between items-center font-marathi">
+        <span id="multiMonthSelectedCount" class="text-xs text-slate-600 font-semibold">० महिने निवडले</span>
+        <button onclick="hideModal('multiMonthModal')" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition">
+          बंद करा
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: YEARLY ABSTRACT (वार्षिक गोषवारा) -->
+  <!-- ========================================== -->
+  <div id="yearlyAbstractModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-4 no-print" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden border border-slate-300">
+      <div class="bg-gradient-to-r from-purple-800 to-indigo-900 text-white px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-calendar-check text-purple-200 text-lg"></i>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold font-marathi">वार्षिक गोषवारा व क्षेत्रीय प्रगती अहवाल</h3>
+            <p class="text-[11px] text-purple-200 font-marathi">आर्थिक वर्ष (१ एप्रिल ते ३१ मार्च) / १२ महिन्यांचे एकत्रित संकलन</p>
+          </div>
+        </div>
+        <button onclick="hideModal('yearlyAbstractModal')" class="text-white/80 hover:text-white p-1 text-base"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 font-marathi text-xs">
+        <!-- Officer Meta Strip -->
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2 text-[11px] text-purple-950 font-semibold">
+          <span>नाव: <b id="yaOfficerName" class="text-purple-900 font-bold">-</b></span>
+          <span>पदनाम: <b id="yaOfficerDesig" class="text-purple-900 font-bold">-</b></span>
+          <span>मुख्यालय: <b id="yaOfficerHQ" class="text-purple-900 font-bold">-</b></span>
+          <span>आर्थिक वर्ष: <b class="text-purple-900 font-bold font-mono">२०२५-२०२६</b></span>
+        </div>
+
+        <!-- Section 1: Month-by-Month Days & Travel Summary Table -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-list-check text-purple-600"></i>
+              <span>१. महिनानिहाय कामाचे व फिरतीचे दिवस (Monthly Breakdown):</span>
+            </h4>
+          </div>
+          <div class="overflow-x-auto border border-slate-300 rounded-xl">
+            <table class="w-full text-[11px] border-collapse bg-white">
+              <thead class="bg-slate-100 text-slate-800 font-bold border-b border-slate-300 text-center">
+                <tr>
+                  <th class="p-1.5 border-r border-slate-300 text-left pl-2">महिना</th>
+                  <th class="p-1.5 border-r border-slate-300">एकूण दिवस</th>
+                  <th class="p-1.5 border-r border-slate-300">कार्यालय</th>
+                  <th class="p-1.5 border-r border-slate-300">फिरती/दौरा</th>
+                  <th id="thYaNightHalt" class="p-1.5 border-r border-slate-300">मुक्काम</th>
+                  <th class="p-1.5 border-r border-slate-300">सुट्ट्या</th>
+                  <th class="p-1.5 border-r border-slate-300">रजा</th>
+                  <th class="p-1.5 border-r border-slate-300">प्रशिक्षण</th>
+                  <th class="p-1.5 border-r border-slate-300">विहिरी</th>
+                  <th class="p-1.5">अंतर (कि.मी.)</th>
+                </tr>
+              </thead>
+              <tbody id="yaMonthlyTableBody" class="divide-y divide-slate-200 text-center">
+                <!-- Dynamically populated -->
+              </tbody>
+              <tfoot id="yaMonthlyTableFoot" class="bg-purple-100/80 font-bold border-t-2 border-purple-300 text-purple-950 text-center font-mono">
+                <!-- Totals populated -->
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 2: Annual Field Progress Table -->
+        <div>
+          <h4 class="font-bold text-slate-800 text-xs mb-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-chart-line text-indigo-600"></i>
+            <span>२. योजनानिहाय वर्षभरातील एकूण क्षेत्रीय प्रगती (Annual Scheme-wise Progress):</span>
+          </h4>
+          <div class="overflow-x-auto border border-slate-300 rounded-xl">
+            <table class="w-full text-[11px] border-collapse bg-white">
+              <thead class="bg-slate-100 text-slate-800 font-bold border-b border-slate-300 text-center">
+                <tr>
+                  <th class="p-1.5 border-r border-slate-300 w-12">अ.क्र.</th>
+                  <th class="p-1.5 border-r border-slate-300 text-left pl-2">योजना / सर्वेक्षण प्रकार</th>
+                  <th class="p-1.5 border-r border-slate-300 w-36">वर्षभरातील एकूण गावे / न.प.</th>
+                  <th class="p-1.5 w-36">वर्षभरातील एकूण प्रकरणे / विहिरी</th>
+                </tr>
+              </thead>
+              <tbody id="yaProgressTableBody" class="divide-y divide-slate-200">
+                <!-- Dynamically populated with 'प्रयोगशाळा तपासणी' -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-4 py-3 border-t border-slate-200 flex flex-wrap justify-between items-center gap-2 font-marathi">
+        <div class="text-[11px] text-slate-500">
+          <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>मार्च अखेर सर्व १२ महिन्यांचे अचूक संकलन
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="printYearlyAbstract()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg shadow-sm transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-print"></i>
+            <span>वार्षिक मुद्रण / PDF</span>
+          </button>
+          <button type="button" onclick="downloadYearlyAbstractExcel()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-sm transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
+            <i class="fa-solid fa-file-excel"></i>
+            <span>Excel डाऊनलोड</span>
+          </button>
+          <button type="button" onclick="hideModal('yearlyAbstractModal')" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-xs rounded-lg transition cursor-pointer">
+            बंद करा
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL: CREATE NEW MONTH (नवीन महिना) -->
+  <!-- ========================================== -->
+  <div id="newMonthModal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 no-print" style="display: none;">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200">
+      <div class="bg-emerald-800 text-white px-4 py-3 flex items-center justify-between">
+        <h3 class="text-sm sm:text-base font-bold font-marathi">नवीन महिना तयार करा</h3>
+        <button id="btnCloseNewMonthModal" class="text-white/70 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-4 space-y-3 text-xs font-marathi">
+        <p class="text-slate-600">
+          कॅलेंडर तारखा, शासकीय व साप्ताहिक सुट्ट्यांसह नवीन महिना तयार केला जाईल.
+        </p>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">वर्ष (Year):</label>
+          <select id="newMonthYear" class="w-full p-2 border border-slate-300 rounded-lg">
+            <option value="2026" selected>२०२६ (2026)</option>
+            <option value="2027">२०२७ (2027)</option>
+            <option value="2025">२०२५ (2025)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">महिना (Month):</label>
+          <select id="newMonthNumber" class="w-full p-2 border border-slate-300 rounded-lg">
+            <option value="1">जानेवारी (January)</option>
+            <option value="2">फेब्रुवारी (February)</option>
+            <option value="3">मार्च (March)</option>
+            <option value="4">एप्रिल (April)</option>
+            <option value="5">मे (May)</option>
+            <option value="6">जून (June)</option>
+            <option value="7" selected>जुलै (July)</option>
+            <option value="8">ऑगस्ट (August)</option>
+            <option value="9">सप्टेंबर (September)</option>
+            <option value="10">ऑक्टोबर (October)</option>
+            <option value="11">नोव्हेंबर (November)</option>
+            <option value="12">डिसेंबर (December)</option>
+          </select>
+        </div>
+      </div>
+      <div class="bg-slate-50 px-4 py-2 border-t border-slate-200 flex justify-end gap-2 font-marathi">
+        <button id="btnCancelNewMonth" class="px-3 py-1.5 border rounded-lg text-slate-600 text-xs">रद्द</button>
+        <button id="btnSubmitNewMonth" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold">तयार करा</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none no-print">
+    <div id="toastContent" class="bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-marathi">
+      <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-sm"></i>
+      <span id="toastMsg">यशस्वीरीत्या जतन झाले!</span>
+    </div>
+  </div>
+
+  <!-- Default Offline Data & SheetJS -->
+  <script src="./static/app_default_data.js?v=20261019"></script>
+  <script src="./static/xlsx.full.min.js"></script>
+  <!-- APP JAVASCRIPT -->
+  <script src="./static/app.js?v=20261021_v4"></script>
+
+</body>
+</html>

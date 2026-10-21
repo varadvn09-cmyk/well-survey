@@ -466,7 +466,7 @@ table.print-table-a1j td {
     break-before: page !important;
     margin-top: 0 !important;
     border-top: none !important;
-    padding-top: 6mm !important;
+    padding-top: 18mm !important; /* Proper 18mm top margin for hole punching & tagging */
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -485,6 +485,31 @@ table.print-table-a1j td {
     padding: 2.5px 4px !important;
     word-break: break-word !important;
     overflow-wrap: anywhere !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Strict Month Break for Multi-Month bulk print - prevents any bleed across months */
+  .print-month-break {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  /* Continuation header on Page 2 */
+  .print-continuation-header {
+    text-align: center;
+    font-weight: 700;
+    font-size: 9pt;
+    text-decoration: underline;
+    margin-bottom: 2mm;
+    letter-spacing: 0.2px;
+  }
+
+  /* Yearly Abstract (वार्षिक गोषवारा) Page Print */
+  .yearly-abstract-page {
+    page-break-before: always !important;
+    break-before: page !important;
+    padding-top: 18mm !important;
+    width: 100% !important;
     box-sizing: border-box !important;
   }
 }
