@@ -3839,6 +3839,7 @@ function computeActivationKey(requestCode) {
 
 function isDeviceActivated() {
   const urlParams = new URLSearchParams(window.location.search);
+  // Only enforce device activation lock if explicitly requested via ?lock=1
   if (urlParams.get('lock') === '1') {
     const storedKey = (localStorage.getItem('GSDA_DIARY_ACTIVATION_KEY') || '').trim();
     const status = localStorage.getItem('GSDA_DIARY_ACTIVATION_STATUS');
@@ -3847,18 +3848,8 @@ function isDeviceActivated() {
     return storedKey === computeActivationKey(getDeviceRequestCode());
   }
 
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return true;
-  }
-  const storedKey = (localStorage.getItem('GSDA_DIARY_ACTIVATION_KEY') || '').trim();
-  const status = localStorage.getItem('GSDA_DIARY_ACTIVATION_STATUS');
-  if (status !== 'ACTIVATED' || !storedKey) return false;
-
-  if (MASTER_BYPASS_KEYS.includes(storedKey.toUpperCase())) return true;
-
-  const currentReqCode = getDeviceRequestCode();
-  const expectedKey = computeActivationKey(currentReqCode);
-  return storedKey === expectedKey;
+  // Always unlocked by default for GitHub Pages, local files, and normal use
+  return true;
 }
 
 function checkDeviceActivation() {
@@ -4634,8 +4625,6 @@ function buildMonthPrintHtml(mdata, prof) {
         </div>
       </div>
     </div>
-  `;
-}
   `;
 }
 
